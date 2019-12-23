@@ -1,0 +1,13 @@
+using System;
+
+namespace YammerScraper
+{
+    public class RequestLog
+    {
+        public string Endpoint { get; set;}
+        
+        public DateTimeOffset RequestedAt { get; set; }
+
+        public string Category { get; set; }
+    }
+}
