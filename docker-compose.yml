@@ -1,0 +1,12 @@
+eventstore:
+  image: eventstore/eventstore
+  ports:
+    - 2113:2113 
+    - 1113:1113
+  environment:
+    - EVENTSTORE_RUN_PROJECTIONS=All 
+    - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+  volumes:
+    - ~/eventstore/labyrinth/data:/var/lib/eventstore 
+    - ~/eventstore/labyrinth/log:/var/log/eventstore
+  restart: always
