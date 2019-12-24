@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Flurl.Http;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace YammerScraper
 {
@@ -23,49 +23,50 @@ namespace YammerScraper
             _url = url;
             _token = token;
             _logger = logger;
-            _requestLog = new RequestLogger(_name, YammerLimits.RateLimits);
+            _requestLog = new RequestLogger(logger, _name, YammerLimits.RateLimits);
         }
 
         public async Task Automate()
         {
             try
             {
-                _logger.Information("Starting automation");
-                for (int i = 0; i < 30; i++)
+                _logger.LogInformation("Starting automation");
+                for (int i = 0; i < 50; i++)
                 {
-                    await CallEndpoint(YammerLimits.Other, "https://www.yammer.com/api/v1/users/current.json");
+                    await CallEndpoint(YammerLimits.Other, "https://www.yammer.com/api/v1/users/current.json", YammerLimits.RateLimits[YammerLimits.Other]);
                 }
-                _logger.Information("Automation complete");
+                _logger.LogInformation("Automation complete");
             }
             catch (Exception e)
             {
-                _logger.Error(e.Message);
-            }
-            finally {
-                _requestLog.Flush();
+                _logger.LogError(e.Message);
             }
         }
 
-        private async Task CallEndpoint(string category, string endpoint)
+        private async Task CallEndpoint(string category, string endpoint, RateLimit rate)
         {
-            var delay = _requestLog.IsLimited(category);
-            if (delay.HasValue)
+            var oldest = await _requestLog.Oldest(category);
+            if (oldest.HasValue)
             {
-                _logger.Warning($"Waiting {delay} for [{category}] {endpoint}");
-                await Task.Delay(delay.Value);
+                var waitUntil = oldest.Value.Add(rate.Duration);
+                if (waitUntil > DateTimeOffset.Now) {
+                    var delay = waitUntil.Subtract(DateTimeOffset.Now);
+                    _logger.LogWarning("Waiting {delay} for [{category}] {endpoint}", delay, category, endpoint);
+                    await Task.Delay(delay);
+                }
             }
-            _logger.Information($"Calling {endpoint}");
-            _requestLog.Log(category, endpoint);
+            _logger.LogWarning("Calling {endpoint}", endpoint);
+            await _requestLog.Log(category, endpoint, rate);
             try
             {
-                var json = await endpoint
-                    .WithOAuthBearerToken(_token)
-                    .GetStringAsync();
-                _logger.Information(json);
+                // var json = await endpoint
+                //     .WithOAuthBearerToken(_token)
+                //     .GetStringAsync();
+                // _logger.Information(json);
             }
             catch (FlurlHttpException ex)
             {
-                _logger.Error(ex.Message);
+                _logger.LogError(default(EventId), ex, ex.Message);
             }
         }
 

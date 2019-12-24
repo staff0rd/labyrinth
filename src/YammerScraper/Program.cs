@@ -1,10 +1,12 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using EventStore.ClientAPI.Exceptions;
 using McMaster.Extensions.CommandLineUtils;
 using McMaster.Extensions.CommandLineUtils.Validation;
 using Serilog;
 using Serilog.Events;
+using Serilog.Extensions.Logging;
 
 namespace YammerScraper
 {
@@ -37,7 +39,9 @@ namespace YammerScraper
 
             app.OnExecuteAsync(async (cancel) =>
             {
-                var scraper = new Scraper(new Uri(yammerUrl.Value()), token.Value(), Log.Logger);
+                var logger = new SerilogLoggerProvider(Log.Logger).CreateLogger(nameof(Program));
+                
+                var scraper = new Scraper(new Uri(yammerUrl.Value()), token.Value(), logger);
                 
                 await scraper.Automate();
                 

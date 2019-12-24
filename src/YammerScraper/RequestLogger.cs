@@ -2,20 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
+using EventStore.ClientAPI;
+using EventStore.ClientAPI.Projections;
+using EventStore.ClientAPI.SystemData;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace YammerScraper
 {
     public class RequestLogger
     {
         private readonly string _name;
+        private readonly IEventStoreConnection _events;
         private readonly IDictionary<string, RateLimit> _limits;
+        private readonly Projections _projections;
         private List<RequestLog> _requests;
 
-        public RequestLogger(string name, ReadOnlyDictionary<string, RateLimit> limits)
+        public RequestLogger(Microsoft.Extensions.Logging.ILogger logger, string name, ReadOnlyDictionary<string, RateLimit> limits)
         {
-            _name = $"{name}-requests.json";
+            _name = $"{name}Requests";
+            _events = EventStoreConnection.Create(new Uri("tcp://admin:changeit@localhost:1113"), _name);
+            _events.ConnectAsync().Wait();
+            _projections = new Projections(logger, new UserCredentials("admin", "changeit"));
+            _projections.CreateOrUpdate(_name, Queries.ApiRequests(_name)).Wait();
             _limits = limits;
             _requests = ReadRequests();
             Purge();
@@ -31,30 +41,25 @@ namespace YammerScraper
             return new List<RequestLog>();
         }
 
-        public void Log(string category, string endpoint)
+        public async Task Log(string category, string endpoint, RateLimit rate)
         {
-            _requests.Add(new RequestLog {Category = category, Endpoint = endpoint, RequestedAt = DateTimeOffset.Now });
-            Flush();
+            var ev = new RequestLog {Category = category, Endpoint = endpoint, RequestedAt = DateTimeOffset.Now, RateLimit = rate}.ToEvent("ApiRequest");
+
+            await _events.AppendToStreamAsync(_name, ExpectedVersion.Any, ev);
         }
 
-        public void Flush()
+        public async Task<DateTimeOffset?> Oldest(string category)
         {
-            Purge();
-            var json = JsonConvert.SerializeObject(_requests);
-            File.WriteAllText(_name, json);
-        }
+            var result = await _projections.GetState(_name, category);
 
-        public TimeSpan? IsLimited(string category)
-        {
-            Purge();
-            if (_requests.Count(r => r.Category == category) >= _limits[category].RequestCount) {
-                var oldestRequestTime =  _requests
-                    .Where(r => r.Category == category)
-                    .Min(r => r.RequestedAt);
-                var wait = DateTimeOffset.Now.Subtract(oldestRequestTime);
-                return _limits[category].Duration - wait;
-            }
-            return null; 
+            if (result == "")
+                return null;
+
+            dynamic json = JValue.Parse(result);
+
+            DateTimeOffset? oldest = json.oldest;
+
+            return oldest;
         }
 
         private void Purge()
