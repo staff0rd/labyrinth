@@ -63,9 +63,9 @@ namespace YammerScraper
             }
         }
 
-        internal async Task<string> GetPartitionState(string name, string category)
+        internal async Task<string> GetPartitionState(string projectionName, string partition)
         {
-            return await _manager.GetPartitionStateAsync(name, category, _credentials);
+            return await _manager.GetPartitionStateAsync(projectionName, partition, _credentials);
         }
     }
 }

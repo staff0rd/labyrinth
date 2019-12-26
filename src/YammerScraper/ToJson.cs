@@ -20,8 +20,8 @@ namespace YammerScraper
                 Guid.NewGuid(),
                 eventName,
                 true,
-                Encoding.ASCII.GetBytes(json), 
-                Encoding.ASCII.GetBytes(new { metadata = new { machine = Environment.MachineName }}.ToJson()));
+                Encoding.UTF8.GetBytes(json), 
+                Encoding.UTF8.GetBytes(new { metadata = new { machine = Environment.MachineName }}.ToJson()));
         }
     }
 }

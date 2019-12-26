@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Flurl.Http;
+using JsonDiffPatchDotNet;
 using Microsoft.Extensions.Logging;
 
 namespace YammerScraper
@@ -37,13 +38,28 @@ namespace YammerScraper
                 do 
                 {
                     var queryString = new { older_than = last };
-                    var messages = await Get(new MessagesSent(YammerLimits.RateLimits), queryString);
-                    if (messages != null) {
-                        foreach (var message in messages) {
-                        await _requestLog.Log(_streamName, "MessageCreated", message.ToJson());
+                    var response = await Get(new MessagesSent(_logger, YammerLimits.RateLimits), queryString);
+                    if (response != null) {
+                        foreach (var message in response.Messages)
+                        {
+                            await Sync(message, "Message", await _requestLog.GetMessage(message.Id));
                         }
-                        last = messages.Last()?.Id;
-                        _logger.LogInformation("Found {count} messages, last is {last}", messages.Count(), last);
+                        foreach (var user in response.References.Users) {
+                            await Sync(user, "User", await _requestLog.GetUser(user.Id), false);
+                        }
+                        foreach (var message in response.References.Messages) {
+                            await Sync(message, "Message", await _requestLog.GetMessage(message.Id), false);
+                        }
+                        foreach (var group in response.References.Groups) {
+                            await Sync(group, "Group", await _requestLog.GetGroup(group.Id), false);
+                        }
+                        foreach (var thread in response.References.Threads) {
+                            await Sync(thread, "Thread", await _requestLog.GetThread(thread.Id), false);
+                        }
+
+
+                        last = response.Messages.Last()?.Id;
+                        _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
                     } else {
                         last = null;
                     }
@@ -57,9 +73,27 @@ namespace YammerScraper
             }
         }
 
+        public async Task Sync<T>(T payload, string type, T existing, bool update = true) {
+            if (existing != null)
+            {
+                if (update) {
+                    var jdp = new JsonDiffPatch();
+                    var output = jdp.Diff(existing.ToJson(), payload.ToJson());
+                    if (output != null)
+                    {
+                        await _requestLog.RaiseEvent(_streamName, $"{type}Updated", payload.ToJson());
+                    }
+                }
+            }
+            else
+            {
+                await _requestLog.RaiseEvent(_streamName, $"{type}Created", payload.ToJson());
+            }
+        }
+
         private async Task<T> Get<T>(Request<T> request, object queryString)
         {
-            var oldest = await _requestLog.Oldest(request.Category);
+            var oldest = await _requestLog.GetOldestApiRequest(request.Category);
             if (oldest.HasValue)
             {
                 var waitUntil = oldest.Value.Add(request.RateLimit.Duration);
@@ -69,7 +103,7 @@ namespace YammerScraper
                     await Task.Delay(delay);
                 }
             }
-            await _requestLog.Log(_streamName, "ApiRequest", new RequestLog {Category = request.Category, Endpoint = request.Endpoint, RequestedAt = DateTimeOffset.Now, RateLimit = request.RateLimit}.ToJson());
+            await _requestLog.RaiseEvent(_streamName, "ApiRequest", new RequestLog {Category = request.Category, Endpoint = request.Endpoint, RequestedAt = DateTimeOffset.Now, RateLimit = request.RateLimit}.ToJson());
             try
             {
                 var url = request.Endpoint

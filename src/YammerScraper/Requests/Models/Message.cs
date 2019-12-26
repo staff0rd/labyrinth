@@ -119,6 +119,9 @@ namespace YammerScraper
     public static class Serialize
     {
         public static string ToJson(this Message self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
+        public static string ToJson(this User self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
+        public static string ToJson(this Thread self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
+        public static string ToJson(this Group self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
     }
 
     internal static class Converter
