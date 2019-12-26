@@ -15,13 +15,13 @@ namespace YammerScraper
             return JsonConvert.SerializeObject(obj, settings);
         }
 
-        public static EventData ToEvent(this object obj, string eventName) {
+        public static EventData ToEvent(this string json, string eventName) {
             return new EventData(
                 Guid.NewGuid(),
                 eventName,
                 true,
-                Encoding.ASCII.GetBytes(obj.ToJson()), 
-                Encoding.ASCII.GetBytes(new { metadata = new {}}.ToJson()));
+                Encoding.ASCII.GetBytes(json), 
+                Encoding.ASCII.GetBytes(new { metadata = new { machine = Environment.MachineName }}.ToJson()));
         }
     }
 }

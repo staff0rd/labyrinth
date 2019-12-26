@@ -26,19 +26,19 @@ namespace YammerScraper
             _manager = new ProjectionsManager(new EventStoreLogger(logger), endpoint, TimeSpan.FromSeconds(5), "http");
         }
 
-        public async Task CreateOrUpdate(string name, string query)
+        public async Task CreateOrUpdate(string projectionName, string query)
         {
-            var exists = await ProjectionExists(name, query);
+            var exists = await ProjectionExists(projectionName, query);
 
             switch (exists) {
                 case Exists.False: {
-                    await _manager.CreateContinuousAsync(name, query, _credentials);
-                    _logger.LogInformation("Query '{name}' created", name);
+                    await _manager.CreateContinuousAsync(projectionName, query, _credentials);
+                    _logger.LogInformation("Query '{name}' created", projectionName);
                     break;
                 }
                 case Exists.Outdated: {
-                    await _manager.UpdateQueryAsync(name, query, _credentials);
-                    _logger.LogInformation("Query '{name}' updated", name);
+                    await _manager.UpdateQueryAsync(projectionName, query, _credentials);
+                    _logger.LogInformation("Query '{name}' updated", projectionName);
                     break;
                 }
                 default: break;
@@ -63,7 +63,7 @@ namespace YammerScraper
             }
         }
 
-        internal async Task<string> GetState(string name, string category)
+        internal async Task<string> GetPartitionState(string name, string category)
         {
             return await _manager.GetPartitionStateAsync(name, category, _credentials);
         }
