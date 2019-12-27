@@ -6,7 +6,7 @@
 //
 //    var thread = Thread.FromJson(jsonString);
 
-namespace Robot
+namespace Robot.Yammer
 {
     using System;
     using System.Collections.Generic;
@@ -89,7 +89,7 @@ namespace Robot
 
     public partial class Thread
     {
-        public static Thread FromJson(string json) => JsonConvert.DeserializeObject<Thread>(json, Robot.Converter.Settings);
+        public static Thread FromJson(string json) => JsonConvert.DeserializeObject<Thread>(json, Robot.Yammer.Converter.Settings);
     }
 
 }

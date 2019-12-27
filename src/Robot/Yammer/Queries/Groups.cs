@@ -1,4 +1,4 @@
-namespace Robot
+namespace Robot.Yammer
 {
     public partial class Queries
     {

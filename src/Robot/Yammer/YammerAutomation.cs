@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Robot
+namespace Robot.Yammer
 {
     public class YammerAutomation {
         private readonly ILogger _logger;
@@ -10,9 +10,9 @@ namespace Robot
         private readonly string _token;
         private string _streamName = "Yammer";
 
-        public YammerAutomation(ILogger logger, EventStoreManager events, string token) {
+        public YammerAutomation(ILogger logger, string token) {
             _logger = logger;
-            _events = events;
+            _events = new EventStoreManager(logger, "Yammer", YammerLimits.RateLimits);
             _token = token;
         }
         

@@ -6,7 +6,7 @@
 //
 //    var message = Message.FromJson(jsonString);
 
-namespace Robot
+namespace Robot.Yammer
 {
     using System;
     using System.Collections.Generic;
@@ -113,15 +113,15 @@ namespace Robot
 
     public partial class Message
     {
-        public static Message FromJson(string json) => JsonConvert.DeserializeObject<Message>(json, Robot.Converter.Settings);
+        public static Message FromJson(string json) => JsonConvert.DeserializeObject<Message>(json, Robot.Yammer.Converter.Settings);
     }
 
     public static class Serialize
     {
-        public static string ToJson(this Message self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
-        public static string ToJson(this User self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
-        public static string ToJson(this Thread self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
-        public static string ToJson(this Group self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
+        public static string ToJson(this Message self) => JsonConvert.SerializeObject(self, Robot.Yammer.Converter.Settings);
+        public static string ToJson(this User self) => JsonConvert.SerializeObject(self, Robot.Yammer.Converter.Settings);
+        public static string ToJson(this Thread self) => JsonConvert.SerializeObject(self, Robot.Yammer.Converter.Settings);
+        public static string ToJson(this Group self) => JsonConvert.SerializeObject(self, Robot.Yammer.Converter.Settings);
     }
 
     internal static class Converter

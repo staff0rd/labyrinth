@@ -6,7 +6,7 @@
 //
 //    var group = Group.FromJson(jsonString);
 
-namespace Robot
+namespace Robot.Yammer
 {
     using System;
     using System.Collections.Generic;
@@ -87,7 +87,7 @@ namespace Robot
 
     public partial class Group
     {
-        public static Group FromJson(string json) => JsonConvert.DeserializeObject<Group>(json, Robot.Converter.Settings);
+        public static Group FromJson(string json) => JsonConvert.DeserializeObject<Group>(json, Robot.Yammer.Converter.Settings);
     }
 
     internal class ParseStringConverter : JsonConverter

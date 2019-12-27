@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Robot
+namespace Robot.Yammer
 {
     public class MessagesSent : Request<MessagesSentResponse>
     {

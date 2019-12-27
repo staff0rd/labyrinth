@@ -7,6 +7,7 @@ using McMaster.Extensions.CommandLineUtils.Validation;
 using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Robot
 {
@@ -23,29 +24,20 @@ namespace Robot
             
             Log.Logger = config.CreateLogger();
             
+            var logger = new SerilogLoggerProvider(Log.Logger).CreateLogger(nameof(Program));
+            
             var app = new CommandLineApplication();
 
             app.HelpOption();
 
-            var token = app
-                .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)
-                .IsRequired();
-
-            var yammerUrl = app
-                .Option("-u|--url <URL>", "Yammer url", CommandOptionType.SingleValue)
-                .IsRequired();
-
-            yammerUrl.Validators.Add(new MustBeUriValidator());
-
-            app.OnExecuteAsync(async (cancel) =>
-            {
-                var logger = new SerilogLoggerProvider(Log.Logger).CreateLogger(nameof(Program));
+            app.Command("yammer", yammer => {
+                var token = yammer
+                    .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)
+                    .IsRequired();
                 
-                var scraper = new Scraper(new Uri(yammerUrl.Value()), token.Value(), logger);
-                
-                await scraper.Automate();
-                
-                return 0;
+                yammer.OnExecuteAsync(async (cancel) => {
+                    await Automate(logger, () => new Robot.Yammer.YammerAutomation(logger, token.Value()).Automate());
+                });
             });
 
             try
@@ -61,6 +53,24 @@ namespace Robot
             {
                 Log.CloseAndFlush();
             }
+        }
+
+        static async Task<int> Automate(Microsoft.Extensions.Logging.ILogger logger, Func<Task> work) {
+            try
+                {
+                    logger.LogInformation("Starting automation");
+
+                    await work();
+                    
+                    logger.LogInformation("Automation complete");
+
+                    return 0;
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e.Message);
+                    return 1;
+                }
         }
     }
 

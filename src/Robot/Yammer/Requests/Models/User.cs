@@ -6,7 +6,7 @@
 //
 //    var user = User.FromJson(jsonString);
 
-namespace Robot
+namespace Robot.Yammer
 {
     using System;
     using System.Collections.Generic;
@@ -77,6 +77,6 @@ namespace Robot
 
     public partial class User
     {
-        public static User FromJson(string json) => JsonConvert.DeserializeObject<User>(json, Robot.Converter.Settings);
+        public static User FromJson(string json) => JsonConvert.DeserializeObject<User>(json, Robot.Yammer.Converter.Settings);
     }
 }
