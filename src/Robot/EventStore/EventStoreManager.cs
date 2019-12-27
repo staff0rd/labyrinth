@@ -22,17 +22,20 @@ namespace Robot
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
         private readonly Projections _projections;
 
-        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, string streamName, ReadOnlyDictionary<string, RateLimit> limits)
+        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, string streamName)
         {
             _streamName = streamName;
-            _limits = limits;
             _logger = logger;
             
             _store = EventStoreConnection.Create(new Uri("tcp://admin:changeit@localhost:1113"), "Robot");
             _store.ConnectAsync().Wait();
 
             _projections = new Projections(logger, new UserCredentials("admin", "changeit"));
-            
+        }
+
+        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, string streamName, ReadOnlyDictionary<string, RateLimit> limits) : this( logger, streamName)
+        {
+            _limits = limits;
         }
 
         public Task CreateOrUpdateProjection(string projectionName, string query) {

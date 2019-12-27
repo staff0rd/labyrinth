@@ -12,7 +12,7 @@ namespace Robot.Yammer
 
         public YammerAutomation(ILogger logger, string token) {
             _logger = logger;
-            _events = new EventStoreManager(logger, "Yammer", YammerLimits.RateLimits);
+            _events = new EventStoreManager(logger, _streamName, YammerLimits.RateLimits);
             _token = token;
         }
         

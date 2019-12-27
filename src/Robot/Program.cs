@@ -40,6 +40,19 @@ namespace Robot
                 });
             });
 
+            app.Command("linkedin", linkedIn => {
+                var username = linkedIn
+                    .Option("-u|--username <USERNAME>", "LinkedIn username", CommandOptionType.SingleValue)
+                    .IsRequired()
+                    .Accepts(a => a.EmailAddress());
+                var password = linkedIn
+                    .Option("-p|--password <PASSWORD>", "LinkedIn password", CommandOptionType.SingleValue)
+                    .IsRequired();
+                linkedIn.OnExecuteAsync(async (cancel) => {
+                    await Automate(logger, () => new Robot.LinkedIn.LinkedInAutomation(logger, username.Value(), password.Value()).Automate());
+                });
+            });
+
             try
             {
                 Log.Information("Welcome to Robot!");
