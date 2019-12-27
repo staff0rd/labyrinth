@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace YammerScraper
+namespace Robot
 {
     public class CurrentUserRequest : Request<string>
     {

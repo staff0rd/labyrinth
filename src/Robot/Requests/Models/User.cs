@@ -2,11 +2,11 @@
 //
 // To parse this JSON data, add NuGet 'Newtonsoft.Json' then do:
 //
-//    using YammerScraper;
+//    using Robot;
 //
 //    var user = User.FromJson(jsonString);
 
-namespace YammerScraper
+namespace Robot
 {
     using System;
     using System.Collections.Generic;
@@ -77,6 +77,6 @@ namespace YammerScraper
 
     public partial class User
     {
-        public static User FromJson(string json) => JsonConvert.DeserializeObject<User>(json, YammerScraper.Converter.Settings);
+        public static User FromJson(string json) => JsonConvert.DeserializeObject<User>(json, Robot.Converter.Settings);
     }
 }

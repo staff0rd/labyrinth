@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace YammerScraper
+namespace Robot
 {
     public class MessagesSentReferences {
         public List<Message> Messages { get; set;} = new List<Message>();

@@ -6,7 +6,7 @@ using Flurl.Http;
 using JsonDiffPatchDotNet;
 using Microsoft.Extensions.Logging;
 
-namespace YammerScraper
+namespace Robot
 {
     public class Scraper
     {

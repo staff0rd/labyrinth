@@ -2,11 +2,11 @@
 //
 // To parse this JSON data, add NuGet 'Newtonsoft.Json' then do:
 //
-//    using YammerScraper;
+//    using Robot;
 //
 //    var group = Group.FromJson(jsonString);
 
-namespace YammerScraper
+namespace Robot
 {
     using System;
     using System.Collections.Generic;
@@ -87,7 +87,7 @@ namespace YammerScraper
 
     public partial class Group
     {
-        public static Group FromJson(string json) => JsonConvert.DeserializeObject<Group>(json, YammerScraper.Converter.Settings);
+        public static Group FromJson(string json) => JsonConvert.DeserializeObject<Group>(json, Robot.Converter.Settings);
     }
 
     internal class ParseStringConverter : JsonConverter

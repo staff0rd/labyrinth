@@ -2,11 +2,11 @@
 //
 // To parse this JSON data, add NuGet 'Newtonsoft.Json' then do:
 //
-//    using YammerScraper;
+//    using Robot;
 //
 //    var message = Message.FromJson(jsonString);
 
-namespace YammerScraper
+namespace Robot
 {
     using System;
     using System.Collections.Generic;
@@ -113,15 +113,15 @@ namespace YammerScraper
 
     public partial class Message
     {
-        public static Message FromJson(string json) => JsonConvert.DeserializeObject<Message>(json, YammerScraper.Converter.Settings);
+        public static Message FromJson(string json) => JsonConvert.DeserializeObject<Message>(json, Robot.Converter.Settings);
     }
 
     public static class Serialize
     {
-        public static string ToJson(this Message self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
-        public static string ToJson(this User self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
-        public static string ToJson(this Thread self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
-        public static string ToJson(this Group self) => JsonConvert.SerializeObject(self, YammerScraper.Converter.Settings);
+        public static string ToJson(this Message self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
+        public static string ToJson(this User self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
+        public static string ToJson(this Thread self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
+        public static string ToJson(this Group self) => JsonConvert.SerializeObject(self, Robot.Converter.Settings);
     }
 
     internal static class Converter

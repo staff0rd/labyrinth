@@ -6,7 +6,7 @@ using EventStore.ClientAPI.Projections;
 using EventStore.ClientAPI.SystemData;
 using Microsoft.Extensions.Logging;
 
-namespace YammerScraper
+namespace Robot
 {
     public class Projections
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace YammerScraper
+namespace Robot
 {
     public class YammerLimits
     {

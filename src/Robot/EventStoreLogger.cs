@@ -2,7 +2,7 @@ using System;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
-namespace YammerScraper
+namespace Robot
 {
     public class EventStoreLogger : EventStore.ClientAPI.ILogger
     {

@@ -1,4 +1,4 @@
-namespace YammerScraper
+namespace Robot
 {
     public partial class Queries
     {

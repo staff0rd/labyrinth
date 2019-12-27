@@ -4,7 +4,7 @@ using EventStore.ClientAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace YammerScraper
+namespace Robot
 {
     public static class JsonExtensions
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace YammerScraper
+namespace Robot
 {
     public class RateLimit
     {

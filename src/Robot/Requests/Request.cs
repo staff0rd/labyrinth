@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace YammerScraper
+namespace Robot
 {
     public abstract class Request<T> {
         private readonly IDictionary<string, RateLimit> _rates;

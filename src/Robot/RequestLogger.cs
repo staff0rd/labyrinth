@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace YammerScraper
+namespace Robot
 {
     public class RequestLogger
     {
@@ -26,7 +26,7 @@ namespace YammerScraper
             _limits = limits;
             _logger = logger;
             
-            _store = EventStoreConnection.Create(new Uri("tcp://admin:changeit@localhost:1113"), "YammerScraper");
+            _store = EventStoreConnection.Create(new Uri("tcp://admin:changeit@localhost:1113"), "Robot");
             _store.ConnectAsync().Wait();
 
             _projections = new Projections(logger, new UserCredentials("admin", "changeit"));

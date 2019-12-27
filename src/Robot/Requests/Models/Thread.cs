@@ -2,11 +2,11 @@
 //
 // To parse this JSON data, add NuGet 'Newtonsoft.Json' then do:
 //
-//    using YammerScraper;
+//    using Robot;
 //
 //    var thread = Thread.FromJson(jsonString);
 
-namespace YammerScraper
+namespace Robot
 {
     using System;
     using System.Collections.Generic;
@@ -89,7 +89,7 @@ namespace YammerScraper
 
     public partial class Thread
     {
-        public static Thread FromJson(string json) => JsonConvert.DeserializeObject<Thread>(json, YammerScraper.Converter.Settings);
+        public static Thread FromJson(string json) => JsonConvert.DeserializeObject<Thread>(json, Robot.Converter.Settings);
     }
 
 }

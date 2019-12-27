@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace YammerScraper
+namespace Robot
 {
     public class MessagesSent : Request<MessagesSentResponse>
     {
