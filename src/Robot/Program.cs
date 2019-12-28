@@ -36,7 +36,7 @@ namespace Robot
                     .IsRequired();
                 
                 yammer.OnExecuteAsync(async (cancel) => {
-                    await Automate(logger, () => new Robot.Yammer.YammerAutomation(logger, token.Value()).Automate());
+                    await Automate(logger, () => new YammerAutomation(logger, token.Value()).Automate());
                 });
             });
 
@@ -49,7 +49,7 @@ namespace Robot
                     .Option("-p|--password <PASSWORD>", "LinkedIn password", CommandOptionType.SingleValue)
                     .IsRequired();
                 linkedIn.OnExecuteAsync(async (cancel) => {
-                    await Automate(logger, () => new Robot.LinkedIn.LinkedInAutomation(logger, username.Value(), password.Value()).Automate());
+                    await Automate(logger, () => new Robot.LinkedInAutomation(logger, username.Value(), password.Value()).Automate());
                 });
             });
 

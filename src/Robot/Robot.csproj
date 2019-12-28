@@ -9,9 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
-    <PackageReference Include="EventStore.Client" Version="5.0.5" />
-    <PackageReference Include="Flurl.Http" Version="2.4.2" />
-    <PackageReference Include="JsonDiffPatch.Net" Version="2.1.0" />
+    <!-- <PackageReference Include="EventStore.Client" Version="5.0.5" />
+    <PackageReference Include="Flurl.Http" Version="2.4.2" /> -->
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.4.4" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
@@ -22,6 +21,11 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Trace" Version="3.0.0-dev-00732" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Events\Events.csproj" />
+    <ProjectReference Include="..\Browser\Browser.csproj" />
   </ItemGroup>
 
 </Project>
