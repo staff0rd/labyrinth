@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useEffect} from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
 import { ApplicationState } from '../store';
@@ -11,44 +12,18 @@ type LinkedInProps =
   & RouteComponentProps<{ startDateIndex: string }>; // ... plus incoming routing parameters
 
 
-class LinkedIn extends React.PureComponent<LinkedInProps> {
-  // This method is called when the component is first added to the document
-  public componentDidMount() {
-    this.ensureDataFetched();
-  }
-
-  // This method is called when the route parameters change
-  public componentDidUpdate() {
-    this.ensureDataFetched();
-  }
-
-  public render() {
-    return (
-      <React.Fragment>
-        <h1 id="tabelLabel">LinkedIn</h1>
-        <p>This component demonstrates fetching data from the server and working with URL parameters.</p>
-        {this.renderForecastsTable()}
-        {/* {this.renderPagination()} */}
-      </React.Fragment>
-    );
-  }
-
-  private ensureDataFetched() {
-    this.props.requestUsers();
-  }
-
-  private renderForecastsTable() {
+const UserTable = (props: LinkedInProps) => {
     return (
       <table className='table table-striped' aria-labelledby="tabelLabel">
         <thead>
           <tr>
-            <th></th>
+            <th></th> 
             <th>Name</th>
             <th>Occupation</th>
           </tr>
         </thead>
         <tbody>
-          {this.props.users.map((user: LinkedInStore.User) =>
+          {props.users.map((user: LinkedInStore.User) =>
             <tr key={user.profileUrl}>
               <td><img src={user.mugshotUrl} /></td>
               <td>{user.name}</td>
@@ -58,7 +33,21 @@ class LinkedIn extends React.PureComponent<LinkedInProps> {
         </tbody>
       </table>
     );
-  }
+}
+
+const LinkedIn = (props: LinkedInProps) => {
+  useEffect(() => {
+    props.requestUsers();
+  }, []);
+
+  return (
+    <React.Fragment>
+      <h1 id="tabelLabel">LinkedIn</h1>
+      <p>This component demonstrates fetching data from the server and working with URL parameters.</p>
+      <UserTable {...props} />
+      {/* {this.renderPagination()} */}
+    </React.Fragment>
+  );
 
   // private renderPagination() {
   //   const prevStartDateIndex = (this.props.startDateIndex || 0) - 5;
