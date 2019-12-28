@@ -26,7 +26,8 @@ namespace Robot.LinkedIn
         }
         
         public async Task Automate() {
-            await Task.Delay(0);
+            await _events.CreateOrUpdateProjection($"{_streamName}Users", Queries.Users(_streamName));
+
             var driver = new ChromeDriver();
             WebDriverWait _wait = new WebDriverWait(driver, new TimeSpan(0, 0, 10));
             try {
@@ -45,10 +46,18 @@ namespace Robot.LinkedIn
                 driver.FindElement(By.CssSelector("[data-control-name='sort_by_recently_added']")).Click();
                 
                 _wait.Until(ExpectedConditions.ElementExists(By.CssSelector("button[aria-label^='Send message']")));
-                int s = int.Parse(driver.ExecuteScript("return document.getElementsByClassName('mn-connection-card').length").ToString());
-                Console.WriteLine(s);
-                s = (int)driver.ExecuteScript("return document.getElementsByClassName('mn-cssdonnection-card').length");
-                Console.WriteLine(s);
+                var connections = driver.FindElementsByClassName("mn-connection-card");
+                var totalConnections = connections.Count;
+                for (int i = 0; i < connections.Count; i++)
+                {
+                    var connection = connections[i];
+                    var card = new ConnectionCard(connection);
+                    driver.ExecuteScript("arguments[0].scrollIntoView()", connection);
+
+                    User user = User.From(card);
+                    await _events.Sync(user, "User", await GetUser(user.Id), true);
+                    connections = driver.FindElementsByClassName("mn-connection-card");
+                }
             }
             catch (Exception e) {
                 _logger.LogError(e, "Failed");
@@ -56,19 +65,16 @@ namespace Robot.LinkedIn
             finally {
                 driver?.Quit();
             }
-            // await _events.CreateOrUpdateProjection($"{_streamName}Users", Queries.Users(_streamName));
-            //await _events.Sync(user, "User", await GetUser(user.Id));
-
         }
         
-        // internal async Task<User> GetUser(long id)
-        // {
-        //     var result = await _events.GetPartitionState($"{_streamName}Users", id.ToString());
+        internal async Task<User> GetUser(string id)
+        {
+            var result = await _events.GetPartitionState($"{_streamName}Users", id);
 
-        //     if (result == "")
-        //         return null;
+            if (result == "")
+                return null;
 
-        //     return User.FromJson(result.ToString());
-        // }
+            return User.FromJson(result.ToString());
+        }
     }
 }
