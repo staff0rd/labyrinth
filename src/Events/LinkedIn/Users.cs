@@ -39,10 +39,12 @@ fromStream('" + StreamName + @"')
 fromStream('" + StreamName + @"')
 .when({
     $init:function(){
-        return {};
+        return [];
     },
     UserCreated: function(state, event){
-        state[event.data.id] = event.data;
+        const filtered = state.filter(u => (u.id !== event.data.id)); 
+        filtered.push(event.data);
+        return filtered;
     }
 });";
         }

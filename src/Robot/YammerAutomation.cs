@@ -15,7 +15,7 @@ namespace Robot
 
         public YammerAutomation(ILogger logger, string token) {
             _logger = logger;
-            _events = new EventStoreManager(logger, _streamName, YammerLimits.RateLimits);
+            _events = new EventStoreManager(logger, YammerLimits.RateLimits);
             _token = token;
         }
         
@@ -30,23 +30,23 @@ namespace Robot
                 do 
                 {
                     var queryString = new { older_than = last };
-                    var response = await _events.Get(new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, _token);
+                    var response = await _events.Get(_streamName, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, _token);
                     if (response != null) {
                         foreach (var message in response.Messages)
                         {
-                            await _events.Sync(message, "Message", await GetMessage(message.Id));
+                            await _events.Sync(_streamName, message, "Message", await GetMessage(message.Id));
                         }
                         foreach (var user in response.References.Users) {
-                            await _events.Sync(user, "User", await GetUser(user.Id), false);
+                            await _events.Sync(_streamName, user, "User", await GetUser(user.Id), false);
                         }
                         foreach (var message in response.References.Messages) {
-                            await _events.Sync(message, "Message", await GetMessage(message.Id), false);
+                            await _events.Sync(_streamName, message, "Message", await GetMessage(message.Id), false);
                         }
                         foreach (var group in response.References.Groups) {
-                            await _events.Sync(group, "Group", await GetGroup(group.Id), false);
+                            await _events.Sync(_streamName, group, "Group", await GetGroup(group.Id), false);
                         }
                         foreach (var thread in response.References.Threads) {
-                            await _events.Sync(thread, "Thread", await GetThread(thread.Id), false);
+                            await _events.Sync(_streamName, thread, "Thread", await GetThread(thread.Id), false);
                         }
 
 

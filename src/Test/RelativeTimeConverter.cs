@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Robot.LinkedIn;
+using Browser.LinkedIn;
 using Shouldly;
 using Xunit;
 

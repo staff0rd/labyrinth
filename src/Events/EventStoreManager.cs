@@ -17,15 +17,13 @@ namespace Events
 {
     public class EventStoreManager
     {
-        private readonly string _streamName;
         private readonly IEventStoreConnection _store;
         private readonly IDictionary<string, RateLimit> _limits;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
         private readonly Projections _projections;
 
-        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, string streamName)
+        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger)
         {
-            _streamName = streamName;
             _logger = logger;
             
             _store = EventStoreConnection.Create(new Uri("tcp://admin:changeit@localhost:1113"), "Robot");
@@ -34,7 +32,7 @@ namespace Events
             _projections = new Projections(logger, new UserCredentials("admin", "changeit"));
         }
 
-        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, string streamName, ReadOnlyDictionary<string, RateLimit> limits) : this( logger, streamName)
+        public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, ReadOnlyDictionary<string, RateLimit> limits) : this( logger)
         {
             _limits = limits;
         }
@@ -51,9 +49,9 @@ namespace Events
             return _projections.GetProjection(projectionName, partition);
         }
 
-        public async Task<T> Get<T>(Request<T> request, object queryString, string token)
+        public async Task<T> Get<T>(string streamName, Request<T> request, object queryString, string token)
         {
-            var oldest = await GetOldestApiRequest(request.Category);
+            var oldest = await GetOldestApiRequest(streamName, request.Category);
             if (oldest.HasValue)
             {
                 var waitUntil = oldest.Value.Add(request.RateLimit.Duration);
@@ -63,7 +61,7 @@ namespace Events
                     await Task.Delay(delay);
                 }
             }
-            await RaiseEvent(_streamName, "ApiRequest", new RequestLog {Category = request.Category, Endpoint = request.Endpoint, RequestedAt = DateTimeOffset.Now, RateLimit = request.RateLimit}.ToJson());
+            await RaiseEvent(streamName, "ApiRequest", new RequestLog {Category = request.Category, Endpoint = request.Endpoint, RequestedAt = DateTimeOffset.Now, RateLimit = request.RateLimit}.ToJson());
             try
             {
                 var url = request.Endpoint
@@ -87,14 +85,14 @@ namespace Events
         {
             var ev = payload.ToEvent(eventType);
 
-            await _store.AppendToStreamAsync(_streamName, ExpectedVersion.Any, ev);
+            await _store.AppendToStreamAsync(streamName, ExpectedVersion.Any, ev);
 
-            _logger.LogInformation("Raised {EventType} in {StreamName}", eventType, _streamName);
+            _logger.LogInformation("Raised {EventType} in {StreamName}", eventType, streamName);
         }
 
-        private async Task<DateTimeOffset?> GetOldestApiRequest(string category)
+        private async Task<DateTimeOffset?> GetOldestApiRequest(string streamName, string category)
         {
-            var result = await _projections.GetProjection($"{_streamName}ApiRequests", category);
+            var result = await _projections.GetProjection($"{streamName}{nameof(Events.Yammer.Queries.ApiRequests)}", category);
 
             if (result == "")
                 return null;
@@ -106,7 +104,7 @@ namespace Events
             return oldest;
         }
 
-        public async Task Sync<T>(T payload, string type, T existing, bool update = true) {
+        public async Task Sync<T>(string streamName, T payload, string type, T existing, bool update = true) {
             if (existing != null)
             {
                 if (update) {
@@ -114,13 +112,13 @@ namespace Events
                     var output = jdp.Diff(existing.ToJson(), payload.ToJson());
                     if (output != null)
                     {
-                        await RaiseEvent(_streamName, $"{type}Updated", payload.ToJson());
+                        await RaiseEvent(streamName, $"{type}Updated", payload.ToJson());
                     }
                 }
             }
             else
             {
-                await RaiseEvent(_streamName, $"{type}Created", payload.ToJson());
+                await RaiseEvent(streamName, $"{type}Created", payload.ToJson());
             }
         }
     }

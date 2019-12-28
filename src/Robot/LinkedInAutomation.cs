@@ -23,7 +23,7 @@ namespace Robot
 
         public LinkedInAutomation(ILogger logger, string username, string password) {
             _logger = logger;
-            _events = new EventStoreManager(logger, _streamName);
+            _events = new EventStoreManager(logger);
             _queries = new Queries(_events);
             _username = username;
             _password = password;
@@ -60,7 +60,7 @@ namespace Robot
                     driver.ExecuteScript("arguments[0].scrollIntoView()", connection);
 
                     User user = User.Create(card.Name, card.MugshotUrl, card.ProfileUrl, card.Occupation, card.ConnectedDate);
-                    await _events.Sync(user, "User", await _queries.GetUser(user.Id), true);
+                    await _events.Sync(_streamName, user, "User", await _queries.GetUser(user.Id), true);
                     connections = driver.FindElementsByClassName("mn-connection-card");
                 }
             }
