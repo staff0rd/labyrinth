@@ -10,7 +10,5 @@ namespace Robot.LinkedIn
         public string Occupation { get; set; }
 
         public string Connected { get; set; }
-
-
     }
 }
