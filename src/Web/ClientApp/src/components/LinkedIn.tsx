@@ -4,6 +4,13 @@ import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
 import { ApplicationState } from '../store';
 import * as LinkedInStore from '../store/LinkedIn';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import Avatar from '@material-ui/core/Avatar';
+import { makeStyles } from '@material-ui/core/styles';
 
 // At runtime, Redux will merge together...
 type LinkedInProps =
@@ -11,28 +18,72 @@ type LinkedInProps =
   & typeof LinkedInStore.actionCreators // ... plus action creators we've requested
   & RouteComponentProps<{ startDateIndex: string }>; // ... plus incoming routing parameters
 
+  const useStyles = makeStyles(theme => ({
+    card: {
+      minWidth: 275,
+      width: '100%',
+    },
+    bullet: {
+      display: 'inline-block',
+      margin: '0 2px',
+      transform: 'scale(0.8)',
+    },
+    title: {
+      fontSize: 14,
+    },
+    pos: {
+      marginBottom: 12,
+    },
+    large: {
+      width: theme.spacing(7),
+      height: theme.spacing(7),
+    },
+    root: {
+      display: 'flex',
+      '& > *': {
+        margin: theme.spacing(1),
+      },
+    },
+  }));
 
 const UserTable = (props: LinkedInProps) => {
-    return (
-      <table className='table table-striped' aria-labelledby="tabelLabel">
-        <thead>
-          <tr>
-            <th></th> 
-            <th>Name</th>
-            <th>Occupation</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.users.map((user: LinkedInStore.User) =>
-            <tr key={user.profileUrl}>
-              <td><img src={user.mugshotUrl} /></td>
-              <td>{user.name}</td>
-              <td>{user.occupation}</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    );
+  const classes = useStyles();
+  return (
+    <Grid container alignItems="stretch" spacing={1}>
+        {props.users.map((user: LinkedInStore.User) => 
+          <Grid xs={6} item key={user.profileUrl} style={{display: 'flex'}}>
+            <Card className={classes.card}>
+            <CardContent>
+              <Typography className={classes.title} color="textSecondary" gutterBottom>
+                LinkedIn
+              </Typography>
+              <div className={classes.root}>
+                <Avatar alt={user.name} src={user.mugshotUrl.startsWith('data') ? undefined : user.mugshotUrl} className={classes.large}>
+                  {user.mugshotUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
+                </Avatar>
+                <div>
+                  <Typography variant="h5" component="h2">
+                    {user.name}
+                  </Typography>
+                  <Typography className={classes.pos} color="textSecondary">
+                    {user.occupation}
+                  </Typography>
+                  {/* <Typography variant="body2" component="p">
+                    well meaning and kindly.
+                    <br />
+                    {'"a benevolent smile"'}
+                  </Typography> */}
+                </div>
+              </div>
+            </CardContent>
+            {/* <CardActions>
+              <Button size="small">Learn More</Button>
+            </CardActions> */}
+            </Card>
+        </Grid>
+        )}
+    </Grid>
+  );
 }
 
 const LinkedIn = (props: LinkedInProps) => {

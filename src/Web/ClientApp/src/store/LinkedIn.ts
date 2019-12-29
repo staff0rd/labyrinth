@@ -11,7 +11,7 @@ export interface LinkedInState {
 
 export interface User {
     mugshotUrl: string;
-    name: number;
+    name: string;
     occupation: number;
     profileUrl: string;
 }
@@ -40,7 +40,7 @@ type KnownAction = RequestUsersAction | ReceiveUsersAction;
 export const actionCreators = {
     requestUsers: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
         // Only load data if it's something we don't already have (and are not already loading)
-        fetch(`linkedin`)
+        fetch('api/linkedin')
             .then(response => response.json() as Promise<User[]>)
             .then(data => {
                 dispatch({ type: 'RECEIVE_USERS', users: data });

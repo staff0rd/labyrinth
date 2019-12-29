@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Web.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class LinkedInController : ControllerBase
     {
         private readonly ILogger<LinkedInController> _logger;
