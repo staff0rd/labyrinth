@@ -17,7 +17,6 @@ type UserCardsProps = {
 
 const useStyles = makeStyles(theme => ({
     card: {
-      minWidth: 275,
       width: '100%',
     },
     pos: {
@@ -62,7 +61,7 @@ export const ConnectedSince = (user: ConnectedSinceProps) => {
 const UserCard = (user: User) => {
     const classes = useStyles();
     return (
-        <Grid xs={6} item key={user.id} style={{display: 'flex'}}>
+        <Grid xs={12} sm={6} item key={user.id} style={{display: 'flex'}}>
             <Card className={classes.card}>
                 <CardContent>
                     <Grid container justify="space-between">
