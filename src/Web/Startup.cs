@@ -1,3 +1,4 @@
+using System;
 using Events;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,11 +32,20 @@ namespace Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSingleton(async provider =>
+            services.AddSingleton<EventStoreManager>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<EventStoreManager>>();
-                var events = new EventStoreManager(logger);
-                await events.MigrateProjections();
+                try {
+                    var events = new EventStoreManager(logger);
+                    events.MigrateProjections().Wait();
+                    return events;
+                } 
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to Migrate");
+                    throw;
+                }
+
             });
         }
 

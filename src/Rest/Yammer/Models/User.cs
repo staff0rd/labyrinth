@@ -17,9 +17,6 @@ namespace Rest.Yammer
 
     public partial class User
     {
-        [JsonProperty("type")]
-        public string Type { get; set; }
-
         [JsonProperty("id")]
         public long Id { get; set; }
 
