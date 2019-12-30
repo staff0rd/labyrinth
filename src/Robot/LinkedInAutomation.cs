@@ -14,24 +14,19 @@ namespace Robot
     public class LinkedInAutomation {
         private readonly ILogger _logger;
         private readonly EventStoreManager _events;
-        private readonly Queries _queries;
         private readonly string _username;
-
         private readonly string _password;
-
-        private string _streamName = Queries.StreamName;
+        private string _streamName = StreamNames.LinkedIn;
 
         public LinkedInAutomation(ILogger logger, string username, string password) {
             _logger = logger;
             _events = new EventStoreManager(logger);
-            _queries = new Queries(_events);
             _username = username;
             _password = password;
         }
         
         public async Task Automate() {
-            await _events.CreateOrUpdateProjection($"{_streamName}{nameof(_queries.UserById)}", _queries.UserById());
-            await _events.CreateOrUpdateProjection($"{_streamName}{nameof(_queries.AllUsers)}", _queries.AllUsers());
+            await _events.MigrateProjections();
 
             var driver = new ChromeDriver();
             WebDriverWait _wait = new WebDriverWait(driver, new TimeSpan(0, 0, 10));
@@ -60,7 +55,7 @@ namespace Robot
                     driver.ExecuteScript("arguments[0].scrollIntoView()", connection);
 
                     User user = User.Create(card.Name, card.MugshotUrl, card.ProfileUrl, card.Occupation, card.ConnectedDate);
-                    await _events.Sync(_streamName, user, "User", await _queries.GetUser(user.Id), true);
+                    await _events.Sync(_streamName, user, await new GetUserById().Get(_events, user.Id), true);
                     connections = driver.FindElementsByClassName("mn-connection-card");
                 }
             }

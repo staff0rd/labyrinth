@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Projections;
 using EventStore.ClientAPI.SystemData;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
 using Flurl.Http;
 using JsonDiffPatchDotNet;
@@ -20,6 +16,20 @@ namespace Events
         private readonly IEventStoreConnection _store;
         private readonly IDictionary<string, RateLimit> _limits;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
+
+        public async Task MigrateProjections()
+        {
+            await new GetApiRequestsByCategory().CreateOrUpdate(this);
+            
+            await new Yammer.GetMessageById().CreateOrUpdate(this);
+            await new Yammer.GetUserById().CreateOrUpdate(this);
+            await new Yammer.GetThreadById().CreateOrUpdate(this);
+            await new Yammer.GetGroupById().CreateOrUpdate(this);
+
+            await new LinkedIn.GetUserById().CreateOrUpdate(this);
+            await new LinkedIn.GetUsers().CreateOrUpdate(this);
+        }
+
         private readonly Projections _projections;
 
         public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger)
@@ -45,13 +55,13 @@ namespace Events
             return _projections.GetProjection(projectionName);
         }
 
-        public Task<string> GetProjection(string projectionName, string partition) {
+        internal Task<string> GetProjection(string projectionName, string partition) {
             return _projections.GetProjection(projectionName, partition);
         }
 
         public async Task<T> Get<T>(string streamName, Request<T> request, object queryString, string token)
         {
-            var oldest = await GetOldestApiRequest(streamName, request.Category);
+            var oldest = await new GetApiRequestsByCategory().GetOldest(this, request.Category);
             if (oldest.HasValue)
             {
                 var waitUntil = oldest.Value.Add(request.RateLimit.Duration);
@@ -90,21 +100,12 @@ namespace Events
             _logger.LogInformation("Raised {EventType} in {StreamName}", eventType, streamName);
         }
 
-        private async Task<DateTimeOffset?> GetOldestApiRequest(string streamName, string category)
+        private Task<DateTimeOffset?> GetOldestApiRequest(string category)
         {
-            var result = await _projections.GetProjection($"{streamName}{nameof(Events.Yammer.Queries.ApiRequests)}", category);
-
-            if (result == "")
-                return null;
-
-            dynamic json = JValue.Parse(result);
-
-            DateTimeOffset? oldest = json.oldest;
-
-            return oldest;
+            return new GetApiRequestsByCategory().GetOldest(this, category);
         }
 
-        public async Task Sync<T>(string streamName, T payload, string type, T existing, bool update = true) {
+        public async Task Sync<T>(string streamName, T payload, T existing, bool update = true) {
             if (existing != null)
             {
                 if (update) {
@@ -112,13 +113,13 @@ namespace Events
                     var output = jdp.Diff(existing.ToJson(), payload.ToJson());
                     if (output != null)
                     {
-                        await RaiseEvent(streamName, $"{type}Updated", payload.ToJson());
+                        await RaiseEvent(streamName, $"{payload.GetType().Name}Updated", payload.ToJson());
                     }
                 }
             }
             else
             {
-                await RaiseEvent(streamName, $"{type}Created", payload.ToJson());
+                await RaiseEvent(streamName, $"{payload.GetType().Name}Created", payload.ToJson());
             }
         }
     }

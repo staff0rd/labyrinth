@@ -31,10 +31,11 @@ namespace Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSingleton(provider =>
+            services.AddSingleton(async provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<EventStoreManager>>();
-                return new EventStoreManager(logger);
+                var events = new EventStoreManager(logger);
+                await events.MigrateProjections();
             });
         }
 

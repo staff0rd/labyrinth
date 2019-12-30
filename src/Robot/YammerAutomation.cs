@@ -11,7 +11,7 @@ namespace Robot
         private readonly ILogger _logger;
         private readonly EventStoreManager _events;
         private readonly string _token;
-        private string _streamName = "Yammer";
+        private string _streamName = StreamNames.Yammer;
 
         public YammerAutomation(ILogger logger, string token) {
             _logger = logger;
@@ -20,12 +20,8 @@ namespace Robot
         }
         
         public async Task Automate() {
-            await _events.CreateOrUpdateProjection($"{_streamName}ApiRequests", Queries.ApiRequests(_streamName));
-            await _events.CreateOrUpdateProjection($"{_streamName}Messages", Queries.Messages(_streamName));
-            await _events.CreateOrUpdateProjection($"{_streamName}Users", Queries.Users(_streamName));
-            await _events.CreateOrUpdateProjection($"{_streamName}Threads", Queries.Threads(_streamName));
-            await _events.CreateOrUpdateProjection($"{_streamName}Groups", Queries.Groups(_streamName));
-
+            await _events.MigrateProjections();
+            
             long? last = null;
                 do 
                 {
@@ -34,19 +30,24 @@ namespace Robot
                     if (response != null) {
                         foreach (var message in response.Messages)
                         {
-                            await _events.Sync(_streamName, message, "Message", await GetMessage(message.Id));
+                            var existing = await new GetMessageById().Get(_events, message.Id.ToString());
+                            await _events.Sync(_streamName, message, existing);
                         }
                         foreach (var user in response.References.Users) {
-                            await _events.Sync(_streamName, user, "User", await GetUser(user.Id), false);
+                            var existing = await new GetUserById().Get(_events, user.Id.ToString());
+                            await _events.Sync(_streamName, user, existing, false);
                         }
                         foreach (var message in response.References.Messages) {
-                            await _events.Sync(_streamName, message, "Message", await GetMessage(message.Id), false);
+                            var existing = await new GetMessageById().Get(_events, message.Id.ToString());
+                            await _events.Sync(_streamName, message, existing, false);
                         }
                         foreach (var group in response.References.Groups) {
-                            await _events.Sync(_streamName, group, "Group", await GetGroup(group.Id), false);
+                            var existing = await new GetGroupById().Get(_events, group.Id.ToString());
+                            await _events.Sync(_streamName, group, existing, false);
                         }
                         foreach (var thread in response.References.Threads) {
-                            await _events.Sync(_streamName, thread, "Thread", await GetThread(thread.Id), false);
+                            var existing = await new GetThreadById().Get(_events, thread.Id.ToString());
+                            await _events.Sync(_streamName, thread, existing, false);
                         }
 
 
@@ -56,45 +57,6 @@ namespace Robot
                         last = null;
                     }
                 } while(last != null);
-        }
-
-        internal async Task<Thread> GetThread(long id)
-        {
-            var result = await _events.GetProjection($"{_streamName}Threads", id.ToString());
-
-            if (result == "")
-                return null;
-
-            return Thread.FromJson(result.ToString());
-        }
-
-        internal async Task<Group> GetGroup(long id)
-        {
-            var result = await _events.GetProjection($"{_streamName}Groups", id.ToString());
-
-            if (result == "")
-                return null;
-
-            return Group.FromJson(result.ToString());
-        }
-
-        public async Task<Message> GetMessage(long id) {
-            var result = await _events.GetProjection($"{_streamName}Messages", id.ToString());
-
-            if (result == "")
-                return null;
-
-            return Message.FromJson(result.ToString());
-        }
-        
-        internal async Task<User> GetUser(long id)
-        {
-            var result = await _events.GetProjection($"{_streamName}Users", id.ToString());
-
-            if (result == "")
-                return null;
-
-            return User.FromJson(result.ToString());
         }
     }
 }

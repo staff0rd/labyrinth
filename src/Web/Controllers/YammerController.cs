@@ -3,21 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Events;
-using Events.LinkedIn;
+using Events.Yammer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Rest.Yammer;
 
 namespace Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class LinkedInController : ControllerBase
+    public class YammerController : ControllerBase
     {
-        private readonly ILogger<LinkedInController> _logger;
+        private readonly ILogger<YammerController> _logger;
 
         private readonly EventStoreManager _events;
 
-        public LinkedInController(ILogger<LinkedInController> logger, EventStoreManager events)
+        public YammerController(ILogger<YammerController> logger, EventStoreManager events)
         {
             _logger = logger;
             _events = events;
@@ -29,7 +30,7 @@ namespace Web.Controllers
             var users = await new GetUsers().Get(_events);
             if (!string.IsNullOrWhiteSpace(search))
             {
-                users = users.Where(u => u.Name.ToLower().Contains(search.ToLower()) || u.Occupation.ToLower().Contains(search.ToLower())).ToArray();
+                users = users.Where(u => u.Name.ToLower().Contains(search.ToLower()) || u.JobTitle.ToLower().Contains(search.ToLower())).ToArray();
             }
             return new PagedResult<User> {
                 Page = pageNumber,
