@@ -6,7 +6,7 @@ import { AppThunkAction } from '.';
 
 export interface LinkedInState {
     isLoading: boolean;
-    users: User[];
+    users: Paged<User>;
 }
 
 export interface User {
@@ -14,6 +14,7 @@ export interface User {
     name: string;
     occupation: number;
     profileUrl: string;
+    connected: Date;    
 }
 
 // -----------------
@@ -22,11 +23,20 @@ export interface User {
 
 interface RequestUsersAction {
     type: 'REQUEST_USERS';
+    pageSize: number;
+    page: number;
+}
+
+interface Paged<T> {
+    rows: T[]; 
+    pageSize: number; 
+    page: number; 
+    totalRows: number;
 }
 
 interface ReceiveUsersAction {
     type: 'RECEIVE_USERS';
-    users: User[];
+    users: Paged<User>;
 }
 
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
@@ -35,25 +45,24 @@ type KnownAction = RequestUsersAction | ReceiveUsersAction;
 
 // ----------------
 // ACTION CREATORS - These are functions exposed to UI components that will trigger a state transition.
-// They don't directly mutate state, but they can have external side-effects (such as loading data).
+// They don't directly mutate state, but they can have external side-effects (such as loading data)
 
 export const actionCreators = {
-    requestUsers: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
-        // Only load data if it's something we don't already have (and are not already loading)
-        fetch('api/linkedin')
-            .then(response => response.json() as Promise<User[]>)
+    requestUsers: (page: number, pageSize: number, search = ""): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        fetch(`api/linkedin?pageNumber=${page}&pageSize=${pageSize}&search=${search}`)
+            .then(response => response.json() as Promise<Paged<User>>)
             .then(data => {
                 dispatch({ type: 'RECEIVE_USERS', users: data });
             });
 
-        dispatch({ type: 'REQUEST_USERS' });
+        dispatch({ type: 'REQUEST_USERS', page, pageSize });
     }
 };
 
 // ----------------
 // REDUCER - For a given state and action, returns the new state. To support time travel, this must not mutate the old state.
 
-const unloadedState: LinkedInState = { users: [], isLoading: false };
+const unloadedState: LinkedInState = { users: { rows: [], page: 0, pageSize: 20, totalRows: 0}, isLoading: false };
 
 export const reducer: Reducer<LinkedInState> = (state: LinkedInState | undefined, incomingAction: Action): LinkedInState => {
     if (state === undefined) {

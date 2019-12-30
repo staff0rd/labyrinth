@@ -19,14 +19,16 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import PhonelinkSetupIcon from '@material-ui/icons/PhonelinkSetup';
 import { Omit } from '@material-ui/types';
 import { Link as RouterLink } from 'react-router-dom';
+import Constants from '../../Constants'
 import Link from '@material-ui/core/Link';
+import { useLocation } from 'react-router';
 
 const categories = [
   {
     id: 'Develop',
     children: [
-      { id: 'LinkedIn', icon: <PeopleIcon />, active: true, route: '/linkedin' },
-      { id: 'Authentication', icon: <PeopleIcon />, active: true, route: '/' },
+      { id: 'LinkedIn', icon: <PeopleIcon />, route: '/linkedin' },
+      { id: 'Authentication', icon: <PeopleIcon />, route: '/' },
       { id: 'Database', icon: <DnsRoundedIcon /> },
       { id: 'Storage', icon: <PermMediaOutlinedIcon /> },
       { id: 'Hosting', icon: <PublicIcon /> },
@@ -122,12 +124,12 @@ export interface NavigatorProps extends Omit<DrawerProps, 'classes'>, WithStyles
 
 function Navigator(props: NavigatorProps) {
   const { classes, ...other } = props;
-
+  const location = useLocation();
   return (
     <Drawer variant="permanent" {...other}>
       <List disablePadding>
         <ListItem className={clsx(classes.firebase, classes.item, classes.itemCategory)}>
-          Paperbase
+          { Constants.appName.toLowerCase() }
         </ListItem>
         <ListItem className={clsx(classes.item, classes.itemCategory)}>
           <ListItemIcon className={classes.itemIcon}>
@@ -152,7 +154,9 @@ function Navigator(props: NavigatorProps) {
                 {id}
               </ListItemText>
             </ListItem>
-            {children.map(({ id: childId, icon, active, route }) => (
+            {children.map(({ id: childId, icon, route }) => { 
+              const active = location.pathname === route;
+              return (
               <ListItemLink
                 key={childId}
                 button
@@ -165,7 +169,7 @@ function Navigator(props: NavigatorProps) {
                 icon={icon}
               >
               </ListItemLink>
-            ))}
+            );})}
             <Divider className={classes.divider} />
           </React.Fragment>
         ))}

@@ -24,9 +24,22 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        public async Task<User[]> Get()
+        public async Task<PagedResult<User>> Get(int pageNumber = 0, int pageSize = 20, string search = "")
         {
-            return await new Queries(_events).GetUsers();
+            var users = await new Queries(_events).GetUsers();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                users = users.Where(u => u.Name.ToLower().Contains(search.ToLower()) || u.Occupation.ToLower().Contains(search.ToLower())).ToArray();
+            }
+            return new PagedResult<User> {
+                Page = pageNumber,
+                PageSize = pageSize,
+                Rows = users
+                    .Skip(pageNumber * pageSize)
+                    .Take(pageSize)
+                    .ToArray(),
+                TotalRows = users.Count()
+            };
         }
     }
 }

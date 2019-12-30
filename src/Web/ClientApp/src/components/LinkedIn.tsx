@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect} from 'react';
+import { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
 import { ApplicationState } from '../store';
@@ -10,7 +10,18 @@ import CardContent from '@material-ui/core/CardContent';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Paper from '@material-ui/core/Paper';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import TablePagination from '@material-ui/core/TablePagination';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import SearchIcon from '@material-ui/icons/Search';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import { makeStyles } from '@material-ui/core/styles';
+import Moment from 'react-moment';
 
 // At runtime, Redux will merge together...
 type LinkedInProps =
@@ -28,9 +39,6 @@ type LinkedInProps =
       margin: '0 2px',
       transform: 'scale(0.8)',
     },
-    title: {
-      fontSize: 14,
-    },
     pos: {
       marginBottom: 12,
     },
@@ -44,19 +52,82 @@ type LinkedInProps =
         margin: theme.spacing(1),
       },
     },
+    searchBar: {
+      borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+      marginBottom: '16px'
+    },
+    searchInput: {
+      fontSize: theme.typography.fontSize,
+    },
+    block: {
+      display: 'block',
+    },
+    addUser: {
+      marginRight: theme.spacing(1),
+    },
   }));
 
-const UserTable = (props: LinkedInProps) => {
+const LinkedIn = (props: LinkedInProps) => {
+  const {
+    users
+  } = props
+
   const classes = useStyles();
+
+  const [search, setSearch] = useState('');
+  const [pageNumber, setPageNumber] = useState(props.users.page);
+  const [pageSize, setPageSize] = useState(props.users.pageSize);
+
+  useEffect(() => {
+    props.requestUsers(pageNumber, pageSize, search);
+  }, [pageNumber, pageSize, search]);
+
   return (
-    <Grid container alignItems="stretch" spacing={1}>
-        {props.users.map((user: LinkedInStore.User) => 
+    <React.Fragment>
+      <AppBar className={classes.searchBar} position="static" color="default" elevation={0}>
+        <Toolbar>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item>
+              <SearchIcon className={classes.block} color="inherit" />
+            </Grid>
+            <Grid item xs>
+              <TextField
+                fullWidth
+                placeholder="Search by name or occupation"
+                InputProps={{
+                  disableUnderline: true,
+                  className: classes.searchInput,
+                }}
+                onChange={(event: any) => setSearch(event.target.value)}
+              />
+            </Grid>
+            <Grid item>
+              <Tooltip title="Reload">
+                <IconButton>
+                  <RefreshIcon className={classes.block} color="inherit" />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+          </Grid>
+        </Toolbar>
+      </AppBar>
+      <Grid container alignItems="stretch" spacing={1}>
+        {props.users.rows.map((user: LinkedInStore.User) => 
           <Grid xs={6} item key={user.profileUrl} style={{display: 'flex'}}>
             <Card className={classes.card}>
             <CardContent>
-              <Typography className={classes.title} color="textSecondary" gutterBottom>
-                LinkedIn
-              </Typography>
+              <Grid container justify="space-between">
+                <Grid item>
+                  <Typography color="textSecondary">
+                    LinkedIn
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <Typography color="textSecondary">
+                    Connected <Moment fromNow>{user.connected}</Moment>
+                  </Typography>
+                </Grid>
+              </Grid>
               <div className={classes.root}>
                 <Avatar alt={user.name} src={user.mugshotUrl.startsWith('data') ? undefined : user.mugshotUrl} className={classes.large}>
                   {user.mugshotUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
@@ -68,11 +139,6 @@ const UserTable = (props: LinkedInProps) => {
                   <Typography className={classes.pos} color="textSecondary">
                     {user.occupation}
                   </Typography>
-                  {/* <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                    <br />
-                    {'"a benevolent smile"'}
-                  </Typography> */}
                 </div>
               </div>
             </CardContent>
@@ -83,35 +149,17 @@ const UserTable = (props: LinkedInProps) => {
         </Grid>
         )}
     </Grid>
-  );
-}
-
-const LinkedIn = (props: LinkedInProps) => {
-  useEffect(() => {
-    props.requestUsers();
-  }, []);
-
-  return (
-    <React.Fragment>
-      <h1 id="tabelLabel">LinkedIn</h1>
-      <p>This component demonstrates fetching data from the server and working with URL parameters.</p>
-      <UserTable {...props} />
-      {/* {this.renderPagination()} */}
+    <TablePagination 
+      count={users.totalRows}
+      rowsPerPage={users.pageSize}
+      rowsPerPageOptions={[20, 50, 100]}
+      component={Paper}
+      onChangePage={(_: any, page: number) => setPageNumber(page)}
+      onChangeRowsPerPage={((_:any, select:any) => setPageSize(select.key)) as any}
+      page={users.page}
+      />
     </React.Fragment>
   );
-
-  // private renderPagination() {
-  //   const prevStartDateIndex = (this.props.startDateIndex || 0) - 5;
-  //   const nextStartDateIndex = (this.props.startDateIndex || 0) + 5;
-
-  //   return (
-  //     <div className="d-flex justify-content-between">
-  //       <Link className='btn btn-outline-secondary btn-sm' to={`/fetch-data/${prevStartDateIndex}`}>Previous</Link>
-  //       {this.props.isLoading && <span>Loading...</span>}
-  //       <Link className='btn btn-outline-secondary btn-sm' to={`/fetch-data/${nextStartDateIndex}`}>Next</Link>
-  //     </div>
-  //   );
-  // }
 }
 
 export default connect(

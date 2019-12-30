@@ -13,13 +13,14 @@ import Link from '@material-ui/core/Link';
 import Navigator from './Navigator';
 import Content from './Content';
 import Header from './Header';
+import Constants from '../../Constants';
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        Your Website
+      <Link color="inherit" href={Constants.appUrl}>
+        { Constants.appName }
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
