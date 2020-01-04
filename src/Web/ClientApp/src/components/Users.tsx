@@ -15,7 +15,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import { UserCards } from './UserCards';
 import { makeStyles } from '@material-ui/core/styles';
 
-type UserSearchProps = {
+type UsersProps = {
   searchPlaceholder: string;
   searchRequest: (search: string, pageNumber: number, pageSize: number) => any;
   users: Paged<User>;
@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
     }
   }));
 
-export const UserSearch = (props: UserSearchProps) => {
+export const Users = (props: UsersProps) => {
   const { searchPlaceholder, searchRequest, users, } = props;
   const classes = useStyles();
   

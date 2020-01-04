@@ -25,7 +25,26 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        public async Task<PagedResult<UserCard>> Get(int pageNumber = 0, int pageSize = 20, string search = "")
+        [Route("messages")]
+        public async Task<PagedResult<Message>> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
+        {
+            var messages = await new GetMessages().Get(_events);
+            var result = messages.ToArray().GetPagedResult(pageNumber, pageSize, (m) => {
+                return m;
+            });
+            return result;
+        }
+
+        [HttpGet]
+        [Route("users/{id}")]
+        public async Task<UserCard> GetUser(string id) {
+            var user = await new GetUserById().Get(_events, id);
+            return UserCard.FromUser(user);
+        }
+
+        [HttpGet]
+        [Route("users")]
+        public async Task<PagedResult<UserCard>> GetUsers(int pageNumber = 0, int pageSize = 20, string search = "")
         {
             var users = await new GetUsers().Get(_events);
             if (!string.IsNullOrWhiteSpace(search))
@@ -34,33 +53,22 @@ namespace Web.Controllers
                 users = users.Where(u => ifNull(u.Name).ToLower().Contains(search.ToLower()) || ifNull(u.JobTitle).ToLower().Contains(search.ToLower())).ToArray();
             }
 
-            return new PagedResult<UserCard>
+            return users.GetPagedResult(pageNumber, pageSize, (u) => UserCard.FromUser(u));
+        }
+
+        private static PagedResult<TResult> PagedResult<TCollection, TResult>(TCollection[] items, int pageNumber, int pageSize, Func<TCollection, TResult> selector)
+        {
+            return new PagedResult<TResult>
             {
                 Page = pageNumber,
                 PageSize = pageSize,
-                Rows = users
+                Rows = items
                     .Skip(pageNumber * pageSize)
                     .Take(pageSize)
-                    .Select(u => new UserCard
-                    {
-                        AvatarUrl = ScaleMugshot(u),
-                        Id = u.Id.ToString(),
-                        Network = "Yammer",
-                        Name = u.FullName,
-                        Description = u.JobTitle,
-                    })
+                    .Select(selector)
                     .ToArray(),
-                TotalRows = users.Count()
+                TotalRows = items.Count()
             };
-        }
-
-        private static string ScaleMugshot(User u)
-        {
-            var result = u.MugshotUrl.ToString();
-            if (string.IsNullOrWhiteSpace(result))
-                return result;
-
-            return result.Replace("48x48", "128x128");
         }
     }
 }

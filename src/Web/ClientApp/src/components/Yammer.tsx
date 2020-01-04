@@ -1,21 +1,21 @@
 import * as React from 'react';
-import { RouteComponentProps } from 'react-router';
 import { connect } from 'react-redux';
 import { ApplicationState } from '../store';
 import * as YammerStore from '../store/Yammer';
-import { UserSearch } from './UserSearch';
+import { Users } from './Users'
+import { Messages } from './Messages'
 import { useLocation } from 'react-router-dom'
 ;import { bindActionCreators } from 'redux';
 import * as HeaderStore from '../store/Header';
 
 type YammerProps =
-  YammerStore.YammerState // ... state we've requested from the Redux store
+  YammerStore.YammerState
   & typeof YammerStore.actionCreators
-  & typeof HeaderStore.actionCreators
-  & RouteComponentProps; // ... plus action creators we've requested
+  & typeof HeaderStore.actionCreators;
 
 const Yammer = (props: YammerProps) => {
-  const searchRequest = (search: string, pageNumber: number, pageSize: number) => props.requestUsers(pageNumber, pageSize, search);
+  const requestUsers = (search: string, pageNumber: number, pageSize: number) => props.requestUsers(pageNumber, pageSize, search);
+  const requestMessages = (search: string, pageNumber: number, pageSize: number) => props.requestMessages(pageNumber, pageSize, search);
   const location = useLocation();
 
   React.useEffect(() => {
@@ -32,7 +32,10 @@ const Yammer = (props: YammerProps) => {
 
   switch (location.pathname) {
     case '/yammer/users': return (
-      <UserSearch users={props.users} searchPlaceholder="Search by name or job title" searchRequest={searchRequest} />
+      <Users users={props.users} searchPlaceholder="Search by name or job title" searchRequest={requestUsers} />
+    );
+    case '/yammer/messages': return (
+      <Messages messages={props.messages} searchPlaceholder="Search by sender or message content" searchRequest={requestMessages} />
     );
     default: return (<div>{location.pathname}</div>)
   }

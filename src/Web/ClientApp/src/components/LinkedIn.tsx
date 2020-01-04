@@ -1,18 +1,16 @@
 import * as React from 'react';
-import { RouteComponentProps } from 'react-router';
 import { bindActionCreators } from 'redux';
 import * as HeaderStore from '../store/Header';
 import { connect } from 'react-redux';
 import { ApplicationState } from '../store';
 import * as LinkedInStore from '../store/LinkedIn';
-import { UserSearch } from './UserSearch';
+import { Users } from './Users';
 import { useLocation} from "react-router";
 
 type LinkedInProps =
   LinkedInStore.LinkedInState // ... state we've requested from the Redux store
   & typeof LinkedInStore.actionCreators // ... plus action creators we've requested
-  & typeof HeaderStore.actionCreators
-  & RouteComponentProps<{ startDateIndex: string }>; // ... plus incoming routing parameters
+  & typeof HeaderStore.actionCreators;
 
 const LinkedIn = (props: LinkedInProps) => {
   const searchRequest = (search: string, pageNumber: number, pageSize: number) => props.requestUsers(pageNumber, pageSize, search);
@@ -32,7 +30,7 @@ const LinkedIn = (props: LinkedInProps) => {
 
   switch (location.pathname) {
     case '/linkedin/users': return (
-      <UserSearch users={props.users} searchPlaceholder="Search by name or occupation" searchRequest={searchRequest} />
+      <Users users={props.users} searchPlaceholder="Search by name or occupation" searchRequest={searchRequest} />
     );
     default: return (<div>{location.pathname}</div>)
   }
