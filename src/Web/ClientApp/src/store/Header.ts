@@ -3,9 +3,10 @@ import { Action, Reducer } from 'redux';
 // -----------------
 // STATE - This defines the type of data maintained in the Redux store.
 
-interface HeaderItem {
+export interface HeaderItem {
     title: string;
     to: string;
+    badge?: any;
 }
 
 export interface HeaderState {

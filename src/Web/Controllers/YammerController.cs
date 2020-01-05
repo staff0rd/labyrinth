@@ -36,6 +36,14 @@ namespace Web.Controllers
         }
 
         [HttpGet]
+        [Route("")]
+        public async Task<Overview> GetOverview()
+        {
+            var overview = await new GetOverview().Get(_events);
+            return overview;
+        }
+
+        [HttpGet]
         [Route("users/{id}")]
         public async Task<UserCard> GetUser(string id) {
             var user = await new GetUserById().Get(_events, id);

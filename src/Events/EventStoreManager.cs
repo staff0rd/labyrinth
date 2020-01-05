@@ -27,6 +27,7 @@ namespace Events
             await new Yammer.GetGroupById().CreateOrUpdate(this);
             await new Yammer.GetUsers().CreateOrUpdate(this);
             await new Yammer.GetMessages().CreateOrUpdate(this);
+            await new Yammer.GetOverview().CreateOrUpdate(this);
 
             await new LinkedIn.GetUserById().CreateOrUpdate(this);
             await new LinkedIn.GetUsers().CreateOrUpdate(this);

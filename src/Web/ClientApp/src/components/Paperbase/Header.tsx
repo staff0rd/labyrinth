@@ -5,6 +5,7 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import Hidden from '@material-ui/core/Hidden';
+import Badge from '@material-ui/core/Badge';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/Notifications';
@@ -57,6 +58,11 @@ function Header(props: HeaderProps) {
   const { classes, onDrawerToggle, title, items } = props;
   const history = useHistory();
   const location = useLocation();
+
+  const getTabLabel = (item: HeaderStore.HeaderItem) => {
+    if (item.badge) return `${item.title} (${item.badge})`;
+    return item.title;
+  };
   
   return (
     <React.Fragment>
@@ -135,7 +141,7 @@ function Header(props: HeaderProps) {
         <Tabs
           value={location.pathname}
           textColor="inherit">
-          { items.map(i => <Tab textColor="inherit" component={Link} label={i.title} to={i.to} value={i.to} /> )}          
+          { items.map(i => <Tab textColor="inherit" component={Link} label={getTabLabel(i)} to={i.to} value={i.to} /> )}          
         </Tabs>
       </AppBar>
     </React.Fragment>

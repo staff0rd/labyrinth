@@ -114,7 +114,7 @@ function Navigator(props: NavigatorProps) {
               primary: classes.itemPrimary,
             }}
           >
-            Project Overview
+            Overview
           </ListItemText>
         </ListItem>
         {categories.map(({ id, children }) => (

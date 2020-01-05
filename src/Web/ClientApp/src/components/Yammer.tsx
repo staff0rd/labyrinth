@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { ApplicationState } from '../store';
 import * as YammerStore from '../store/Yammer';
@@ -13,22 +13,38 @@ type YammerProps =
   & typeof YammerStore.actionCreators
   & typeof HeaderStore.actionCreators;
 
+type Overview = {
+  groups: number;
+  messages: number;
+  threads: number;
+  users: number;
+}
+
 const Yammer = (props: YammerProps) => {
+  const [overview, setOverview] = useState<Overview|undefined>(undefined);
   const requestUsers = (search: string, pageNumber: number, pageSize: number) => props.requestUsers(pageNumber, pageSize, search);
   const requestMessages = (search: string, pageNumber: number, pageSize: number) => props.requestMessages(pageNumber, pageSize, search);
   const location = useLocation();
+
+  useEffect(() => {
+    fetch(`api/yammer`)
+    .then(response => response.json() as Promise<Overview>)
+    .then(data => {
+        setOverview(data);
+    });
+}, [])
 
   React.useEffect(() => {
     props.setHeader({
       title: 'Yammer',
       items: [
         { title: 'Overview', to: '/yammer'},
-        { title: 'Users', to: '/yammer/users'},
-        { title: 'Messages', to: '/yammer/messages'},
+        { title: 'Users', badge: overview ? overview.users : undefined, to: '/yammer/users'},
+        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/yammer/messages'},
         { title: 'Notifications', to: '/yammer/notifications'},
       ],
     })
-  }, [])
+  }, [overview])
 
   switch (location.pathname) {
     case '/yammer/users': return (
