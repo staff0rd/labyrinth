@@ -48,7 +48,22 @@ namespace Web
                     logger.LogError(e, "Failed to Migrate");
                     throw;
                 }
+            });
 
+            services.AddSingleton<YammerStore>(provider => {
+                var logger = provider.GetRequiredService<ILogger<YammerStore>>();
+                try
+                {
+                    var events = provider.GetRequiredService<EventStoreManager>();
+                    var store = new YammerStore(events);
+                    store.Hydrate().Wait();
+                    return store;
+                } 
+                catch (Exception e)
+                {
+                    logger.LogError(e, $"Failed to create {nameof(YammerStore)}");
+                    throw;
+                }
             });
         }
 

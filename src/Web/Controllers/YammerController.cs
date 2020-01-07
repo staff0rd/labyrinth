@@ -18,18 +18,24 @@ namespace Web.Controllers
 
         private readonly EventStoreManager _events;
 
-        public YammerController(ILogger<YammerController> logger, EventStoreManager events)
+        private readonly YammerStore _store;
+
+        public YammerController(ILogger<YammerController> logger, EventStoreManager events, YammerStore store)
         {
             _logger = logger;
             _events = events;
+            _store = store;
         }
 
         [HttpGet]
         [Route("messages")]
-        public async Task<PagedResult<Message>> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
+        public PagedResult<Message> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
         {
-            var messages = await new GetMessages().Get(_events);
-            var result = messages.ToArray().GetPagedResult(pageNumber, pageSize, (m) => {
+            var messages = _store.Messages
+                .OrderByDescending(p => p.Value.CreatedAt)
+                .Select(p => p.Value);
+                
+            var result = messages.GetPagedResult(pageNumber, pageSize, (m) => {
                 return m;
             });
             return result;

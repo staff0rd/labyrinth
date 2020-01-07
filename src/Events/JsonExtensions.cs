@@ -23,5 +23,12 @@ namespace Events
                 Encoding.UTF8.GetBytes(json), 
                 Encoding.UTF8.GetBytes(new { metadata = new { machine = Environment.MachineName }}.ToJson()));
         }
+
+        public static string ToJson(this RecordedEvent data)
+        {
+            if (data == null) throw new ArgumentNullException("data");
+        
+            return Encoding.UTF8.GetString(data.Data);
+        }
     }
 }

@@ -54,11 +54,17 @@ const MessageCard = (message: Message) => {
 
         let replacedText = reactStringReplace(message, /\[\[user:(\d+)\]\]/g, (match, i) => (
             <UserBullet id={match} />
-          ));
+          )); // users
         
           replacedText = reactStringReplace(replacedText, /(https?:\/\/.+.(?:gif|jpg))/g, (match, i) => (
             <img src={match} />
-          ));
+          )); // images
+          
+          replacedText = reactStringReplace(replacedText, /((?:http|ftp|https):\/\/(?:[\w_-]+(?:(?:\.[\w_-]+)+))(?:[\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?)/g, (match, i) => {
+              return ( // images
+            <a href={match}>{match}</a>
+          )}); // urls
+          
 
         return (
         <React.Fragment>

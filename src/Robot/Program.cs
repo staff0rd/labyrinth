@@ -30,6 +30,12 @@ namespace Robot
 
             app.HelpOption();
 
+            app.Command("debug", debug => {
+                debug.OnExecuteAsync(async (cancel) => {
+                    await Automate(logger, () => new Debugger(logger).Go());
+                });
+            });
+
             app.Command("yammer", yammer => {
                 var token = yammer
                     .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)

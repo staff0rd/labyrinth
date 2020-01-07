@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Web.Controllers
 {
     public static class PagedResultExtension
     {
-        public static PagedResult<TResult> GetPagedResult<T, TResult>(this T[] items, int pageNumber, int pageSize, Func<T, TResult> selector)
+        public static PagedResult<TResult> GetPagedResult<T, TResult>(this IEnumerable<T> items, int pageNumber, int pageSize, Func<T, TResult> selector)
         {
             return new PagedResult<TResult>
             {

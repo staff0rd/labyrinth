@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Flurl.Http;
 using JsonDiffPatchDotNet;
 using Rest;
+using System.Diagnostics;
 
 namespace Events
 {
@@ -16,7 +17,6 @@ namespace Events
         private readonly IEventStoreConnection _store;
         private readonly IDictionary<string, RateLimit> _limits;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
-
         public async Task MigrateProjections()
         {
             await new GetApiRequestsByCategory().CreateOrUpdate(this);
@@ -48,6 +48,23 @@ namespace Events
         public EventStoreManager(Microsoft.Extensions.Logging.ILogger logger, ReadOnlyDictionary<string, RateLimit> limits) : this( logger)
         {
             _limits = limits;
+        }
+
+        public async Task ReadForward(string streamName, Action<ResolvedEvent[]> eventProcessor)
+        {
+            var sw = Stopwatch.StartNew();
+            StreamEventsSlice currentSlice;
+            long nextSliceStart = StreamPosition.Start;
+            do
+            {
+                currentSlice = await _store.ReadStreamEventsForwardAsync(streamName, nextSliceStart, 200, false);
+
+                nextSliceStart = currentSlice.NextEventNumber;
+
+                eventProcessor(currentSlice.Events);
+                    
+            } while (!currentSlice.IsEndOfStream);
+            _logger.LogInformation("It look {time} to read stream {streamName}", sw.Elapsed, streamName);
         }
 
         public Task CreateOrUpdateProjection(string projectionName, string query) {
