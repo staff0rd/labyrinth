@@ -15,20 +15,13 @@ namespace Events
             return JsonConvert.SerializeObject(obj, settings);
         }
 
-        public static EventData ToEvent(this string json, string eventName) {
-            return new EventData(
-                Guid.NewGuid(),
-                eventName,
-                true,
-                Encoding.UTF8.GetBytes(json), 
-                Encoding.UTF8.GetBytes(new { metadata = new { machine = Environment.MachineName }}.ToJson()));
-        }
-
-        public static string ToJson(this RecordedEvent data)
-        {
-            if (data == null) throw new ArgumentNullException("data");
-        
-            return Encoding.UTF8.GetString(data.Data);
+        public static Event ToEvent(this string json, Network network, Guid entityId, string eventName) {
+            return new Event {
+                Network = network,
+                EntityId = entityId,
+                EventName = eventName,
+                Body = json,
+            };
         }
     }
 }

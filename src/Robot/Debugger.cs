@@ -12,25 +12,25 @@ namespace Robot
     public class Debugger
     {
         private readonly ILogger _logger;
-        private readonly EventStoreManager _events;
         public Debugger(ILogger logger) {
             _logger = logger;
         }
 
         public async Task Go() {
-            var _events = new EventStoreManager(_logger);
+            await Task.Delay(0);
+            // var _events = new RestEventManager(_logger);
 
-            var messages = new Dictionary<long, Message>();
-            await _events.ReadForward("Yammer", (events) => { events
-                .Where(p => p.Event.EventType == "MessageCreated")
-                .Select(p => Message.FromJson(p.Event.ToJson()))
-                .ToList()
-                .ForEach(message => {
-                    if (!messages.ContainsKey(message.Id))
-                        messages.Add(message.Id, message);
-                });
-            });
-            var size = messages.Count;
+            // var messages = new Dictionary<long, Message>();
+            // await _events.ReadForward("Yammer", (events) => { events
+            //     .Where(p => p.Event.EventType == "MessageCreated")
+            //     .Select(p => Message.FromJson(p.Event.ToJson()))
+            //     .ToList()
+            //     .ForEach(message => {
+            //         if (!messages.ContainsKey(message.Id))
+            //             messages.Add(message.Id, message);
+            //     });
+            // });
+            // var size = messages.Count;
         }
     }
 }

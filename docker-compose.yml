@@ -1,12 +1,19 @@
-eventstore:
-  image: eventstore/eventstore
-  ports:
-    - 2113:2113 
-    - 1113:1113
-  environment:
-    - EVENTSTORE_RUN_PROJECTIONS=All 
-    - EVENTSTORE_START_STANDARD_PROJECTIONS=true
-  volumes:
-    - ~/eventstore/labyrinth/data:/var/lib/eventstore 
-    - ~/eventstore/labyrinth/log:/var/log/eventstore
-  restart: always
+version: '2'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+
+networks:
+  web:
+    external: true

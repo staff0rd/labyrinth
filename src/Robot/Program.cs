@@ -40,24 +40,30 @@ namespace Robot
                 var token = yammer
                     .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)
                     .IsRequired();
-                
+                var connectionString = yammer
+                    .Option("-c|--connection-string <CONNECTION-STRING>", "Connection string", CommandOptionType.SingleValue)
+                    .IsRequired();
+                var schema = yammer
+                    .Option("-s|--schema <SCHEMA>", "Schema name", CommandOptionType.SingleValue)
+                    .IsRequired();
+
                 yammer.OnExecuteAsync(async (cancel) => {
-                    await Automate(logger, () => new YammerAutomation(logger, token.Value()).Automate());
+                    await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value(), token.Value()).Automate());
                 });
             });
 
-            app.Command("linkedin", linkedIn => {
-                var username = linkedIn
-                    .Option("-u|--username <USERNAME>", "LinkedIn username", CommandOptionType.SingleValue)
-                    .IsRequired()
-                    .Accepts(a => a.EmailAddress());
-                var password = linkedIn
-                    .Option("-p|--password <PASSWORD>", "LinkedIn password", CommandOptionType.SingleValue)
-                    .IsRequired();
-                linkedIn.OnExecuteAsync(async (cancel) => {
-                    await Automate(logger, () => new Robot.LinkedInAutomation(logger, username.Value(), password.Value()).Automate());
-                });
-            });
+            // app.Command("linkedin", linkedIn => {
+            //     var username = linkedIn
+            //         .Option("-u|--username <USERNAME>", "LinkedIn username", CommandOptionType.SingleValue)
+            //         .IsRequired()
+            //         .Accepts(a => a.EmailAddress());
+            //     var password = linkedIn
+            //         .Option("-p|--password <PASSWORD>", "LinkedIn password", CommandOptionType.SingleValue)
+            //         .IsRequired();
+            //     linkedIn.OnExecuteAsync(async (cancel) => {
+            //         await Automate(logger, () => new Robot.LinkedInAutomation(logger, "", "", username.Value(), password.Value()).Automate());
+            //     });
+            // });
 
             try
             {

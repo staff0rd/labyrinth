@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Events;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -35,12 +36,12 @@ namespace Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSingleton<EventStoreManager>(provider =>
+            services.AddSingleton<RestEventManager>(provider =>
             {
-                var logger = provider.GetRequiredService<ILogger<EventStoreManager>>();
+                var logger = provider.GetRequiredService<ILogger<RestEventManager>>();
                 try {
-                    var events = new EventStoreManager(logger);
-                    events.MigrateProjections().Wait();
+                    var events = new RestEventManager(logger);
+                    events.Migrate().Wait();
                     return events;
                 } 
                 catch (Exception e)
@@ -54,9 +55,11 @@ namespace Web
                 var logger = provider.GetRequiredService<ILogger<YammerStore>>();
                 try
                 {
-                    var events = provider.GetRequiredService<EventStoreManager>();
+                    var events = provider.GetRequiredService<EventRepository>();
                     var store = new YammerStore(events);
+                    var sw = Stopwatch.StartNew();
                     store.Hydrate().Wait();
+                    logger.LogInformation("It look {time} to read network {network}", sw.Elapsed, Network.Yammer);
                     return store;
                 } 
                 catch (Exception e)

@@ -15,9 +15,9 @@ namespace Web.Controllers
     {
         private readonly ILogger<LinkedInController> _logger;
 
-        private readonly EventStoreManager _events;
+        private readonly RestEventManager _events;
 
-        public LinkedInController(ILogger<LinkedInController> logger, EventStoreManager events)
+        public LinkedInController(ILogger<LinkedInController> logger, RestEventManager events)
         {
             _logger = logger;
             _events = events;

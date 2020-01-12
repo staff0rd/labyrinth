@@ -16,11 +16,11 @@ namespace Web.Controllers
     {
         private readonly ILogger<YammerController> _logger;
 
-        private readonly EventStoreManager _events;
+        private readonly RestEventManager _events;
 
         private readonly YammerStore _store;
 
-        public YammerController(ILogger<YammerController> logger, EventStoreManager events, YammerStore store)
+        public YammerController(ILogger<YammerController> logger, RestEventManager events, YammerStore store)
         {
             _logger = logger;
             _events = events;
@@ -52,7 +52,7 @@ namespace Web.Controllers
         [HttpGet]
         [Route("users/{id}")]
         public async Task<UserCard> GetUser(string id) {
-            var user = await new GetUserById().Get(_events, id);
+            var user = await new GetUserByExternalId().Get(_events, id);
             return UserCard.FromUser(user);
         }
 
