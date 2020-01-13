@@ -2,23 +2,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using Dapper.Contrib.Extensions;
 using Npgsql;
 
 namespace Events
 {
-    public class NpgsqlExternalEntityRepository<TEntity> : NpgsqlRepository<TEntity, Guid>, IExternalEntityRepository<TEntity> where TEntity : class, IExternalEntity
-    {
-        public NpgsqlExternalEntityRepository(string connectionString, string schema) : base(connectionString, schema) {}
-        public async Task<TEntity> GetByExternalId(Network network, string externalId)
-        {
-            using (var connection = new NpgsqlConnection(_connectionString))
-            {
-                var result = await connection.QueryAsync<TEntity>($"SELECT * FROM {TableName} WHERE network={(int)network} and external_id='{externalId}'");
-                return result.FirstOrDefault();
-            }
-        }
-    }
-
     public class NpgsqlRepository<TEntity, TId> : IRepository<TEntity, TId> where TEntity : class, IEntity<TId>
     {
         protected readonly string _connectionString;
@@ -41,7 +29,7 @@ namespace Events
             }
         }
 
-        public async Task<Paginated<TEntity>> Paginate(Network network, int page = 0, int pageSize = 200)
+        public async Task<Paginated<TEntity>> Paginate(Network network, int page = 0, int pageSize = 200, string orderBy = "inserted_at ASC")
         {
             var offset = pageSize * page;
             var limit = pageSize;
@@ -52,7 +40,7 @@ namespace Events
                     Page = page,
                     PageSize = pageSize,
                     TotalRows = await connection.ExecuteAsync($"SELECT COUNT(*) FROM {TableName} WHERE network={(int)network}"),
-                    Rows = await connection.QueryAsync<TEntity>($"SELECT * FROM {TableName} WHERE network={(int)network} ORDER BY inserted_at DESC LIMIT {limit} OFFSET {offset}"),
+                    Rows = await connection.QueryAsync<TEntity>($"SELECT * FROM {TableName} WHERE network={(int)network} ORDER BY {orderBy} LIMIT {limit} OFFSET {offset}"),
                 };
             }
         }

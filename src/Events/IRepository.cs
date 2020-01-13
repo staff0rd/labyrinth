@@ -11,7 +11,7 @@ namespace Events
 
     public interface IRepository<TEntity, TId> where TEntity : class, IEntity<TId>
     {
-        Task<Paginated<TEntity>> Paginate(Network network, int page = 0, int pageSize = 200);
+        Task<Paginated<TEntity>> Paginate(Network network, int page, int pageSize, string orderBy);
         Task<TEntity> GetById(Guid id);
     }
 }

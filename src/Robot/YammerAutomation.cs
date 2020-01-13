@@ -1,8 +1,12 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Contrib.Extensions;
 using Events;
 using Events.Yammer;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Rest.Yammer;
 
 namespace Robot
@@ -11,18 +15,63 @@ namespace Robot
         private readonly ILogger _logger;
         private readonly EventRepository _events;
         private readonly RestEventManager _rest;
-        private readonly IExternalEntityRepository<Events.User> _users;
+        private readonly UserRepository _users;
         private readonly string _token;
-        private string _streamName = StreamNames.Yammer;
 
         public YammerAutomation(ILogger logger, string connectionString, string schema, string token) {
             _logger = logger;
             _events = new EventRepository(connectionString, schema);
             _rest = new RestEventManager(logger, connectionString, schema);
+            _users = new UserRepository(connectionString, schema);
             _token = token;
+            SqlMapperExtensions.TableNameMapper = (type) =>
+            {
+                return $"{schema}.{type.Name}s";
+            };
+            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+        }
+
+        public async Task Process() {
+            await _events.ReadForward(Network.Yammer, async (events) => { 
+                var bodies = events
+                    .Where(p => p.EventName == "RestApiRequest")
+                    .Select(p => p.Body)
+                    .ToList();
+                foreach ( var body in bodies)
+                {
+                    dynamic json = JsonConvert.DeserializeObject(body);
+                    
+                    foreach (var reference in json.response.references) {
+
+                        switch(reference.type.ToString()) {
+                            case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()));
+                            break;
+                            default: 
+                                _logger.LogWarning($"Unknown reference type: {reference.type}");
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        public async Task ProcessUser(Rest.Yammer.User user)
+        {
+            var existing = await _users.GetByExternalId(Network.Yammer, user.Id.ToString());
+            var received = Events.User.From(user);
+            if (existing == null)
+            {
+                await _users.Add(received);
+            } 
+            else
+            {
+                received.Id = existing.Id;
+            }
+            await _events.Sync(Network.Yammer, received, existing, _logger, true);
         }
         
-        public async Task Automate() {
+        public async Task Backfill()
+        {
             // TODO
             //await _events.Migrate();
             

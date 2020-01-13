@@ -38,7 +38,7 @@ namespace Events
             }
         }
 
-        public async Task ReadForward(Network network, Action<Event[]> eventProcessor)
+        public async Task ReadForward(Network network, Func<Event[], Task> eventProcessor)
         {
             Event[] currentSlice;
             int nextPage = 0;
@@ -50,7 +50,7 @@ namespace Events
 
                 nextPage++;
 
-                eventProcessor(currentSlice);
+                await eventProcessor(currentSlice);
                     
             } while (currentSlice.Length == PAGE_SIZE);
         }

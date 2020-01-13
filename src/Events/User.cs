@@ -11,5 +11,18 @@ namespace Events
         public Network Network { get; set;}
         public string Description { get; internal set; }
         public string ExternalId { get; set; }
+
+        public static User From(Rest.Yammer.User user)
+        {
+            return new User
+            {
+                AvatarUrl = user.MugshotUrl.AbsoluteUri,
+                Description = user.JobTitle,
+                ExternalId = user.Id.ToString(),
+                Name = user.Name,
+                Network = Network.Yammer,
+                Id = Guid.NewGuid(),
+            };
+        }
     }
 }

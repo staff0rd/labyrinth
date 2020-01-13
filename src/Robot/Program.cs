@@ -48,7 +48,7 @@ namespace Robot
                     .IsRequired();
 
                 yammer.OnExecuteAsync(async (cancel) => {
-                    await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value(), token.Value()).Automate());
+                    await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value(), token.Value()).Process());
                 });
             });
 

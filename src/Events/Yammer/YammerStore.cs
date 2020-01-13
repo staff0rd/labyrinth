@@ -22,14 +22,16 @@ namespace Events
         public async Task Hydrate()
         {
             var messages = new Dictionary<long, Message>();
-            await _events.ReadForward(Network.Yammer, (events) => { events
-                .Where(p => p.EventName == "MessageCreated")
-                .Select(p => Message.FromJson(p.Body))
-                .ToList()
-                .ForEach(message => {
-                    if (!messages.ContainsKey(message.Id))
-                        messages.Add(message.Id, message);
-                });
+            await _events.ReadForward(Network.Yammer, (events) => { 
+                events
+                    .Where(p => p.EventName == "MessageCreated")
+                    .Select(p => Message.FromJson(p.Body))
+                    .ToList()
+                    .ForEach(message => {
+                        if (!messages.ContainsKey(message.Id))
+                            messages.Add(message.Id, message);
+                    });
+                return Task.CompletedTask;
             });
             _messages = new ReadOnlyDictionary<long, Message>(messages);
         }
