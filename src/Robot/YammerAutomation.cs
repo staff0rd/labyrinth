@@ -16,6 +16,7 @@ namespace Robot
         private readonly EventRepository _events;
         private readonly RestEventManager _rest;
         private readonly UserRepository _users;
+        private readonly MessageRepository _messages;
         private readonly string _token;
 
         public YammerAutomation(ILogger logger, string connectionString, string schema, string token) {
@@ -23,6 +24,7 @@ namespace Robot
             _events = new EventRepository(connectionString, schema);
             _rest = new RestEventManager(logger, connectionString, schema);
             _users = new UserRepository(connectionString, schema);
+            _messages = new MessageRepository(connectionString, schema);
             _token = token;
             SqlMapperExtensions.TableNameMapper = (type) =>
             {
@@ -42,9 +44,10 @@ namespace Robot
                     dynamic json = JsonConvert.DeserializeObject(body);
                     
                     foreach (var reference in json.response.references) {
-
                         switch(reference.type.ToString()) {
                             case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()));
+                            break;
+                            case "message": await ProcessMessage(Rest.Yammer.Message.FromJson(reference.ToString()));
                             break;
                             default: 
                                 _logger.LogWarning($"Unknown reference type: {reference.type}");
@@ -68,6 +71,11 @@ namespace Robot
                 received.Id = existing.Id;
             }
             await _events.Sync(Network.Yammer, received, existing, _logger, true);
+        }
+        public async Task ProcessMessage(Rest.Yammer.Message message)
+        {
+            var existing = await _messages.GetByExternalId(Network.Yammer, message.Id.ToString());
+            var received = Events.Message.From(message);
         }
         
         public async Task Backfill()

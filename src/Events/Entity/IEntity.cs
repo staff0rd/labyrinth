@@ -11,8 +11,7 @@ namespace Events
         Network Network { get; set; }
     }
 
-    public interface IExternalEntity : IEntity<Guid>
+    public interface IExternalEntity : IEntity<string>
     {
-        string ExternalId { get; set; }
     }
 }

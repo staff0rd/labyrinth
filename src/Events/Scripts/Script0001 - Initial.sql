@@ -29,3 +29,15 @@ CREATE TABLE staff0rd.users (
   known_since timestamp(6) NULL,
   description text NULL
 );
+DROP TABLE IF EXISTS staff0rd.messages;
+CREATE TABLE staff0rd.messages (
+  id uuid primary key NOT NULL,
+  network int NOT NULL references public.networks(id),
+  external_id text NOT NULL,
+  unique(network, external_id),
+  sender_id uuid NOT NULL,
+  body_plain text NULL,
+  body_parsed text NULL,
+  created_at timestamp(6) NOT NULL
+)
+       

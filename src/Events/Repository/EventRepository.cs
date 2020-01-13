@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Dapper;
 using JsonDiffPatchDotNet;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using Npgsql;
 
 namespace Events
