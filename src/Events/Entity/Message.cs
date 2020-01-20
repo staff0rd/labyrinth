@@ -4,8 +4,8 @@ namespace Events
 {
     public class Message : IExternalEntity
     {
-        public Guid Id { get; set; }
-        public Guid SenderId { get; set;}
+        public string Id { get; set; }
+        public string SenderId { get; set;}
         public string BodyPlain { get; set;}
         public string BodyParsed { get; set; }
         public DateTime CreatedAt { get; set; }

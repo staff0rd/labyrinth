@@ -18,7 +18,6 @@ namespace Events
                 
                 parameters.Add("AvatarUrl", user.AvatarUrl);
                 parameters.Add("Description", user.Description);
-                parameters.Add("ExternalId", user.ExternalId);
                 parameters.Add("Name", user.Name);
                 parameters.Add("Network", user.Network);
                 parameters.Add("Id", user.Id);

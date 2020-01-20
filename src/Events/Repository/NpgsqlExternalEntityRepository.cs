@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace Events
 {
-    public class NpgsqlExternalEntityRepository<TEntity> : NpgsqlRepository<TEntity, Guid>, IExternalEntityRepository<TEntity> where TEntity : class, IExternalEntity
+    public class NpgsqlExternalEntityRepository<TEntity> : NpgsqlRepository<TEntity, string>, IExternalEntityRepository<TEntity> where TEntity : class, IExternalEntity
     {
         public NpgsqlExternalEntityRepository(string connectionString, string schema) : base(connectionString, schema) {}
         public async Task<TEntity> GetByExternalId(Network network, string externalId)

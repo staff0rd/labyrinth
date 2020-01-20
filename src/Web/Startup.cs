@@ -36,30 +36,13 @@ namespace Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSingleton<RestEventManager>(provider =>
-            {
-                var logger = provider.GetRequiredService<ILogger<RestEventManager>>();
-                try {
-                    var events = new RestEventManager(logger);
-                    events.Migrate().Wait();
-                    return events;
-                } 
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Failed to Migrate");
-                    throw;
-                }
-            });
-
             services.AddSingleton<YammerStore>(provider => {
                 var logger = provider.GetRequiredService<ILogger<YammerStore>>();
                 try
                 {
                     var events = provider.GetRequiredService<EventRepository>();
-                    var store = new YammerStore(events);
-                    var sw = Stopwatch.StartNew();
+                    var store = new YammerStore(events, logger);
                     store.Hydrate().Wait();
-                    logger.LogInformation("It look {time} to read network {network}", sw.Elapsed, Network.Yammer);
                     return store;
                 } 
                 catch (Exception e)

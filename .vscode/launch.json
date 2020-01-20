@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Robot/bin/Debug/netcoreapp3.1/Robot.dll",
-            "args": ["yammer", "-c", "User ID=postgres;Password=example;Host=localhost;Port=5432;Database=postgres;Pooling=true;", "-s", "staff0rd"],
-            "cwd": "${workspaceFolder}/Robot",
+            "program": "${workspaceFolder}/src/Robot/bin/Debug/netcoreapp3.1/Robot.dll",
+            "args": ["yammer", "-c", "User ID=postgres;Password=example;Host=localhost;Port=5432;Database=postgres;Pooling=true;", "-s", "staff0rd", "process"],
+            "cwd": "${workspaceFolder}/src/Robot",
             "console": "internalConsole",
             "stopAtEntry": false
         },

@@ -22,7 +22,6 @@ namespace Events
                 parameters.Add("BodyParsed", message.BodyParsed);
                 parameters.Add("CreatedAt", message.CreatedAt);
                 parameters.Add("Network", message.Network);
-                parameters.Add("ExternalId", message.ExternalId);
 
                 await connection.ExecuteAsync($@"
                 INSERT INTO {TableName} 

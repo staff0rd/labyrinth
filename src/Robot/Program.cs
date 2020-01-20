@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using EventStore.ClientAPI.Exceptions;
 using McMaster.Extensions.CommandLineUtils;
 using McMaster.Extensions.CommandLineUtils.Validation;
 using Serilog;
@@ -37,18 +36,30 @@ namespace Robot
             });
 
             app.Command("yammer", yammer => {
-                var token = yammer
-                    .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)
-                    .IsRequired();
+                yammer.HelpOption();
                 var connectionString = yammer
                     .Option("-c|--connection-string <CONNECTION-STRING>", "Connection string", CommandOptionType.SingleValue)
                     .IsRequired();
                 var schema = yammer
                     .Option("-s|--schema <SCHEMA>", "Schema name", CommandOptionType.SingleValue)
                     .IsRequired();
+                
+                yammer.Command("backfill", backfill => {
+                    backfill.HelpOption();
+                    var token = backfill
+                    .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)
+                    .IsRequired();
 
-                yammer.OnExecuteAsync(async (cancel) => {
-                    await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value(), token.Value()).Process());
+                    backfill.OnExecuteAsync(async (cancel) => {
+                        await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value(), token.Value()).Backfill());
+                    });
+                });
+
+                yammer.Command("process", process => {
+                    process.HelpOption();
+                    process.OnExecuteAsync(async (cancel) => {
+                        await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value()).Process());
+                    });
                 });
             });
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using JsonDiffPatchDotNet;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
@@ -24,7 +25,7 @@ namespace Events
             }
         }
 
-        public async Task Add(Network network, Guid entityId, string eventName, string body)
+        public async Task Add(Network network, string entityId, string eventName, string body)
         {
             var ev = body.ToEvent(network, entityId, eventName);
 
@@ -54,15 +55,17 @@ namespace Events
             } while (currentSlice.Length == PAGE_SIZE);
         }
 
-        public async Task Sync<T>(Network network, T payload, T existing, ILogger logger, bool update = true) where T: IEntity<Guid> 
+        public async Task Sync<T>(Network network, T payload, T existing, ILogger logger, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
         {
             if (existing != null)
             {
-                if (update) {
-                    var jdp = new JsonDiffPatch();
-                    var output = jdp.Diff(existing.ToJson(), payload.ToJson());
-                    if (output != null)
-                    {
+                CompareLogic compareLogic = new CompareLogic();
+                compareLogic.Config.MaxDifferences = 20;
+                var result = compareLogic.Compare(existing, payload);
+                if (!result.AreEqual)
+                {
+                    var importantDifferences = result.Differences.Count(p => !ignoreNulls.Contains(p.PropertyName) || p.Object2 != null);
+                    if (importantDifferences > 0) {
                         var eventName = $"{payload.GetType().Name}Updated";
                         await Add(network, payload.Id, eventName, payload.ToJson());
                         logger.LogInformation("Raised {eventName} in {network}", eventName, network);

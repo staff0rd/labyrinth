@@ -29,7 +29,7 @@ namespace Web.Controllers
 
         [HttpGet]
         [Route("messages")]
-        public PagedResult<Message> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
+        public PagedResult<Events.Message> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
         {
             var messages = _store.Messages
                 .OrderByDescending(p => p.Value.CreatedAt)
@@ -43,28 +43,28 @@ namespace Web.Controllers
 
         [HttpGet]
         [Route("")]
-        public async Task<Overview> GetOverview()
+        public Overview GetOverview()
         {
-            var overview = await new GetOverview().Get(_events);
+            var overview = _store.GetOverview();
             return overview;
         }
 
         [HttpGet]
         [Route("users/{id}")]
-        public async Task<UserCard> GetUser(string id) {
-            var user = await new GetUserByExternalId().Get(_events, id);
+        public UserCard GetUser(string id) {
+            var user = _store.Users[id];
             return UserCard.FromUser(user);
         }
 
         [HttpGet]
         [Route("users")]
-        public async Task<PagedResult<UserCard>> GetUsers(int pageNumber = 0, int pageSize = 20, string search = "")
+        public PagedResult<UserCard> GetUsers(int pageNumber = 0, int pageSize = 20, string search = "")
         {
-            var users = await new GetUsers().Get(_events);
+            var users = _store.Users.Select(x => x.Value);
             if (!string.IsNullOrWhiteSpace(search))
             {
                 Func<string, string> ifNull = (string a) => a == null ? "" : a;
-                users = users.Where(u => ifNull(u.Name).ToLower().Contains(search.ToLower()) || ifNull(u.JobTitle).ToLower().Contains(search.ToLower())).ToArray();
+                users = users.Where(u => ifNull(u.Name).ToLower().Contains(search.ToLower()) || ifNull(u.Description).ToLower().Contains(search.ToLower())).ToArray();
             }
 
             return users.GetPagedResult(pageNumber, pageSize, (u) => UserCard.FromUser(u));

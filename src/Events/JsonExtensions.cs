@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using EventStore.ClientAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -15,7 +14,7 @@ namespace Events
             return JsonConvert.SerializeObject(obj, settings);
         }
 
-        public static Event ToEvent(this string json, Network network, Guid entityId, string eventName) {
+        public static Event ToEvent(this string json, Network network, string entityId, string eventName) {
             return new Event {
                 Network = network,
                 EntityId = entityId,

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.SystemData;
 using Microsoft.Extensions.Logging;
 using Flurl.Http;
 using JsonDiffPatchDotNet;
@@ -92,7 +90,7 @@ namespace Events
                 return default(T);
             }
             finally {
-                await _events.Add(network, Guid.NewGuid(), "RestApiRequest", new RestApiRequest
+                await _events.Add(network, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
                 {
                     Category = request.Category,
                     Data = queryString.ToJson(),

@@ -12,24 +12,23 @@ namespace Web.Controllers
         public string Network { get; set;}
         public string Description { get; internal set; }
 
-        internal static UserCard FromUser(User u)
+        internal static UserCard FromUser(Events.User u)
         {
             return new UserCard
                 {
-                    AvatarUrl = ScaleMugshot(u),
-                    Id = u.Id.ToString(),
+                    AvatarUrl = ScaleMugshot(u.AvatarUrl),
+                    Id = u.Id,
                     Network = "Yammer",
-                    Name = u.FullName,
-                    Description = u.JobTitle,
+                    Name = u.Name,
+                    Description = u.Description,
                 };
         }
-        private static string ScaleMugshot(User u)
+        private static string ScaleMugshot(string url)
         {
-            var result = u.MugshotUrl.ToString();
-            if (string.IsNullOrWhiteSpace(result))
-                return result;
+            if (string.IsNullOrWhiteSpace(url))
+                return url;
 
-            return result.Replace("48x48", "128x128");
+            return url.Replace("48x48", "128x128");
         }
     }
 }

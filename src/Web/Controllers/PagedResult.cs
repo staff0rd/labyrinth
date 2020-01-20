@@ -4,6 +4,13 @@ using System.Linq;
 
 namespace Web.Controllers
 {
+    public class PagedResult<T>
+    {
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public T[] Rows { get; set; }
+        public int TotalRows { get; set; }
+    }
     public static class PagedResultExtension
     {
         public static PagedResult<TResult> GetPagedResult<T, TResult>(this IEnumerable<T> items, int pageNumber, int pageSize, Func<T, TResult> selector)

@@ -26,7 +26,7 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<PagedResult<UserCard>> Get(int pageNumber = 0, int pageSize = 20, string search = "")
         {
-            var users = await new GetUsers().Get(_events);
+            var users = _store.Users.Select(x => x.Value);
             if (!string.IsNullOrWhiteSpace(search))
             {
                 users = users.Where(u => u.Name.ToLower().Contains(search.ToLower()) || u.Occupation.ToLower().Contains(search.ToLower())).ToArray();

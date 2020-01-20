@@ -1,3 +1,4 @@
+CREATE SCHEMA IF NOT EXISTS staff0rd;
 DROP TABLE IF EXISTS staff0rd.events;
 DROP TABLE IF EXISTS public.networks;
 
@@ -18,26 +19,3 @@ CREATE TABLE staff0rd.events (
   inserted_at timestamp(6) NOT NULL DEFAULT statement_timestamp()
 );
 
-DROP TABLE IF EXISTS staff0rd.users;
-CREATE TABLE staff0rd.users (
-  id uuid primary key NOT NULL,
-  network int NOT NULL references public.networks(id),
-  external_id text NOT NULL,
-  unique(network, external_id),
-  avatar_url text NULL,
-  name text NOT NULL,
-  known_since timestamp(6) NULL,
-  description text NULL
-);
-DROP TABLE IF EXISTS staff0rd.messages;
-CREATE TABLE staff0rd.messages (
-  id uuid primary key NOT NULL,
-  network int NOT NULL references public.networks(id),
-  external_id text NOT NULL,
-  unique(network, external_id),
-  sender_id uuid NOT NULL,
-  body_plain text NULL,
-  body_parsed text NULL,
-  created_at timestamp(6) NOT NULL
-)
-       

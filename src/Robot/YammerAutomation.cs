@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Contrib.Extensions;
@@ -15,16 +16,17 @@ namespace Robot
         private readonly ILogger _logger;
         private readonly EventRepository _events;
         private readonly RestEventManager _rest;
-        private readonly UserRepository _users;
-        private readonly MessageRepository _messages;
+        private readonly YammerStore _store;
         private readonly string _token;
+
+        public YammerAutomation(ILogger logger, string connectionString, string schema)
+            : this(logger, connectionString, schema, null) {}
 
         public YammerAutomation(ILogger logger, string connectionString, string schema, string token) {
             _logger = logger;
             _events = new EventRepository(connectionString, schema);
             _rest = new RestEventManager(logger, connectionString, schema);
-            _users = new UserRepository(connectionString, schema);
-            _messages = new MessageRepository(connectionString, schema);
+            _store = new YammerStore(_events, _logger);
             _token = token;
             SqlMapperExtensions.TableNameMapper = (type) =>
             {
@@ -34,6 +36,8 @@ namespace Robot
         }
 
         public async Task Process() {
+            await _store.Hydrate();
+
             await _events.ReadForward(Network.Yammer, async (events) => { 
                 var bodies = events
                     .Where(p => p.EventName == "RestApiRequest")
@@ -42,6 +46,10 @@ namespace Robot
                 foreach ( var body in bodies)
                 {
                     dynamic json = JsonConvert.DeserializeObject(body);
+
+                    foreach(var message in json.response.messages) {
+                        await ProcessMessage(Rest.Yammer.Message.FromJson(message.ToString()));
+                    }
                     
                     foreach (var reference in json.response.references) {
                         switch(reference.type.ToString()) {
@@ -60,22 +68,23 @@ namespace Robot
 
         public async Task ProcessUser(Rest.Yammer.User user)
         {
-            var existing = await _users.GetByExternalId(Network.Yammer, user.Id.ToString());
             var received = Events.User.From(user);
+            _store.Users.TryGetValue(received.Id, out var existing);
             if (existing == null)
             {
-                await _users.Add(received);
+                _store.Add(received);
             } 
-            else
-            {
-                received.Id = existing.Id;
-            }
-            await _events.Sync(Network.Yammer, received, existing, _logger, true);
+            await _events.Sync(Network.Yammer, received, existing, _logger, new string[] {});
         }
+
         public async Task ProcessMessage(Rest.Yammer.Message message)
         {
-            var existing = await _messages.GetByExternalId(Network.Yammer, message.Id.ToString());
             var received = Events.Message.From(message);
+            _store.Messages.TryGetValue(received.Id, out var existing);
+            if (existing == null) {
+                _store.Add(received);
+            }
+            await _events.Sync(Network.Yammer, received, existing, _logger, new [] { "BodyParsed" });
         }
         
         public async Task Backfill()
