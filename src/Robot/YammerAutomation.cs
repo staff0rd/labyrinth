@@ -16,7 +16,7 @@ namespace Robot
         private readonly ILogger _logger;
         private readonly EventRepository _events;
         private readonly RestEventManager _rest;
-        private readonly YammerStore _store;
+        private readonly Store _store;
         private readonly string _token;
 
         public YammerAutomation(ILogger logger, string connectionString, string schema)
@@ -26,7 +26,7 @@ namespace Robot
             _logger = logger;
             _events = new EventRepository(connectionString, schema);
             _rest = new RestEventManager(logger, connectionString, schema);
-            _store = new YammerStore(_events, _logger);
+            _store = new Store(_events, _logger);
             _token = token;
             SqlMapperExtensions.TableNameMapper = (type) =>
             {
@@ -43,7 +43,7 @@ namespace Robot
                     .Where(p => p.EventName == "RestApiRequest")
                     .Select(p => p.Body)
                     .ToList();
-                foreach ( var body in bodies)
+                foreach (var body in bodies)
                 {
                     dynamic json = JsonConvert.DeserializeObject(body);
 
@@ -69,10 +69,10 @@ namespace Robot
         public async Task ProcessUser(Rest.Yammer.User user)
         {
             var received = Events.User.From(user);
-            _store.Users.TryGetValue(received.Id, out var existing);
+            var existing = _store.GetUser(Network.Yammer, received.Id);
             if (existing == null)
             {
-                _store.Add(received);
+                _store.Add(Network.Yammer, received);
             } 
             await _events.Sync(Network.Yammer, received, existing, _logger, new string[] {});
         }
@@ -80,10 +80,11 @@ namespace Robot
         public async Task ProcessMessage(Rest.Yammer.Message message)
         {
             var received = Events.Message.From(message);
-            _store.Messages.TryGetValue(received.Id, out var existing);
-            if (existing == null) {
-                _store.Add(received);
-            }
+            var existing = _store.GetMessage(Network.Yammer, received.Id);
+            if (existing == null)
+            {
+                _store.Add(Network.Yammer, received);
+            } 
             await _events.Sync(Network.Yammer, received, existing, _logger, new [] { "BodyParsed" });
         }
         

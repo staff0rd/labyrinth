@@ -18,8 +18,13 @@ namespace Events
                 Description = user.JobTitle,
                 Name = user.Name,
                 Network = Network.Yammer,
-                Id = $"yammer/user/{user.Id}",
+                Id = user.Id.AsId<User>(Network.Yammer),
             };
+        }
+    }
+    public static class IdExtension {
+        public static string AsId<T>(this object externalId, Network network) {
+            return $"{network.ToString().ToLower()}/{nameof(T).ToLower()}/{externalId}";
         }
     }
 }

@@ -36,18 +36,18 @@ namespace Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSingleton<YammerStore>(provider => {
-                var logger = provider.GetRequiredService<ILogger<YammerStore>>();
+            services.AddSingleton<Store>(provider => {
+                var logger = provider.GetRequiredService<ILogger<Store>>();
                 try
                 {
                     var events = provider.GetRequiredService<EventRepository>();
-                    var store = new YammerStore(events, logger);
+                    var store = new Store(events, logger);
                     store.Hydrate().Wait();
                     return store;
                 } 
                 catch (Exception e)
                 {
-                    logger.LogError(e, $"Failed to create {nameof(YammerStore)}");
+                    logger.LogError(e, $"Failed to create {nameof(Store)}");
                     throw;
                 }
             });

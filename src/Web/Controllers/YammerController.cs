@@ -18,9 +18,9 @@ namespace Web.Controllers
 
         private readonly RestEventManager _events;
 
-        private readonly YammerStore _store;
+        private readonly Store _store;
 
-        public YammerController(ILogger<YammerController> logger, RestEventManager events, YammerStore store)
+        public YammerController(ILogger<YammerController> logger, RestEventManager events, Store store)
         {
             _logger = logger;
             _events = events;

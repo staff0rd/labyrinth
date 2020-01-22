@@ -55,6 +55,11 @@ namespace Events
             } while (currentSlice.Length == PAGE_SIZE);
         }
 
+        public Task Sync<T>(Network network, T payload, T existing, ILogger logger) where T: IEntity<string> 
+        {
+            return Sync(network, payload, existing, logger, new string[] {});
+        }
+
         public async Task Sync<T>(Network network, T payload, T existing, ILogger logger, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
         {
             if (existing != null)

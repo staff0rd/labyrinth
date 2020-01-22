@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Browser.LinkedIn;
 using Events;
-using Events.LinkedIn;
 using Microsoft.Extensions.Logging;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -13,21 +12,20 @@ namespace Robot
 {
     public class LinkedInAutomation {
         private readonly ILogger _logger;
-        private readonly EventStoreManager _events;
+        private readonly EventRepository _events;
+        private readonly Store _store;
         private readonly string _username;
         private readonly string _password;
-        private string _streamName = StreamNames.LinkedIn;
 
-        public LinkedInAutomation(ILogger logger, string username, string password) {
+        public LinkedInAutomation(ILogger logger, string connectionString, string schema, string username, string password) {
             _logger = logger;
-            _events = new EventStoreManager(logger);
+            _events = new EventRepository(connectionString, schema);
+            _store = new Store(_events, logger);
             _username = username;
             _password = password;
         }
         
         public async Task Automate() {
-            await _events.MigrateProjections();
-
             var driver = new ChromeDriver();
             WebDriverWait _wait = new WebDriverWait(driver, new TimeSpan(0, 0, 10));
             try {
@@ -54,8 +52,13 @@ namespace Robot
                     var card = new ConnectionCard(connection);
                     driver.ExecuteScript("arguments[0].scrollIntoView()", connection);
 
-                    User user = User.Create(card.Name, card.MugshotUrl, card.ProfileUrl, card.Occupation, card.ConnectedDate);
-                    await _events.Sync(_streamName, user, await new GetUserById().Get(_events, user.Id), true);
+                    var received = new Events.User {AvatarUrl = card.MugshotUrl, Description = card.Occupation, Id = card.ProfileUrl.AsId<User>(Network.LinkedIn), KnownSince = 
+                    card.ConnectedDate, Name = card.Name, Network = Network.LinkedIn };
+                    var existing = _store.GetUser(Network.LinkedIn, received.Id);
+                    if (existing == null) {
+                        _store.Add(Network.LinkedIn, received);
+                    }
+                    await _events.Sync(Network.LinkedIn, received, existing, _logger);
                     connections = driver.FindElementsByClassName("mn-connection-card");
                 }
             }
