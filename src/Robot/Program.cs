@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Logging;
 using Microsoft.Extensions.Logging;
+using Events;
 
 namespace Robot
 {
@@ -32,6 +33,38 @@ namespace Robot
             app.Command("debug", debug => {
                 debug.OnExecuteAsync(async (cancel) => {
                     await Automate(logger, () => new Debugger(logger).Go());
+                });
+            });
+
+            app.Command("user", user => {
+                user.HelpOption();
+                var connectionString = user
+                    .Option("-c|--connection-string <CONNECTION-STRING>", "Connection string", CommandOptionType.SingleValue)
+                    .IsRequired();
+                var username = user
+                    .Option("-u|--username <USERNAME>", "User name", CommandOptionType.SingleValue)
+                    .IsRequired();
+                var password = user
+                    .Option("-p|--password <PASSWORD>", "LinkedIn password", CommandOptionType.SingleValue)
+                    .IsRequired();
+                user.Command("change-password", changePassword => {
+                    changePassword.HelpOption();
+                    var newPassword = changePassword
+                        .Option("--new-password <NEW-PASSWORD>", "New password", CommandOptionType.SingleValue)
+                        .IsRequired();
+                    changePassword.OnExecuteAsync(async (cancel) => {
+                        var repo = new KeyRepository(connectionString.Value());
+                        await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
+                        Log.Information("Password change successful");
+                    });
+                });
+                user.Command("key", getKey => {
+                    getKey.HelpOption();
+                    getKey.OnExecuteAsync(async (cancel) => {
+                        var repo = new KeyRepository(connectionString.Value());
+                        var key = await repo.GetKey(username.Value(), password.Value());
+                        Log.Information(key);
+                    });
                 });
             });
 
