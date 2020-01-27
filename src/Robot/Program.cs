@@ -8,6 +8,8 @@ using Serilog.Events;
 using Serilog.Extensions.Logging;
 using Microsoft.Extensions.Logging;
 using Events;
+using Npgsql;
+using Dapper;
 
 namespace Robot
 {
@@ -61,6 +63,14 @@ namespace Robot
                 user.Command("key", getKey => {
                     getKey.HelpOption();
                     getKey.OnExecuteAsync(async (cancel) => {
+                        using (var connection = new NpgsqlConnection(connectionString.Value()))
+                        {
+                            var parameters = new DynamicParameters();
+                            parameters.Add("test", 4);
+
+                            var result = connection.ExecuteScalar<int>("SELECT @test", parameters);
+                            logger.LogInformation($"search_path: {result}");
+                        }
                         var repo = new KeyRepository(connectionString.Value());
                         var key = await repo.GetKey(username.Value(), password.Value());
                         Log.Information(key);

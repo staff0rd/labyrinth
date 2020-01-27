@@ -24,6 +24,7 @@ namespace Events
                     var parameters = new DynamicParameters();
                     parameters.Add("newPassword", newPassword);
                     parameters.Add("key", key);
+                    parameters.Add("name", userName);
                     await connection.ExecuteAsync($"UPDATE {TableName} SET password=crypt(@newPassword, gen_salt('bf')), key=pgp_sym_encrypt(@key, @newPassword)", parameters);
                 }
             } 
@@ -47,7 +48,7 @@ namespace Events
                 var parameters = new DynamicParameters();
                 parameters.Add("userName", userName);
                 parameters.Add("password", password);
-                return await connection.ExecuteScalarAsync<bool>($"SELECT (password = crypt(@password, password)) AS pswmatch FROM {TableName} WHERE name=@userName");
+                return await connection.ExecuteScalarAsync<bool>($"SELECT (password = crypt(@password, password)) AS pswmatch FROM {TableName} WHERE name=@userName", parameters);
             }
         }
     }
