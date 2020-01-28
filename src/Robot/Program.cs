@@ -56,8 +56,12 @@ namespace Robot
                         .IsRequired();
                     changePassword.OnExecuteAsync(async (cancel) => {
                         var repo = new KeyRepository(connectionString.Value());
-                        await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
-                        Log.Information("Password change successful");
+                        var result = await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
+                        if (result) {
+                            Log.Information("Password change successful");
+                        } else {
+                            Log.Warning("Password change unsuccessful");
+                        }
                     });
                 });
                 user.Command("key", getKey => {

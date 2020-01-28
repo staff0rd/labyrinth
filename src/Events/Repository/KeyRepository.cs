@@ -14,11 +14,11 @@ namespace Events
             _connectionString = connectionString;
         }
 
-        public async Task ChangePassword(string userName, string oldPassword, string newPassword)
+        public async Task<bool> ChangePassword(string userName, string oldPassword, string newPassword)
         {
             if (await TestPassword(userName, oldPassword))
             {
-                var key = GetKey(userName, oldPassword);
+                var key = await GetKey(userName, oldPassword);
                 using (var connection = new NpgsqlConnection(_connectionString))
                 {
                     var parameters = new DynamicParameters();
@@ -26,8 +26,9 @@ namespace Events
                     parameters.Add("key", key);
                     parameters.Add("name", userName);
                     await connection.ExecuteAsync($"UPDATE {TableName} SET password=crypt(@newPassword, gen_salt('bf')), key=pgp_sym_encrypt(@key, @newPassword)", parameters);
+                    return true;
                 }
-            } 
+            } else return false;
         }
 
         public async Task<string> GetKey(string userName, string password)
@@ -37,7 +38,8 @@ namespace Events
                 var parameters = new DynamicParameters();
                 parameters.Add("userName", userName);
                 parameters.Add("password", password);
-                return await connection.ExecuteScalarAsync<string>($"SELECT pgp_sym_decrypt(key, @password) FROM {TableName} WHERE name = @userName", parameters);
+                var result = await connection.ExecuteScalarAsync<string>($"SELECT pgp_sym_decrypt(key, @password) FROM {TableName} WHERE name = @userName", parameters);
+                return result;
             }
         }
 
