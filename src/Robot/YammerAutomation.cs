@@ -19,20 +19,15 @@ namespace Robot
         private readonly Store _store;
         private readonly string _token;
 
-        public YammerAutomation(ILogger logger, string connectionString, string schema)
-            : this(logger, connectionString, schema, null) {}
+        public YammerAutomation(ILogger logger, EventRepository events)
+            : this(logger, events, null) {}
 
-        public YammerAutomation(ILogger logger, string connectionString, string schema, string token) {
+        public YammerAutomation(ILogger logger, EventRepository events, string token) {
             _logger = logger;
-            _events = new EventRepository(connectionString, schema);
-            _rest = new RestEventManager(logger, connectionString, schema);
+            _events = events;
+            _rest = new RestEventManager(logger, events);
             _store = new Store(_events, _logger);
             _token = token;
-            SqlMapperExtensions.TableNameMapper = (type) =>
-            {
-                return $"{schema}.{type.Name}s";
-            };
-            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task Process() {

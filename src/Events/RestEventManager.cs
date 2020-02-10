@@ -18,41 +18,16 @@ namespace Events
     public class RestEventManager
     {
         private readonly IDictionary<string, RateLimit> _limits;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
-        private readonly string _connectionString;
+        private readonly ILogger _logger;
         private readonly EventRepository _events;
-        private readonly string _schema;
 
-        public async Task Migrate()
-        {
-            EnsureDatabase.For.PostgresqlDatabase(_connectionString);
-
-            var upgrader = DeployChanges.To.PostgresqlDatabase(_connectionString)
-                .WithScriptsEmbeddedInAssembly(this.GetType().Assembly)
-                .LogToConsole()
-                .Build();
-
-            var result = upgrader.PerformUpgrade();
-
-            if (!result.Successful)
-            {
-                _logger.LogInformation("Database upgrade successful");
-            } else {
-                _logger.LogError("Database upgrade unsuccessful");
-            }
-            
-            await Task.Delay(0);
-        }
-
-        public RestEventManager(Microsoft.Extensions.Logging.ILogger logger, string connectionString, string schema)
+        public RestEventManager(ILogger logger, EventRepository events)
         {
             _logger = logger;
-            _connectionString = connectionString;
-            _schema = schema;
-            _events = new EventRepository(_connectionString, _schema);
+            _events = events;
         }
 
-        public RestEventManager(Microsoft.Extensions.Logging.ILogger logger, string connectionString, string schema, ReadOnlyDictionary<string, RateLimit> limits) : this(logger, connectionString, schema)
+        public RestEventManager(ILogger logger, EventRepository events, ReadOnlyDictionary<string, RateLimit> limits) : this(logger, events)
         {
             _limits = limits;
         }
@@ -73,8 +48,7 @@ namespace Events
 
             try
             {
-                var url = request.Endpoint
-                    .WithOAuthBearerToken(token);
+                var url = request.Endpoint.WithOAuthBearerToken(token);
                 
                 if (queryString != null) {
                     url.SetQueryParams(queryString);
