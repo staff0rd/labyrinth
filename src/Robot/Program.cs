@@ -8,6 +8,8 @@ using Serilog.Events;
 using Serilog.Extensions.Logging;
 using Microsoft.Extensions.Logging;
 using Events;
+using Npgsql;
+using Dapper;
 
 namespace Robot
 {
@@ -36,32 +38,48 @@ namespace Robot
                 });
             });
 
-            app.Command("user", user => {
+            app.Command("user", user =>
+            {
                 user.HelpOption();
                 var connectionString = user
                     .Option("-c|--connection-string <CONNECTION-STRING>", "Connection string", CommandOptionType.SingleValue)
                     .IsRequired();
-                var username = user
-                    .Option("-u|--username <USERNAME>", "User name", CommandOptionType.SingleValue)
-                    .IsRequired();
-                var password = user
-                    .Option("-p|--password <PASSWORD>", "LinkedIn password", CommandOptionType.SingleValue)
-                    .IsRequired();
-                user.Command("change-password", changePassword => {
+                AddUsernameAndPassword(user, out var username, out var password);
+                
+                user.Command("create", create => {
+                    create.HelpOption();
+                    create.OnExecuteAsync(async (cancel) => {
+                        var repo = new KeyRepository(connectionString.Value(), logger);
+                        await repo.Create(username.Value(), password.Value());
+                    });
+                });
+
+                user.Command("change-password", changePassword =>
+                {
                     changePassword.HelpOption();
                     var newPassword = changePassword
                         .Option("--new-password <NEW-PASSWORD>", "New password", CommandOptionType.SingleValue)
                         .IsRequired();
-                    changePassword.OnExecuteAsync(async (cancel) => {
-                        var repo = new KeyRepository(connectionString.Value());
-                        await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
-                        Log.Information("Password change successful");
+                    changePassword.OnExecuteAsync(async (cancel) =>
+                    {
+                        var repo = new KeyRepository(connectionString.Value(), logger);
+                        var result = await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
+                        if (result)
+                        {
+                            Log.Information("Password change successful");
+                        }
+                        else
+                        {
+                            Log.Warning("Password change unsuccessful");
+                        }
                     });
                 });
-                user.Command("key", getKey => {
+                user.Command("key", getKey =>
+                {
                     getKey.HelpOption();
-                    getKey.OnExecuteAsync(async (cancel) => {
-                        var repo = new KeyRepository(connectionString.Value());
+                    getKey.OnExecuteAsync(async (cancel) =>
+                    {
+                        var repo = new KeyRepository(connectionString.Value(), logger);
                         var key = await repo.GetKey(username.Value(), password.Value());
                         Log.Information(key);
                     });
@@ -73,9 +91,7 @@ namespace Robot
                 var connectionString = yammer
                     .Option("-c|--connection-string <CONNECTION-STRING>", "Connection string", CommandOptionType.SingleValue)
                     .IsRequired();
-                var schema = yammer
-                    .Option("-s|--schema <SCHEMA>", "Schema name", CommandOptionType.SingleValue)
-                    .IsRequired();
+                AddUsernameAndPassword(yammer, out var username, out var password);
                 
                 yammer.Command("backfill", backfill => {
                     backfill.HelpOption();
@@ -83,15 +99,18 @@ namespace Robot
                     .Option("-t|--token <TOKEN>", "Yammer authorization token", CommandOptionType.SingleValue)
                     .IsRequired();
 
-                    backfill.OnExecuteAsync(async (cancel) => {
-                        await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value(), token.Value()).Backfill());
+                    backfill.OnExecuteAsync(async (cancel) =>
+                    {
+                        var events = CreateEventRepository(connectionString, username, password);
+                        await Automate(logger, () => new YammerAutomation(logger, events, token.Value()).Backfill());
                     });
                 });
 
                 yammer.Command("process", process => {
                     process.HelpOption();
                     process.OnExecuteAsync(async (cancel) => {
-                        await Automate(logger, () => new YammerAutomation(logger, connectionString.Value(), schema.Value()).Process());
+                        var events = CreateEventRepository(connectionString, username, password);
+                        await Automate(logger, () => new YammerAutomation(logger, events).Process());
                     });
                 });
             });
@@ -122,6 +141,21 @@ namespace Robot
             {
                 Log.CloseAndFlush();
             }
+        }
+
+        private static EventRepository CreateEventRepository(CommandOption connectionString, CommandOption username, CommandOption password)
+        {
+            return new EventRepository(connectionString.Value(), username.Value(), password.Value());
+        }
+
+        private static void AddUsernameAndPassword(CommandLineApplication command, out CommandOption username, out CommandOption password)
+        {
+            username = command
+                .Option("-u|--username <USERNAME>", "User name", CommandOptionType.SingleValue)
+                .IsRequired();
+            password = command
+                .Option("-p|--password <PASSWORD>", "Password", CommandOptionType.SingleValue)
+                .IsRequired();
         }
 
         static async Task<int> Automate(Microsoft.Extensions.Logging.ILogger logger, Func<Task> work) {

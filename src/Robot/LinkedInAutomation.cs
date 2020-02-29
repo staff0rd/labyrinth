@@ -17,9 +17,9 @@ namespace Robot
         private readonly string _username;
         private readonly string _password;
 
-        public LinkedInAutomation(ILogger logger, string connectionString, string schema, string username, string password) {
+        public LinkedInAutomation(ILogger logger, EventRepository events, string username, string password) {
             _logger = logger;
-            _events = new EventRepository(connectionString, schema);
+            _events = events;
             _store = new Store(_events, logger);
             _username = username;
             _password = password;

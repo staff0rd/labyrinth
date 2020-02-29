@@ -12,15 +12,36 @@ namespace Events
 {
     public class EventRepository : NpgsqlRepository<Event, int>
     {
-        public EventRepository(string connectionString, string schema) : base(connectionString, schema)
+        readonly string _password;
+        public EventRepository(string connectionString, string schema, string password) : base(connectionString, schema)
         {
+            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+            _password = password;
         }
 
         public async Task<List<DateTime>> GetLastUpdated(Network network, string eventName, string category, int limit)
         {
             using (var connection = new NpgsqlConnection(_connectionString)) 
             {
-                var result = await connection.QueryAsync<DateTime>($"SELECT inserted_at FROM {TableName} WHERE network={(int)network} AND event_name='{eventName}' AND body ->> 'category' = '{category}' ORDER BY inserted_at DESC LIMIT {limit}");
+                var result = await connection.QueryAsync<DateTime>($@"
+
+                SELECT
+                    inserted_at
+                FROM
+                    {TableName}
+                JOIN
+                    public.keys ON keys.name = '{_userName}'
+                WHERE
+                    network={(int)network}
+                AND
+                    event_name='{eventName}'
+                AND
+                    cast(pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{_password}')) as jsonb) ->> 'category' = '{category}'
+                ORDER BY
+                    inserted_at DESC LIMIT {limit}
+                    
+                ");
+
                 return result.ToList();
             }
         }
@@ -31,7 +52,21 @@ namespace Events
 
             using (var connection = new NpgsqlConnection(_connectionString)) 
             {
-                var query = $"INSERT INTO {_schema}.events (network, entity_id, event_name, body) VALUES ({(int)network}, '{entityId}', '{eventName}', CAST(@json as json))";
+                var query = $@"
+                
+                INSERT INTO
+                    {TableName} (network, entity_id, event_name, body)
+                SELECT
+                    {(int)network},
+                    '{entityId}',
+                    '{eventName}',
+                    pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{_password}'))
+                FROM
+                    public.keys
+                WHERE
+                    keys.name = '{_userName}'
+                ";
+
                 var parameters = new DynamicParameters();
                 parameters.Add("json", body);
                 await connection.ExecuteAsync(query, parameters);
@@ -53,6 +88,46 @@ namespace Events
                 await eventProcessor(currentSlice);
                     
             } while (currentSlice.Length == PAGE_SIZE);
+        }
+
+        public async Task<Paginated<Event>> Paginate(Network network, int page = 0, int pageSize = 200, string orderBy = "inserted_at ASC")
+        {
+            var offset = pageSize * page;
+            var limit = pageSize;
+            using (var connection = new NpgsqlConnection(_connectionString))
+            {
+                var rowsQuery = $@"
+                
+                SELECT
+                    id,
+                    entity_id,
+                    network,
+                    event_name,
+                    pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{_password}')) as body,
+                    inserted_at
+                FROM
+                    {TableName}
+                JOIN
+                    public.keys ON keys.name = '{_userName}'
+                WHERE
+                    network={(int)network}
+                ORDER BY
+                    {orderBy}
+                LIMIT
+                    {limit}
+                OFFSET
+                    {offset}
+                    
+                ";
+                var totalRowsQuery = $"SELECT COUNT(*) FROM {TableName} WHERE network={(int)network}";
+                return new Paginated<Event>
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalRows = await connection.ExecuteAsync(totalRowsQuery),
+                    Rows = await connection.QueryAsync<Event>(rowsQuery),
+                };
+            }
         }
 
         public Task Sync<T>(Network network, T payload, T existing, ILogger logger) where T: IEntity<string> 

@@ -1,32 +1,92 @@
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace Events
 {
     public class KeyRepository
     {
+        const string USERNAME_ALLOWED_CHARACTERS = @"^\w+$";
         protected readonly string _connectionString;
+        private readonly ILogger _logger;
+
         protected string TableName => $"public.keys";
 
-        public KeyRepository(string connectionString)
+        public KeyRepository(string connectionString, ILogger logger)
         {
             _connectionString = connectionString;
+            _logger = logger;
         }
 
-        public async Task ChangePassword(string userName, string oldPassword, string newPassword)
+        private async Task<bool> Exists(string userName)
+        {
+            using (var connection = new NpgsqlConnection(_connectionString)) {
+                return await connection.ExecuteScalarAsync<bool>($"SELECT true FROM public.keys WHERE name='{userName}'");
+            }
+        }
+
+        public async Task Create(string username, string password)
+        {
+            var allowedCharacters = new Regex(USERNAME_ALLOWED_CHARACTERS).IsMatch(username);
+            if (!allowedCharacters) {
+                _logger.LogError($"Bad username");
+                return;
+            }
+
+            if (await Exists(username)) {
+                _logger.LogWarning($"User {username} already exists");
+                return;
+            }
+
+            using (var connection = new NpgsqlConnection(_connectionString))
+            {
+                var query = $"CREATE SCHEMA IF NOT EXISTS user_{username}";
+
+                await connection.ExecuteAsync(query);
+
+                query = $@"
+                    CREATE TABLE IF NOT EXISTS user_{username}.events (
+                        id int GENERATED ALWAYS AS IDENTITY primary key not null,
+                        entity_id uuid NOT NULL,
+                        network int NOT NULL references public.networks(id),
+                        event_name text NOT NULL,
+                        body bytea NOT NULL,
+                        inserted_at timestamp(6) NOT NULL DEFAULT statement_timestamp()
+                    );";
+                await connection.ExecuteAsync(query);
+
+                var parameters = new DynamicParameters();
+                parameters.Add("username", username);
+                parameters.Add("password", password);
+
+                query = @"
+                    INSERT INTO public.keys (name, password, key)
+                    VALUES (@username, crypt(@password, gen_salt('bf', 8)), pgp_sym_encrypt(gen_salt('bf', 8), @password))
+                ";  
+
+                await connection.ExecuteAsync(query, parameters);
+
+                _logger.LogInformation("User created");
+            }
+        }
+
+        public async Task<bool> ChangePassword(string userName, string oldPassword, string newPassword)
         {
             if (await TestPassword(userName, oldPassword))
             {
-                var key = GetKey(userName, oldPassword);
+                var key = await GetKey(userName, oldPassword);
                 using (var connection = new NpgsqlConnection(_connectionString))
                 {
                     var parameters = new DynamicParameters();
                     parameters.Add("newPassword", newPassword);
                     parameters.Add("key", key);
+                    parameters.Add("name", userName);
                     await connection.ExecuteAsync($"UPDATE {TableName} SET password=crypt(@newPassword, gen_salt('bf')), key=pgp_sym_encrypt(@key, @newPassword)", parameters);
+                    return true;
                 }
-            } 
+            } else return false;
         }
 
         public async Task<string> GetKey(string userName, string password)
@@ -36,7 +96,8 @@ namespace Events
                 var parameters = new DynamicParameters();
                 parameters.Add("userName", userName);
                 parameters.Add("password", password);
-                return await connection.ExecuteScalarAsync<string>($"SELECT pgp_sym_decrypt(key, @password) FROM {TableName} WHERE name = @userName", parameters);
+                var result = await connection.ExecuteScalarAsync<string>($"SELECT pgp_sym_decrypt(key, @password) FROM {TableName} WHERE name = @userName", parameters);
+                return result;
             }
         }
 
@@ -47,7 +108,7 @@ namespace Events
                 var parameters = new DynamicParameters();
                 parameters.Add("userName", userName);
                 parameters.Add("password", password);
-                return await connection.ExecuteScalarAsync<bool>($"SELECT (password = crypt(@password, password)) AS pswmatch FROM {TableName} WHERE name=@userName");
+                return await connection.ExecuteScalarAsync<bool>($"SELECT (password = crypt(@password, password)) AS pswmatch FROM {TableName} WHERE name=@userName", parameters);
             }
         }
     }
