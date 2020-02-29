@@ -8,6 +8,8 @@ services:
     ports:
       - 5432:5432
     container_name: postgres
+    networks:
+      - local
 
   adminer:
     image: adminer
@@ -15,7 +17,9 @@ services:
     ports:
       - 8081:8080
     container_name: adminer
+    networks:
+      - local
 
 networks:
-  web:
+  local:
     external: true
