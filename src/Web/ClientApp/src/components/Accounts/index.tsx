@@ -5,6 +5,7 @@ import { Create } from './Create';
 import { Login } from './Login';
 import { Overview } from './Overview';
 import { Logout } from './Logout';
+import { ChangePassword } from './ChangePassword';
 import { useLocation} from "react-router";
 import * as AccountStore from '../../store/Account';
 import * as HeaderStore from '../../store/Header';
@@ -38,6 +39,7 @@ const Accounts = () => {
     <>
       <Route path='/accounts/create' component={Create} />
       <Route path='/accounts/login' component={Login} />
+      <Route path='/accounts/change-password' component={ChangePassword} />
       <Route path='/accounts/logout' component={Logout} />
       { location.pathname === '/accounts' && <Overview /> }
     </>
