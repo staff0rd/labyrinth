@@ -2,8 +2,8 @@ namespace Events
 {
     public class Result
     {
-        public bool IsError { get; private set; }
-        public string Message { get; private set; }
+        public bool IsError { get; set; }
+        public string Message { get; set; }
 
         public Result() {}
         public Result(string message) {}

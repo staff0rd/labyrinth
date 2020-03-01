@@ -85,7 +85,7 @@ namespace Events
             }
         }
 
-        private async Task<bool> TestPassword(string userName, string password)
+        public async Task<bool> TestPassword(string userName, string password)
         {
             using (var connection = _factory.CreateConnection())
             {

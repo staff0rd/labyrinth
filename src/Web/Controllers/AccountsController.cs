@@ -24,6 +24,11 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAccountCommand request)
         {
+            return await Mediate(request);
+        }
+
+        private async Task<IActionResult> Mediate<T>(T request) where T : IRequest<Result>
+        {
             var response = await _mediator.Send(request);
             if (response.IsError)
                 return BadRequest(response);
@@ -34,6 +39,13 @@ namespace Web.Controllers
         [Route("change-password")]
         public async Task ChangePassword([FromBody] ChangePasswordRequest request) {
             // await _keys.ChangePassword(request.UserName, request.OldPassword, request.NewPassword);
+        }
+
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> Login([FromBody] AuthorizeQuery request)
+        {
+            return await Mediate(request);
         }
     }
 }

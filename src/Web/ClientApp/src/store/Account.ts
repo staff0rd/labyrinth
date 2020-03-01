@@ -6,6 +6,7 @@ export interface AccountState {
 }
 
 const SET_ACCOUNT = 'SET_ACCOUNT';
+const CLEAR_ACCOUNT = 'CLEAR_ACCOUNT';
 
 interface SetAccountAction {
     type: typeof SET_ACCOUNT;
@@ -13,10 +14,15 @@ interface SetAccountAction {
     password: string;
 }
 
-type KnownAction = SetAccountAction;
+interface ClearAccountAction {
+    type: typeof CLEAR_ACCOUNT;
+}
+
+type KnownAction = SetAccountAction | ClearAccountAction;
 
 export const actionCreators = {
-    setAccount: (userName: string, password: string) => ({ type: SET_ACCOUNT, userName, password } as SetAccountAction)
+    setAccount: (userName: string, password: string) => ({ type: SET_ACCOUNT, userName, password } as SetAccountAction),
+    clearAccount: () => ({ type: CLEAR_ACCOUNT } as ClearAccountAction)
 };
 
 const initialState: AccountState = { };
@@ -35,6 +41,12 @@ export const reducer: Reducer<AccountState> = (state: AccountState | undefined, 
                     userName: action.userName,
                     password: action.password,
                 };
+            case CLEAR_ACCOUNT:
+                return {
+                    ...state,
+                    userName: undefined,
+                    password: undefined,
+                }
         }
     } 
     return state;

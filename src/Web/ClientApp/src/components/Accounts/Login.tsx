@@ -11,19 +11,18 @@ import { useDispatch } from 'react-redux';
 interface Values {
     userName: string;
     password: string;
-    passwordConfirm: string;
 }
 
-export const Create = () => {
+export const Login = () => {
     const [result, setResult] = useState<Result>();
     const dispatch = useDispatch();
 
     const showResult = () => {
         if (result) {
             if (result.isError) {
-                return <Alert severity="error">{result.message}</Alert>
+                return <Alert severity="error">Login failed</Alert>
             } else {
-                return <Alert severity="success">User created</Alert>
+                return <Alert severity="success">Login successful</Alert>
             }
         }
     }
@@ -33,7 +32,6 @@ export const Create = () => {
             initialValues={{
                 userName: '',
                 password: '',
-                passwordConfirm: '',
             }}
             validate={values => {
                 const errors: Partial<Values> = {};
@@ -43,17 +41,12 @@ export const Create = () => {
                 if (!values.password) {
                     errors.password = 'Required';
                 }
-                if (!values.passwordConfirm) {
-                    errors.passwordConfirm = 'Required';
-                } else if (values.password != values.passwordConfirm) {
-                    errors.passwordConfirm = 'Passwords do not match';
-                }
                 return errors;
             }}
             onSubmit={async (values, { setSubmitting }) => {
                 try {
                     setResult(undefined);
-                    const response = await post('api/accounts', values);
+                    const response = await post('api/accounts/login', values);
                     setResult(response);
                     if (!response.isError) {
                         dispatch(accountActions.setAccount(values.userName, values.password));
@@ -86,14 +79,6 @@ export const Create = () => {
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <Field
-                            component={TextField}
-                            type="password"
-                            label="Confirm Password"
-                            name="passwordConfirm"
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
                         {isSubmitting && <LinearProgress />}
                         { !isSubmitting && showResult() }
                     </Grid>
@@ -104,7 +89,7 @@ export const Create = () => {
                             disabled={isSubmitting}
                             onClick={submitForm}
                         >
-                            Create
+                            Login
                         </Button>
                     </Grid>
                 </Grid>
