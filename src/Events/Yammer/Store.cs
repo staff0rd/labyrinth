@@ -87,5 +87,12 @@ namespace Events
             _store[network].Messages.TryGetValue(id, out var existing);
             return existing;
         }
+
+        public IEnumerable<Message> GetMessages(Network network) {
+            return _store[network].Messages.ToList().Select(x => x.Value);
+        }
+        public IEnumerable<User> GetUsers(Network network) {
+            return _store[network].Users.ToList().Select(x => x.Value);
+        }
     }
 }

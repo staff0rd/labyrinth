@@ -5,7 +5,6 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import Hidden from '@material-ui/core/Hidden';
-import Badge from '@material-ui/core/Badge';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/Notifications';
@@ -14,18 +13,16 @@ import Tabs from '@material-ui/core/Tabs';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
-import { connect } from 'react-redux';
-import { ApplicationState } from '../../store';
+import { makeStyles } from '@material-ui/core/styles';
 import * as HeaderStore from '../../store/Header';
-import { RouteComponentProps } from 'react-router';
+import * as AccountStore from '../../store/Account';
 import { useLocation} from "react-router";
-import { useHistory, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useSelector } from '../../store/useSelector';
 
 const lightColor = 'rgba(255, 255, 255, 0.7)';
 
-const styles = (theme: Theme) =>
-  createStyles({
+const useStyles = makeStyles(theme => ({
     secondaryBar: {
       zIndex: 0,
     },
@@ -45,24 +42,24 @@ const styles = (theme: Theme) =>
     button: {
       borderColor: lightColor,
     },
-  });
+}));
 
-  type HeaderProps = {
-    onDrawerToggle: () => void
-  }
-  & WithStyles<typeof styles> 
-  & HeaderStore.HeaderState
-  & RouteComponentProps;
+type Props = {
+  onDrawerToggle: () => void
+}
 
-function Header(props: HeaderProps) {
-  const { classes, onDrawerToggle, title, items } = props;
-  const history = useHistory();
+const  Header = (props: Props) => {
+  const { title, items, route } = useSelector<HeaderStore.HeaderState>(state => state.header);
+  const { userName } = useSelector<AccountStore.AccountState>(state => state.account);
+  const classes = useStyles();
   const location = useLocation();
 
   const getTabLabel = (item: HeaderStore.HeaderItem) => {
     if (item.badge) return `${item.title} (${item.badge})`;
     return item.title;
   };
+
+  const getPath = (item: HeaderStore.HeaderItem) => `${route}${item.to}`;
   
   return (
     <React.Fragment>
@@ -74,7 +71,7 @@ function Header(props: HeaderProps) {
                 <IconButton
                   color="inherit"
                   aria-label="open drawer"
-                  onClick={onDrawerToggle}
+                  // onClick={onDrawerToggle}
                   className={classes.menuButton}
                 >
                   <MenuIcon />
@@ -95,9 +92,11 @@ function Header(props: HeaderProps) {
               </Tooltip>
             </Grid>
             <Grid item>
+              { userName && (
               <IconButton color="inherit" className={classes.iconButtonAvatar}>
-                <Avatar src="/static/images/avatar/1.jpg" alt="My Avatar" />
+                <Avatar>{userName[0]}</Avatar>
               </IconButton>
+              )}
             </Grid>
           </Grid>
         </Toolbar>
@@ -141,18 +140,11 @@ function Header(props: HeaderProps) {
         <Tabs
           value={location.pathname}
           textColor="inherit">
-          { items.map(i => <Tab textColor="inherit" component={Link} label={getTabLabel(i)} to={i.to} value={i.to} /> )}          
+          { items.map(i => <Tab textColor="inherit" component={Link} label={getTabLabel(i)} to={getPath(i)} value={getPath(i)} /> )}          
         </Tabs>
       </AppBar>
     </React.Fragment>
   );
-}
+};
 
-export default (connect(
-  (state: ApplicationState) => state.header,
-)(withStyles(styles)(Header))) as any;
-
-// export default connect(
-//   (state: ApplicationState) => state.linkedIn, // Selects which state properties are merged into the component's props
-//   LinkedInStore.actionCreators // Selects which action creators are merged into the component's props
-// )(LinkedIn as any);
+export default Header;

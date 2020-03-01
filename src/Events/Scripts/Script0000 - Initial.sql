@@ -14,3 +14,20 @@ alter default privileges in schema extensions
 create extension if not exists pgcrypto schema extensions;
 
 ALTER USER postgres SET search_path to public, extensions;
+
+DROP TABLE IF EXISTS public.networks;
+
+CREATE TABLE public.networks (
+  id int primary key not null,
+  name text NOT NULL
+);
+
+insert into public.networks 
+select 10, 'Yammer';
+
+CREATE TABLE public.keys (
+  name text,
+  password text,
+  key bytea,
+  CONSTRAINT pk_keys PRIMARY KEY (name)
+)

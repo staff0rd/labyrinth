@@ -37,11 +37,12 @@ const Yammer = (props: YammerProps) => {
   React.useEffect(() => {
     props.setHeader({
       title: 'Yammer',
+      route: '/yammer',
       items: [
-        { title: 'Overview', to: '/yammer'},
-        { title: 'Users', badge: overview ? overview.users : undefined, to: '/yammer/users'},
-        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/yammer/messages'},
-        { title: 'Notifications', to: '/yammer/notifications'},
+        { title: 'Overview', to: ''},
+        { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
+        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
+        { title: 'Notifications', to: '/notifications'},
       ],
     })
   }, [overview])

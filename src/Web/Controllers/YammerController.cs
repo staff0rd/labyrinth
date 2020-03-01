@@ -31,9 +31,8 @@ namespace Web.Controllers
         [Route("messages")]
         public PagedResult<Events.Message> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
         {
-            var messages = _store.Messages
-                .OrderByDescending(p => p.Value.CreatedAt)
-                .Select(p => p.Value);
+            var messages = _store.GetMessages(Network.Yammer)
+                .OrderByDescending(p => p.CreatedAt);
                 
             var result = messages.GetPagedResult(pageNumber, pageSize, (m) => {
                 return m;
@@ -45,14 +44,14 @@ namespace Web.Controllers
         [Route("")]
         public Overview GetOverview()
         {
-            var overview = _store.GetOverview();
+            var overview = _store.GetOverview().FirstOrDefault(x => x.Network == Network.Yammer);
             return overview;
         }
 
         [HttpGet]
         [Route("users/{id}")]
         public UserCard GetUser(string id) {
-            var user = _store.Users[id];
+            var user = _store.GetUsers(Network.Yammer).FirstOrDefault(p => p.Id == id);
             return UserCard.FromUser(user);
         }
 
@@ -60,7 +59,7 @@ namespace Web.Controllers
         [Route("users")]
         public PagedResult<UserCard> GetUsers(int pageNumber = 0, int pageSize = 20, string search = "")
         {
-            var users = _store.Users.Select(x => x.Value);
+            var users = _store.GetUsers(Network.Yammer);
             if (!string.IsNullOrWhiteSpace(search))
             {
                 Func<string, string> ifNull = (string a) => a == null ? "" : a;

@@ -46,14 +46,6 @@ namespace Robot
                     .IsRequired();
                 AddUsernameAndPassword(user, out var username, out var password);
                 
-                user.Command("create", create => {
-                    create.HelpOption();
-                    create.OnExecuteAsync(async (cancel) => {
-                        var repo = new KeyRepository(connectionString.Value(), logger);
-                        await repo.Create(username.Value(), password.Value());
-                    });
-                });
-
                 user.Command("change-password", changePassword =>
                 {
                     changePassword.HelpOption();
@@ -62,7 +54,7 @@ namespace Robot
                         .IsRequired();
                     changePassword.OnExecuteAsync(async (cancel) =>
                     {
-                        var repo = new KeyRepository(connectionString.Value(), logger);
+                        var repo = new KeyRepository(connectionString.Value());
                         var result = await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
                         if (result)
                         {

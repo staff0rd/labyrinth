@@ -11,6 +11,7 @@ export interface HeaderItem {
 
 export interface HeaderState {
     title: string;
+    route: string;
     items: HeaderItem[];
 }
 
@@ -40,7 +41,7 @@ export const actionCreators = {
 // ----------------
 // REDUCER - For a given state and action, returns the new state. To support time travel, this must not mutate the old state.
 
-const unloadedState: HeaderState = { title: '', items: [] };
+const unloadedState: HeaderState = { title: '', items: [], route: '' };
 
 export const reducer: Reducer<HeaderState> = (state: HeaderState | undefined, incomingAction: Action): HeaderState => {
     if (state === undefined) {

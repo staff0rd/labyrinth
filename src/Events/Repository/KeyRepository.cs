@@ -9,38 +9,24 @@ namespace Events
     public class KeyRepository
     {
         const string USERNAME_ALLOWED_CHARACTERS = @"^\w+$";
-        protected readonly string _connectionString;
-        private readonly ILogger _logger;
-
+        private readonly NpgsqlConnectionFactory _factory;
         protected string TableName => $"public.keys";
 
-        public KeyRepository(string connectionString, ILogger logger)
+        public KeyRepository(NpgsqlConnectionFactory factory)
         {
-            _connectionString = connectionString;
-            _logger = logger;
+            _factory = factory;
         }
 
-        private async Task<bool> Exists(string userName)
+        public async Task<bool> Exists(string userName)
         {
-            using (var connection = new NpgsqlConnection(_connectionString)) {
+            using (var connection = _factory.CreateConnection()) {
                 return await connection.ExecuteScalarAsync<bool>($"SELECT true FROM public.keys WHERE name='{userName}'");
             }
         }
 
         public async Task Create(string username, string password)
         {
-            var allowedCharacters = new Regex(USERNAME_ALLOWED_CHARACTERS).IsMatch(username);
-            if (!allowedCharacters) {
-                _logger.LogError($"Bad username");
-                return;
-            }
-
-            if (await Exists(username)) {
-                _logger.LogWarning($"User {username} already exists");
-                return;
-            }
-
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = _factory.CreateConnection())
             {
                 var query = $"CREATE SCHEMA IF NOT EXISTS user_{username}";
 
@@ -67,8 +53,6 @@ namespace Events
                 ";  
 
                 await connection.ExecuteAsync(query, parameters);
-
-                _logger.LogInformation("User created");
             }
         }
 
@@ -77,7 +61,7 @@ namespace Events
             if (await TestPassword(userName, oldPassword))
             {
                 var key = await GetKey(userName, oldPassword);
-                using (var connection = new NpgsqlConnection(_connectionString))
+                using (var connection = _factory.CreateConnection())
                 {
                     var parameters = new DynamicParameters();
                     parameters.Add("newPassword", newPassword);
@@ -91,7 +75,7 @@ namespace Events
 
         public async Task<string> GetKey(string userName, string password)
         {
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = _factory.CreateConnection())
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("userName", userName);
@@ -103,7 +87,7 @@ namespace Events
 
         private async Task<bool> TestPassword(string userName, string password)
         {
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = _factory.CreateConnection())
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("userName", userName);

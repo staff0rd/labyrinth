@@ -11,6 +11,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import LinkedInIcon from '@material-ui/icons/LinkedIn';
 import InfoIcon from '@material-ui/icons/Info';
 import GitHubIcon from '@material-ui/icons/GitHub';
+import PeopleIcon from '@material-ui/icons/People';
 import { Omit } from '@material-ui/types';
 import { Link as RouterLink } from 'react-router-dom';
 import Constants from '../../Constants'
@@ -30,6 +31,7 @@ const categories = [
     id: 'Help',
     children: [
       { id: 'About', icon: <InfoIcon />, route: '/about' },
+      { id: 'Accounts', icon: <PeopleIcon />, route: '/accounts' },
       { id: 'Contribute', icon: <GitHubIcon />, route: 'https://github.com/staff0rd/labyrinth'  },
     ],
   },

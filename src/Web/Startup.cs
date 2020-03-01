@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
+using Hangfire;
+using Hangfire.PostgreSql;
+using MediatR;
 
 namespace Web
 {
@@ -27,14 +30,26 @@ namespace Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews().AddNewtonsoftJson(options =>
-           options.SerializerSettings.ContractResolver =
-              new CamelCasePropertyNamesContractResolver());
+                options.SerializerSettings.ContractResolver =
+                new CamelCasePropertyNamesContractResolver());
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            services.AddHangfire(config =>
+		        config.UsePostgreSqlStorage(Configuration.GetConnectionString("HangfireConnection")));
+
+            services.AddSingleton<NpgsqlConnectionFactory>((services) => {
+                return new NpgsqlConnectionFactory(Configuration.GetConnectionString("EventsConnection"));
+            });;
+
+            services.AddScoped<KeyRepository>();
+
+            services.AddMediatR(GetType().Assembly);
+            services.AddMediatR(typeof(Store).Assembly);
 
             services.AddSingleton<Store>(provider => {
                 var logger = provider.GetRequiredService<ILogger<Store>>();
@@ -54,7 +69,7 @@ namespace Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -67,11 +82,18 @@ namespace Web
                 app.UseHsts();
             }
 
+            var migrator = new DatabaseMigrator(loggerFactory.CreateLogger<DatabaseMigrator>(), 
+                Configuration.GetConnectionString("EventsConnection"));
+            migrator.Migrate().Wait();
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+
+            app.UseHangfireServer();
+            app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,45 +1,34 @@
 import * as React from 'react';
-import { bindActionCreators } from 'redux';
-import * as HeaderStore from '../store/Header';
-import { connect } from 'react-redux';
+import { useHeader } from '../store/useHeader';
+import { useDispatch } from 'react-redux';
+import { useSelector } from '../store/useSelector';
 import { ApplicationState } from '../store';
 import * as LinkedInStore from '../store/LinkedIn';
 import { Users } from './Users';
 import { useLocation} from "react-router";
 
-type LinkedInProps =
-  LinkedInStore.LinkedInState // ... state we've requested from the Redux store
-  & typeof LinkedInStore.actionCreators // ... plus action creators we've requested
-  & typeof HeaderStore.actionCreators;
+export const LinkedIn = () => {
+  const dispatch = useDispatch();
+  const users = useSelector(state => state.linkedIn && state.linkedIn.users);
+  const searchRequest = (search: string, pageNumber: number, pageSize: number) => 
+    dispatch(LinkedInStore.actionCreators.requestUsers(pageNumber, pageSize, search));
 
-const LinkedIn = (props: LinkedInProps) => {
-  const searchRequest = (search: string, pageNumber: number, pageSize: number) => props.requestUsers(pageNumber, pageSize, search);
   const location = useLocation();
-
-  React.useEffect(() => {
-    props.setHeader({
-      title: 'LinkedIn',
-      items: [
-        { title: 'Overview', to: '/linkedin'},
-        { title: 'Users', to: '/linkedin/users'},
-        { title: 'Messages', to: '/linkedin/messages'},
-        { title: 'Notifications', to: '/linkedin/notifications'},
-      ],
-    })
-  }, [])
+  useHeader({
+    title: 'LinkedIn',
+    route: '/linkedin',
+    items: [
+      { title: 'Overview', to: ''},
+      { title: 'Users', to: '/users'},
+      { title: 'Messages', to: '/messages'},
+      { title: 'Notifications', to: '/notifications'},
+    ],
+  });
 
   switch (location.pathname) {
-    case '/linkedin/users': return (
-      <Users users={props.users} searchPlaceholder="Search by name or occupation" searchRequest={searchRequest} />
+    case '/linkedin/users': return users && (
+      <Users users={users} searchPlaceholder="Search by name or occupation" searchRequest={searchRequest} />
     );
     default: return (<div>{location.pathname}</div>)
   }
 };
-
-export default connect(
-  (state: ApplicationState) => state.linkedIn, // Selects which state properties are merged into the component's props
-  (dispatch) => ({
-    ...bindActionCreators(LinkedInStore.actionCreators, dispatch),
-    ...bindActionCreators(HeaderStore.actionCreators, dispatch),
-   }) // Selects which action creators are merged into the component's props
-)(LinkedIn as any);
