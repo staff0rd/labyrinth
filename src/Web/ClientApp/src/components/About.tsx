@@ -1,6 +1,13 @@
 import React from 'react';
+import { useHeader } from '../store/useHeader';
 
 export const About = () => {
+
+    useHeader({
+        route: '/about',
+        title: 'About',
+        items: [],
+    });
 
     return (
         <ul>
