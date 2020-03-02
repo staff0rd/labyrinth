@@ -54,12 +54,12 @@ namespace Events
             };
         }
 
-        public async Task Hydrate()
+        public async Task Hydrate(string userName, string password)
         {
             var sw = Stopwatch.StartNew();
            
-            await _events.ReadForward(Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages));
-            await _events.ReadForward(Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users));
+            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages));
+            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users));
             
             _logger.LogInformation($"It look {sw.Elapsed} to read network {Network.Yammer}, {_store[Network.Yammer].Users.Count} users, {_store[Network.Yammer].Messages.Count} messages");
         }

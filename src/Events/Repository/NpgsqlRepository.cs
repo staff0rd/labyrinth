@@ -9,22 +9,20 @@ namespace Events
 {
     public class NpgsqlRepository<TEntity, TId> : IRepository<TEntity, TId> where TEntity : class, IEntity<TId>
     {
-        protected readonly string _connectionString;
-        protected readonly string _userName;
+        protected readonly NpgsqlConnectionFactory _connectionFactory;
 
-        protected string TableName => $"user_{_userName}.{typeof(TEntity).Name.ToLower()}s";
+        protected string TableName(string userName) => $"user_{userName}.{typeof(TEntity).Name.ToLower()}s";
 
-        public NpgsqlRepository(string connectionString, string userName)
+        public NpgsqlRepository(NpgsqlConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
-            _userName = userName;
+            _connectionFactory = connectionFactory;
         }
 
-        public async Task<TEntity> GetById(string id)
+        public async Task<TEntity> GetById(string userName, string id)
         {
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = _connectionFactory.CreateConnection())
             {
-                var result = await connection.QueryAsync<TEntity>($"SELECT * FROM {TableName} WHERE id={id}");
+                var result = await connection.QueryAsync<TEntity>($"SELECT * FROM {TableName(userName)} WHERE id={id}");
                 return result.FirstOrDefault();
             }
         }

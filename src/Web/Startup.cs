@@ -14,6 +14,8 @@ using Newtonsoft.Json.Serialization;
 using Hangfire;
 using Hangfire.PostgreSql;
 using MediatR;
+using Hangfire.Console;
+using Newtonsoft.Json;
 
 namespace Web
 {
@@ -39,8 +41,15 @@ namespace Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddHangfire(config =>
-		        config.UsePostgreSqlStorage(Configuration.GetConnectionString("HangfireConnection")));
+            services.AddHangfire(config => {
+		        config.UsePostgreSqlStorage(Configuration.GetConnectionString("HangfireConnection"));
+                config.UseConsole();
+                config.UseSerializerSettings(new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
+            });
+
+            services.AddSingleton<CredentialCache>();
+            services.AddScoped<EventRepository>();
+            services.AddScoped<RestEventManager>();
 
             services.AddSingleton<NpgsqlConnectionFactory>((services) => {
                 return new NpgsqlConnectionFactory(Configuration.GetConnectionString("EventsConnection"));
@@ -57,7 +66,6 @@ namespace Web
                 {
                     var events = provider.GetRequiredService<EventRepository>();
                     var store = new Store(events, logger);
-                    store.Hydrate().Wait();
                     return store;
                 } 
                 catch (Exception e)

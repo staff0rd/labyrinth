@@ -17,24 +17,18 @@ namespace Events
 {
     public class RestEventManager
     {
-        private readonly IDictionary<string, RateLimit> _limits;
-        private readonly ILogger _logger;
+        private readonly ILogger<RestEventManager> _logger;
         private readonly EventRepository _events;
 
-        public RestEventManager(ILogger logger, EventRepository events)
+        public RestEventManager(ILogger<RestEventManager> logger, EventRepository events)
         {
             _logger = logger;
             _events = events;
         }
 
-        public RestEventManager(ILogger logger, EventRepository events, ReadOnlyDictionary<string, RateLimit> limits) : this(logger, events)
+        public async Task<T> Get<T>(string userName, string password, Network network, Request<T> request, object queryString, string token)
         {
-            _limits = limits;
-        }
-
-        public async Task<T> Get<T>(Network network, Request<T> request, object queryString, string token)
-        {
-            var oldest = await _events.GetLastUpdated(network, "RestApiRequest", request.Category, request.RateLimit.RequestCount);
+            var oldest = await _events.GetLastUpdated(userName, password, network, "RestApiRequest", request.Category, request.RateLimit.RequestCount);
             if (oldest.Count() == request.RateLimit.RequestCount)
             {
                 var waitUntil = oldest.Last().Add(request.RateLimit.Duration);
@@ -64,7 +58,7 @@ namespace Events
                 return default(T);
             }
             finally {
-                await _events.Add(network, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
+                await _events.Add(userName, password, network, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
                 {
                     Category = request.Category,
                     Data = queryString.ToJson(),

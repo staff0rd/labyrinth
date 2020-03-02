@@ -38,46 +38,6 @@ namespace Robot
                 });
             });
 
-            app.Command("user", user =>
-            {
-                user.HelpOption();
-                var connectionString = user
-                    .Option("-c|--connection-string <CONNECTION-STRING>", "Connection string", CommandOptionType.SingleValue)
-                    .IsRequired();
-                AddUsernameAndPassword(user, out var username, out var password);
-                
-                user.Command("change-password", changePassword =>
-                {
-                    changePassword.HelpOption();
-                    var newPassword = changePassword
-                        .Option("--new-password <NEW-PASSWORD>", "New password", CommandOptionType.SingleValue)
-                        .IsRequired();
-                    changePassword.OnExecuteAsync(async (cancel) =>
-                    {
-                        var repo = new KeyRepository(connectionString.Value());
-                        var result = await repo.ChangePassword(username.Value(), password.Value(), newPassword.Value());
-                        if (result)
-                        {
-                            Log.Information("Password change successful");
-                        }
-                        else
-                        {
-                            Log.Warning("Password change unsuccessful");
-                        }
-                    });
-                });
-                user.Command("key", getKey =>
-                {
-                    getKey.HelpOption();
-                    getKey.OnExecuteAsync(async (cancel) =>
-                    {
-                        var repo = new KeyRepository(connectionString.Value(), logger);
-                        var key = await repo.GetKey(username.Value(), password.Value());
-                        Log.Information(key);
-                    });
-                });
-            });
-
             app.Command("yammer", yammer => {
                 yammer.HelpOption();
                 var connectionString = yammer

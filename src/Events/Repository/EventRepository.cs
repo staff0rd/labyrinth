@@ -12,31 +12,29 @@ namespace Events
 {
     public class EventRepository : NpgsqlRepository<Event, int>
     {
-        readonly string _password;
-        public EventRepository(string connectionString, string schema, string password) : base(connectionString, schema)
+        public EventRepository(NpgsqlConnectionFactory connectionFactory) : base(connectionFactory)
         {
             Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
-            _password = password;
         }
 
-        public async Task<List<DateTime>> GetLastUpdated(Network network, string eventName, string category, int limit)
+        public async Task<List<DateTime>> GetLastUpdated(string userName, string password, Network network, string eventName, string category, int limit)
         {
-            using (var connection = new NpgsqlConnection(_connectionString)) 
+            using (var connection = _connectionFactory.CreateConnection()) 
             {
                 var result = await connection.QueryAsync<DateTime>($@"
 
                 SELECT
                     inserted_at
                 FROM
-                    {TableName}
+                    {TableName(userName)}
                 JOIN
-                    public.keys ON keys.name = '{_userName}'
+                    public.keys ON keys.name = '{userName}'
                 WHERE
                     network={(int)network}
                 AND
                     event_name='{eventName}'
                 AND
-                    cast(pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{_password}')) as jsonb) ->> 'category' = '{category}'
+                    cast(pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{password}')) as jsonb) ->> 'category' = '{category}'
                 ORDER BY
                     inserted_at DESC LIMIT {limit}
                     
@@ -46,25 +44,25 @@ namespace Events
             }
         }
 
-        public async Task Add(Network network, string entityId, string eventName, string body)
+        public async Task Add(string userName, string password, Network network, string entityId, string eventName, string body)
         {
             var ev = body.ToEvent(network, entityId, eventName);
 
-            using (var connection = new NpgsqlConnection(_connectionString)) 
+            using (var connection = _connectionFactory.CreateConnection()) 
             {
                 var query = $@"
                 
                 INSERT INTO
-                    {TableName} (network, entity_id, event_name, body)
+                    {TableName(userName)} (network, entity_id, event_name, body)
                 SELECT
                     {(int)network},
                     '{entityId}',
                     '{eventName}',
-                    pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{_password}'))
+                    pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{password}'))
                 FROM
                     public.keys
                 WHERE
-                    keys.name = '{_userName}'
+                    keys.name = '{userName}'
                 ";
 
                 var parameters = new DynamicParameters();
@@ -73,14 +71,14 @@ namespace Events
             }
         }
 
-        public async Task ReadForward(Network network, Func<Event[], Task> eventProcessor)
+        public async Task ReadForward(string userName, string password, Network network, Func<Event[], Task> eventProcessor)
         {
             Event[] currentSlice;
             int nextPage = 0;
             const int PAGE_SIZE = 200;
             do
             {
-                var result = await Paginate(network, nextPage, PAGE_SIZE);
+                var result = await Paginate(userName, password, network, nextPage, PAGE_SIZE);
                 currentSlice = result.Rows.ToArray();
 
                 nextPage++;
@@ -90,11 +88,11 @@ namespace Events
             } while (currentSlice.Length == PAGE_SIZE);
         }
 
-        public async Task<Paginated<Event>> Paginate(Network network, int page = 0, int pageSize = 200, string orderBy = "inserted_at ASC")
+        public async Task<Paginated<Event>> Paginate(string userName, string password, Network network, int page = 0, int pageSize = 200, string orderBy = "inserted_at ASC")
         {
             var offset = pageSize * page;
             var limit = pageSize;
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 var rowsQuery = $@"
                 
@@ -103,12 +101,12 @@ namespace Events
                     entity_id,
                     network,
                     event_name,
-                    pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{_password}')) as body,
+                    pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{password}')) as body,
                     inserted_at
                 FROM
-                    {TableName}
+                    {TableName(userName)}
                 JOIN
-                    public.keys ON keys.name = '{_userName}'
+                    public.keys ON keys.name = '{userName}'
                 WHERE
                     network={(int)network}
                 ORDER BY
@@ -119,7 +117,7 @@ namespace Events
                     {offset}
                     
                 ";
-                var totalRowsQuery = $"SELECT COUNT(*) FROM {TableName} WHERE network={(int)network}";
+                var totalRowsQuery = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE network={(int)network}";
                 return new Paginated<Event>
                 {
                     Page = page,
@@ -130,12 +128,12 @@ namespace Events
             }
         }
 
-        public Task Sync<T>(Network network, T payload, T existing, ILogger logger) where T: IEntity<string> 
+        public Task Sync<T>(string userName, string password, Network network, T payload, T existing, ILogger logger) where T: IEntity<string> 
         {
-            return Sync(network, payload, existing, logger, new string[] {});
+            return Sync(userName, password, network, payload, existing, logger, new string[] {});
         }
 
-        public async Task Sync<T>(Network network, T payload, T existing, ILogger logger, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
+        public async Task Sync<T>(string userName, string password, Network network, T payload, T existing, ILogger logger, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
         {
             if (existing != null)
             {
@@ -147,7 +145,7 @@ namespace Events
                     var importantDifferences = result.Differences.Count(p => !ignoreNulls.Contains(p.PropertyName) || p.Object2 != null);
                     if (importantDifferences > 0) {
                         var eventName = $"{payload.GetType().Name}Updated";
-                        await Add(network, payload.Id, eventName, payload.ToJson());
+                        await Add(userName, password, network, payload.Id, eventName, payload.ToJson());
                         logger.LogInformation("Raised {eventName} in {network}", eventName, network);
                     }
                 }
@@ -155,7 +153,7 @@ namespace Events
             else
             {
                 var eventName = $"{payload.GetType().Name}Created";
-                await Add(network, payload.Id, eventName, payload.ToJson());
+                await Add(userName, password, network, payload.Id, eventName, payload.ToJson());
                 logger.LogInformation("Raised {eventName} in {network}", eventName, network);
             }
         }
