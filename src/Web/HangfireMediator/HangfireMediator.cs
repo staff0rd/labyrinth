@@ -1,16 +1,17 @@
+using System.Threading.Tasks;
 using Hangfire;
 using MediatR;
 
 namespace Web {
-
     public static class MediatRExtension
     {
         public static void Enqueue(this IMediator mediator, IRequest request)
         {
-            BackgroundJob.Enqueue<HangfireMediator>(m => m.Send(request));
+            BackgroundJob.Enqueue<HangfireMediator>(m => m.SendCommand(request));
         }
     }
 
+    [LogToHangfireConsole]
     public class HangfireMediator
     {
         private readonly IMediator _mediator;
@@ -20,9 +21,9 @@ namespace Web {
             _mediator = mediator;
         }
 
-        public void Send(IRequest request)
+        public async Task SendCommand(IRequest request)
         {
-            _mediator.Send(request);
+            await _mediator.Send(request);
         }
     }
 }

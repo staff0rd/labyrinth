@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,21 +23,27 @@ namespace Events
 
         public async Task<Unit> Handle(YammerBackfillCommand request, CancellationToken cancellationToken)
         {
-            if (_credentials.Yammer.TryGetValue(request.Username, out var credential))
+            try
             {
-                long? last = null;
-                do 
+                if (_credentials.Yammer.TryGetValue(request.Username, out var credential))
                 {
-                    var queryString = new { older_than = last };
+                    long? last = null;
+                    do 
+                    {
+                        var queryString = new { older_than = last };
 
-                    var response = await _rest.Get(credential.Username, credential.Password, Network.Yammer, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.Token);
-                    if (response != null) {
-                        last = response.Messages.Last()?.Id;
-                        _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
-                    } else {
-                        last = null;
-                    }
-                } while(last != null);
+                        var response = await _rest.Get(credential.Username, credential.Password, Network.Yammer, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.Token);
+                        if (response != null) {
+                            last = response.Messages.Last()?.Id;
+                            _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
+                        } else {
+                            last = null;
+                        }
+                    } while(last != null);
+                }
+            } catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
             }
 
             return new Unit();
