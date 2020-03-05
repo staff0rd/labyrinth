@@ -73,6 +73,12 @@ namespace Web.Controllers
             public string Password { get; set; }
         }
 
+        public class ProcessYammerRequest
+        {
+            public string Username { get; set; }
+            public string Password { get; set; }
+        }
+
         [HttpPost]
         [Route("backfill")]
         public QueuedJob Backfill([FromBody] BackfillYammerRequest request)
@@ -85,6 +91,19 @@ namespace Web.Controllers
             });
 
             return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });
+        }
+
+        [HttpPost]
+        [Route("process")]
+        public QueuedJob Backfill([FromBody] ProcessYammerRequest request)
+        {
+            _credentials.Yammer.TryRemove(request.Username, out var _);
+            _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
+                Username = request.Username,
+                Password = request.Password
+            });
+
+            return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username });
         }
 
         private static PagedResult<TResult> PagedResult<TCollection, TResult>(TCollection[] items, int pageNumber, int pageSize, Func<TCollection, TResult> selector)

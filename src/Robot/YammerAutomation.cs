@@ -29,59 +29,7 @@ namespace Robot
             _store = new Store(_events, _logger);
             _token = token;
         }
-
-        public async Task Process() {
-            await _store.Hydrate();
-
-            await _events.ReadForward(Network.Yammer, async (events) => { 
-                var bodies = events
-                    .Where(p => p.EventName == "RestApiRequest")
-                    .Select(p => p.Body)
-                    .ToList();
-                foreach (var body in bodies)
-                {
-                    dynamic json = JsonConvert.DeserializeObject(body);
-
-                    foreach(var message in json.response.messages) {
-                        await ProcessMessage(Rest.Yammer.Message.FromJson(message.ToString()));
-                    }
-                    
-                    foreach (var reference in json.response.references) {
-                        switch(reference.type.ToString()) {
-                            case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()));
-                            break;
-                            case "message": await ProcessMessage(Rest.Yammer.Message.FromJson(reference.ToString()));
-                            break;
-                            default: 
-                                _logger.LogWarning($"Unknown reference type: {reference.type}");
-                            break;
-                        }
-                    }
-                }
-            });
-        }
-
-        public async Task ProcessUser(Rest.Yammer.User user)
-        {
-            var received = Events.User.From(user);
-            var existing = _store.GetUser(Network.Yammer, received.Id);
-            if (existing == null)
-            {
-                _store.Add(Network.Yammer, received);
-            } 
-            await _events.Sync(Network.Yammer, received, existing, _logger, new string[] {});
-        }
-
-        public async Task ProcessMessage(Rest.Yammer.Message message)
-        {
-            var received = Events.Message.From(message);
-            var existing = _store.GetMessage(Network.Yammer, received.Id);
-            if (existing == null)
-            {
-                _store.Add(Network.Yammer, received);
-            } 
-            await _events.Sync(Network.Yammer, received, existing, _logger, new [] { "BodyParsed" });
-        }
+        
         
         
     }

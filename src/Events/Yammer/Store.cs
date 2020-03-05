@@ -20,11 +20,11 @@ namespace Events
     public class Store
     {
         private readonly EventRepository _events;
-        private readonly ILogger _logger;
+        private readonly ILogger<Store> _logger;
 
         public Dictionary<Network, NetworkStore> _store;
 
-        public Store(EventRepository events, ILogger logger) {
+        public Store(EventRepository events, ILogger<Store> logger) {
             _events = events;
             _logger = logger;
             _store = new Dictionary<Network, NetworkStore> {
