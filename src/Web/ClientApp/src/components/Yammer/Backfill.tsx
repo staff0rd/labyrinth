@@ -3,7 +3,7 @@ import { Button, Grid, makeStyles, LinearProgress } from "@material-ui/core"
 import Alert from "@material-ui/lab/Alert"
 import { Formik, Form, Field } from 'formik';
 import { TextField } from 'formik-material-ui';
-import { post, Result } from '../../api';
+import { queue, Command, Result } from '../../api';
 import { actionCreators as accountActions, AccountState } from '../../store/Account';
 import { useDispatch } from 'react-redux';
 import { useSelector } from '../../store/useSelector';
@@ -15,6 +15,7 @@ interface Values {
 
 export const Backfill = () => {
     const [result, setResult] = useState<Result>();
+    const [link, setLink] = useState<Command>();
     const dispatch = useDispatch();
     const { password, userName } = useSelector<AccountState>(state => state.account);
 
@@ -43,12 +44,13 @@ export const Backfill = () => {
             onSubmit={async (values, { setSubmitting }) => {
                 try {
                     setResult(undefined);
-                    const response = await post('api/yammer/backfill', {
+                    const response = await queue('api/yammer/backfill', {
                         password,
                         userName,
                         token: values.token,
                     });
-                    setResult(response);
+                    setResult(undefined);
+                    setLink(response);
                 } catch (err) {
                     setResult(err);
                     console.log('error', err);
@@ -71,6 +73,9 @@ export const Backfill = () => {
                     <Grid item xs={12}>
                         {isSubmitting && <LinearProgress />}
                         { !isSubmitting && showResult() }
+                        { !isSubmitting && link && (
+                            <Alert severity="success">Job <a target='_blank' href={`/hangfire/jobs/details/${link.id}`}>#{link.id}</a> queued</Alert>
+                        )}
                     </Grid>
                     <Grid item xs={12}>
                         <Button

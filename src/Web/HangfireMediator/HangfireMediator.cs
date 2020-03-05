@@ -3,11 +3,20 @@ using Hangfire;
 using MediatR;
 
 namespace Web {
+    public class QueuedJob
+    {
+        public string Id { get; set; }
+        public string Command { get; set; }
+    }
     public static class MediatRExtension
     {
-        public static void Enqueue(this IMediator mediator, IRequest request)
+        public static QueuedJob Enqueue(this IMediator mediator, IRequest request)
         {
-            BackgroundJob.Enqueue<HangfireMediator>(m => m.SendCommand(request));
+            return new QueuedJob 
+            {
+                Id = BackgroundJob.Enqueue<HangfireMediator>(m => m.SendCommand(request)),
+                Command = request.GetType().FullName
+            };
         }
     }
 

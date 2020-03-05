@@ -75,7 +75,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("backfill")]
-        public void Backfill([FromBody] BackfillYammerRequest request)
+        public QueuedJob Backfill([FromBody] BackfillYammerRequest request)
         {
             _credentials.Yammer.TryRemove(request.Username, out var _);
             _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
@@ -84,7 +84,7 @@ namespace Web.Controllers
                 Token = request.Token
             });
 
-            _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });
+            return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });
         }
 
         private static PagedResult<TResult> PagedResult<TCollection, TResult>(TCollection[] items, int pageNumber, int pageSize, Func<TCollection, TResult> selector)

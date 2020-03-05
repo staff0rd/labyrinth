@@ -3,7 +3,15 @@ export interface Result {
     message?: string;
 }
 
-export const post = async (url: string, body: any) => {
+export interface Command {
+    id: string;
+    command: string;
+}
+
+export const queue = (url: string, body: any) => _post<Command>(url, body);
+export const post = (url: string, body: any) => _post<Result>(url, body);
+
+const _post = async <T>(url: string, body: any) => {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -13,10 +21,10 @@ export const post = async (url: string, body: any) => {
     });
 
     try {
-        const json = await response.json() as Promise<Result>;
+        const json = await response.json() as Promise<T>;
         return json;
     } catch (err) {
         console.log(err);
-        return { isError: true, message: 'An unexpected error occurred' };
+        throw { isError: true, message: 'An unexpected error occurred' };
     }
 }
