@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using Hangfire;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Web {
     public class QueuedJob
@@ -24,15 +26,21 @@ namespace Web {
     public class HangfireMediator
     {
         private readonly IMediator _mediator;
+        private readonly ILogger<HangfireMediator> _logger;
 
-        public HangfireMediator(IMediator mediator)
+        public HangfireMediator(IMediator mediator, ILogger<HangfireMediator> logger)
         {
             _mediator = mediator;
+            _logger = logger;
         }
 
         public async Task SendCommand(IRequest request)
         {
-            await _mediator.Send(request);
+            try {
+                await _mediator.Send(request);
+            } catch (Exception e) {
+                _logger.LogError(e, e.Message);
+            }
         }
     }
 }
