@@ -35,7 +35,7 @@ namespace Events
                 query = $@"
                     CREATE TABLE IF NOT EXISTS user_{username}.events (
                         id int GENERATED ALWAYS AS IDENTITY primary key not null,
-                        entity_id uuid NOT NULL,
+                        entity_id text NOT NULL,
                         network int NOT NULL references public.networks(id),
                         event_name text NOT NULL,
                         body bytea NOT NULL,
