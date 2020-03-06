@@ -16,6 +16,8 @@ using Hangfire.PostgreSql;
 using MediatR;
 using Hangfire.Console;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace Web
 {
@@ -78,6 +80,29 @@ namespace Web
             });
         }
 
+        public void ConfigureExceptions(IApplicationBuilder app)
+        {
+            app.UseExceptionHandler(errorApp =>
+        {
+                errorApp.Run(async context =>
+                {
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "text/plain";
+
+                    var exceptionHandlerPathFeature = 
+                        context.Features.Get<IExceptionHandlerPathFeature>();
+
+                    // if (exceptionHandlerPathFeature?.Error is FileNotFoundException)
+                    // {
+                    //     await context.Response.WriteAsync("File error thrown!<br><br>\r\n");
+                    // }
+
+                    await context.Response.WriteAsync(exceptionHandlerPathFeature?.Error?.Message);
+                });
+            });
+        }
+        
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -85,11 +110,11 @@ namespace Web
 
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                ConfigureExceptions(app);
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                ConfigureExceptions(app);
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }

@@ -20,6 +20,9 @@ const _post = async <T>(url: string, body: any) => {
         body: JSON.stringify(body),
     });
 
+    if (response.status == 500)
+        throw {isError: true, message: await response.text() };
+
     try {
         const json = await response.json() as Promise<T>;
         return json;
