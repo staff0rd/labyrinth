@@ -64,7 +64,7 @@ namespace Web
 
             services.AddSingleton<JobActivator, InjectContextJobActivator>();
 
-            services.AddSingleton<Store>(provider => {
+            services.AddScoped<Store>(provider => {
                 var logger = provider.GetRequiredService<ILogger<Store>>();
                 try
                 {
