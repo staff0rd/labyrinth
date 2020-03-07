@@ -29,8 +29,6 @@ namespace Events
         public async Task<Unit> Handle(YammerProcessCommand request, CancellationToken cancellationToken)
         {
             var creds = _credentials.Yammer[request.Username];
-            _logger.LogInformation("Hydrating store");
-            await _store.Hydrate(creds.Username, creds.Password);
 
             var count = _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
             var currentCount = 0;
