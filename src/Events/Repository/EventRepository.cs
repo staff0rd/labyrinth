@@ -74,19 +74,18 @@ namespace Events
             }
         }
 
-        public async Task ReadForward(string userName, string password, Network network, Func<Event[], Task> eventProcessor)
+        public async Task ReadForward(string userName, string password, Network network, Func<Event[], Task<int>> eventProcessor)
         {
             Event[] currentSlice;
-            int nextPage = 0;
+            int lastId = 0;
             const int PAGE_SIZE = 200;
             do
             {
-                var result = await Paginate(userName, password, network, nextPage, PAGE_SIZE);
+                var result = await Paginate(userName, password, network, lastId, PAGE_SIZE);
                 currentSlice = result.Rows.ToArray();
 
-                nextPage++;
 
-                await eventProcessor(currentSlice);
+                lastId = await eventProcessor(currentSlice);
                     
             } while (currentSlice.Length == PAGE_SIZE);
         }
@@ -100,12 +99,10 @@ namespace Events
             return $"AND event_name IN ({events})";
         }
 
-        public async Task<Paginated<Event>> Paginate(string userName, string password, Network network, int page = 0, int pageSize = 200, string orderBy = "id ASC",
+        public async Task<Paginated<Event>> Paginate(string userName, string password, Network network, int lastId = 0, int pageSize = 200, string orderBy = "id ASC",
         string[] eventTypes = null)
         {
-            var offset = pageSize * page;
             var limit = pageSize;
-            
 
             using (var connection = _connectionFactory.CreateConnection())
             {
@@ -124,21 +121,17 @@ namespace Events
                     public.keys ON keys.name = '{userName}'
                 WHERE
                     network={(int)network}
+                AND
+                    id > {lastId}
                 {GetEventFilter(eventTypes)}
                 ORDER BY
                     {orderBy}
                 LIMIT
                     {limit}
-                OFFSET
-                    {offset}
-                    
                 ";
-                var totalRowsQuery = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE network={(int)network}";
                 return new Paginated<Event>
                 {
-                    Page = page,
                     PageSize = pageSize,
-                    TotalRows = await connection.ExecuteAsync(totalRowsQuery),
                     Rows = await connection.QueryAsync<Event>(rowsQuery),
                 };
             }

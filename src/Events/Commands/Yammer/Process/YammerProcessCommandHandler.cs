@@ -67,6 +67,7 @@ namespace Events
                         }
                     }
                 }
+                return events.Last().Id;
             });
 
             _logger.LogInformation("Completed processing");

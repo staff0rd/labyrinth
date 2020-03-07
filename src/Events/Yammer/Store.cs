@@ -43,7 +43,7 @@ namespace Events
                 .ToArray();
         }
 
-        public Func<Event[], Task> FillFromEvents<T>(Dictionary<string, T> dictionary, int expectedCount) where T : IExternalEntity
+        public Func<Event[], Task<int>> FillFromEvents<T>(Dictionary<string, T> dictionary, int expectedCount) where T : IExternalEntity
         {
             var count = 0;
             return (events) => {
@@ -58,7 +58,7 @@ namespace Events
                         if (!dictionary.ContainsKey(item.Id))
                             dictionary.Add(item.Id, item);
                     });
-                return Task.CompletedTask;
+                return Task.FromResult(events.Last().Id);
             };
         }
 
