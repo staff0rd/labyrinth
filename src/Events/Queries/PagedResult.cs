@@ -2,31 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Web.Controllers
+namespace Events
 {
-    public class PagedResult<T>
+        public class PagedResult<T>
     {
         public int Page { get; set; }
         public int PageSize { get; set; }
         public T[] Rows { get; set; }
         public int TotalRows { get; set; }
     }
+
     public static class PagedResultExtension
     {
-        public static PagedResult<TResult> GetPagedResult<T, TResult>(this IEnumerable<T> items, int pageNumber, int pageSize, Func<T, TResult> selector)
+         public static PagedResult<T> GetPagedResult<T>(this IEnumerable<T> items, int pageNumber, int pageSize)
         {
-            return new PagedResult<TResult>
+            return new PagedResult<T>
             {
                 Page = pageNumber,
                 PageSize = pageSize,
                 Rows = items
                     .Skip(pageNumber * pageSize)
                     .Take(pageSize)
-                    .Select(selector)
                     .ToArray(),
                 TotalRows = items.Count()
             };
         }
-        
     }
 }

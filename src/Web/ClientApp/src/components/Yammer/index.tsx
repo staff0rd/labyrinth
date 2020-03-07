@@ -7,6 +7,7 @@ import { Queue } from './Queue';
 import { postResponse } from '../../api';
 import { useSelector } from '../../store/useSelector';
 import { AccountState } from '../../store/Account';
+import { Users } from '../Users';
 import Alert from '@material-ui/lab/Alert';
 
 type Overview = {
@@ -27,7 +28,6 @@ const Yammer = () => {
   // const requestMessages = (search: string, pageNumber: number, pageSize: number) => 
   //   dispatch(YammerStore.actionCreators.requestMessages(pageNumber, pageSize, search));
   //   const { users, messages } = useSelector<YammerStore.YammerState>(state => state.yammer);
-    const location = useLocation();
 
   useEffect(() => {
     postResponse<Overview>(`api/yammer/overview`, {userName, password})
@@ -68,6 +68,12 @@ const Yammer = () => {
       <Route path='/yammer/backfill' component={Backfill} />
       <Route path='/yammer/hydrate' component={() => <Queue url={'api/yammer/hydrate'} />} />
       <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} />} />
+      <Route path='/yammer/users' component={() => (<Users
+        url={`api/yammer/users`} 
+        searchPlaceholder="Search by name or job title"
+      />)}
+      />
+
       { error && <Alert severity="error">{error}</Alert> }
     </>
   );

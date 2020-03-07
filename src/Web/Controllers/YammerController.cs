@@ -45,22 +45,18 @@ namespace Web.Controllers
         //     return UserCard.FromUser(user);
         // }
 
-        // [HttpGet]
-        // [Route("users")]
-        // public PagedResult<UserCard> GetUsers(int pageNumber = 0, int pageSize = 20, string search = "")
-        // {
-        //     var users = _store.GetUsers(Network.Yammer);
-        //     if (!string.IsNullOrWhiteSpace(search))
-        //     {
-        //         Func<string, string> ifNull = (string a) => a == null ? "" : a;
-        //         users = users.Where(u => ifNull(u.Name).ToLower().Contains(search.ToLower()) || ifNull(u.Description).ToLower().Contains(search.ToLower())).ToArray();
-        //     }
-
-        //     return users.GetPagedResult(pageNumber, pageSize, (u) => UserCard.FromUser(u));
-        // }
         public class YammerCredentialRequest : UserCredentialRequest
         {
             public string Token { get; set; }
+        }
+
+        public class SearchRequest : UserCredentialRequest
+        {
+            public string Search { get; set; }
+
+            public int PageSize { get; set; }
+
+            public int PageNumber { get; set;}
         }
 
         public class UserCredentialRequest
@@ -104,6 +100,30 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Route("users")]
+        public async Task<Result<PagedResult<UserCard>>> Users([FromBody] SearchRequest request)
+        {
+            var result = await _mediator.Send(new YammerUsersQuery { 
+                Username = request.Username, 
+                Password = request.Password, 
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize,
+                Search = request.Search,
+            });
+            
+            if (result.IsError)
+                return new Result<PagedResult<UserCard>> { IsError = true, Message = result.Message }; 
+
+            var mapped = result.Response.Rows.Select(UserCard.FromUser).ToArray();
+            return new Result<PagedResult<UserCard>>(new PagedResult<UserCard> {
+                Rows = mapped,
+                Page = result.Response.Page,
+                PageSize = result.Response.PageSize,
+                TotalRows = result.Response.TotalRows,
+            });
+        }
+
+        [HttpPost]
         [Route("hydrate")]
         public QueuedJob Hydrate([FromBody] UserCredentialRequest request)
         {
@@ -115,8 +135,6 @@ namespace Web.Controllers
 
             return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
         }
-
-        [HttpPost]
 
         private static PagedResult<TResult> PagedResult<TCollection, TResult>(TCollection[] items, int pageNumber, int pageSize, Func<TCollection, TResult> selector)
         {

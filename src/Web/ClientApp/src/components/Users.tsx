@@ -13,12 +13,15 @@ import Tooltip from '@material-ui/core/Tooltip';
 import SearchIcon from '@material-ui/icons/Search';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { UserCards } from './UserCards';
+import { useSelector } from '../store/useSelector';
 import { makeStyles } from '@material-ui/core/styles';
+import { AccountState } from '../store/Account';
+import { postResponse } from '../api'
+import Alert from '@material-ui/lab/Alert';
 
 type UsersProps = {
+  url: string;
   searchPlaceholder: string;
-  searchRequest: (search: string, pageNumber: number, pageSize: number) => any;
-  users: Paged<User>;
 };
 
 const useStyles = makeStyles(theme => ({
@@ -35,12 +38,28 @@ const useStyles = makeStyles(theme => ({
   }));
 
 export const Users = (props: UsersProps) => {
-  const { searchPlaceholder, searchRequest, users, } = props;
+  const { url, searchPlaceholder } = props;
   const classes = useStyles();
-  
+  const [error, setError] = useState<string>("");
   const [search, setSearch] = useState('');
-  const [pageNumber, setPageNumber] = useState(users.page);
-  const [pageSize, setPageSize] = useState(users.pageSize);
+  const [pageNumber, setPageNumber] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const { password, userName } = useSelector<AccountState>(state => state.account);
+
+  const [users, setUsers] = useState<Paged<User>>();
+
+  const searchRequest = (search: string, pageNumber: number, pageSize: number) =>
+    setError('');  
+    postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize})
+      .then(data => {
+        if (data) {
+          if (data.isError)
+            setError(data.message!);
+          else {
+            setUsers(data.response);
+          }
+        }
+      });
 
   useEffect(() => {
     searchRequest(search, pageNumber, pageSize);
@@ -48,6 +67,7 @@ export const Users = (props: UsersProps) => {
 
   return (
     <React.Fragment>
+        { error && <Alert severity="error">{error}</Alert> }
         <AppBar className={classes.searchBar} position="static" color="default" elevation={0}>
             <Toolbar>
                 <Grid container spacing={2} alignItems="center">
@@ -71,15 +91,19 @@ export const Users = (props: UsersProps) => {
                 </Grid>
             </Toolbar>
         </AppBar>
-        <UserCards users={users.rows} />
-        <TablePagination 
-            count={users.totalRows}
-            rowsPerPage={users.pageSize}
-            rowsPerPageOptions={[20, 50, 100]}
-            component={Paper}
-            onChangePage={(_: any, page: number) => setPageNumber(page)}
-            onChangeRowsPerPage={((_: any, select: any) => setPageSize(select.key)) as any}
-            page={users.page}
-        />
+        { users && (
+          <>
+            <UserCards users={users.rows} />
+            <TablePagination 
+                count={users.totalRows}
+                rowsPerPage={users.pageSize}
+                rowsPerPageOptions={[20, 50, 100]}
+                component={Paper}
+                onChangePage={(_: any, page: number) => setPageNumber(page)}
+                onChangeRowsPerPage={((_: any, select: any) => setPageSize(select.key)) as any}
+                page={users.page}
+            />
+          </>
+        )}
     </React.Fragment>);
 };

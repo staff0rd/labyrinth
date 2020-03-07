@@ -26,9 +26,9 @@ export const LinkedIn = () => {
   });
 
   switch (location.pathname) {
-    case '/linkedin/users': return users && (
-      <Users users={users} searchPlaceholder="Search by name or occupation" searchRequest={searchRequest} />
-    );
+    // case '/linkedin/users': return users && (
+    //   <Users users={users} searchPlaceholder="Search by name or occupation" searchRequest={searchRequest} />
+    // );
     default: return (<div>{location.pathname}</div>)
   }
 };
