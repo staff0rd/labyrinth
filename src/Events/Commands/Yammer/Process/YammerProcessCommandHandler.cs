@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +29,9 @@ namespace Events
 
         public async Task<Unit> Handle(YammerProcessCommand request, CancellationToken cancellationToken)
         {
+            if (!_store.IsHydrated)
+                throw new Exception("Store must be hydrated first");
+
             var creds = _credentials.Yammer[request.Username];
 
             var count = _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
@@ -40,8 +44,8 @@ namespace Events
                     .ToList();
                 foreach (var body in bodies)
                 {
-                    _progress.Set(currentCount, count);
                     currentCount++;
+                    _progress.Set(currentCount, count);
 
                     dynamic json = JsonConvert.DeserializeObject(body);
 

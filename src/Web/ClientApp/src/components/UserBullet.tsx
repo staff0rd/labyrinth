@@ -5,6 +5,9 @@ import Avatar from '@material-ui/core/Avatar';
 import Chip from '@material-ui/core/Chip';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from "@material-ui/core";
+import { postResponse } from '../api';
+import { useSelector } from '../store/useSelector';
+import { AccountState } from '../store/Account';
 
 type Props = {
     id: string;
@@ -21,11 +24,13 @@ export const UserBullet = ({ id }: Props) => {
     const [user, setUser] = useState<User|undefined>(undefined);
     const classes = useStyles();
 
+    const { password, userName } = useSelector<AccountState>(state => state.account);
+
     useEffect(() => {
-        fetch(`api/yammer/users/${id}`)
-        .then(response => response.json() as Promise<User>)
+        postResponse<User>(`api/yammer/user`, {userName, password, id})
         .then(data => {
-            setUser(data);
+          if (data && data.response)
+            setUser(data.response);
         });
     }, [id])
 
@@ -33,11 +38,11 @@ export const UserBullet = ({ id }: Props) => {
 
     if (user) 
     return (
-      <Chip avatar={(
+      <Chip avatar={user.avatarUrl ? (
         <Avatar alt={user.name} src={user.avatarUrl.startsWith('data') ? undefined : user.avatarUrl} className={classes.avatar}>
           {user.avatarUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
-        </Avatar>
-      )} label={user.name} onClick={handleClick} />
+      </Avatar> ) : <Avatar></Avatar>}
+      label={user.name} onClick={handleClick} />
     );
     return <Chip avatar={<Avatar>?</Avatar>}> /></Chip>
 }

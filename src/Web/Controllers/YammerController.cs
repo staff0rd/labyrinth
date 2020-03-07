@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Events;
 using Events.Yammer;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Rest.Yammer;
 
 namespace Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class YammerController : ControllerBase
+    public partial class YammerController : ControllerBase
     {
         private readonly IMediator _mediator;
 
@@ -25,49 +22,18 @@ namespace Web.Controllers
             _credentials = credentials;
         }
 
-        // [HttpGet]
-        // [Route("messages")]
-        // public PagedResult<Events.Message> GetMessages(int pageNumber = 0, int pageSize = 20, string search = "")
-        // {
-        //     var messages = _store.GetMessages(Network.Yammer)
-        //         .OrderByDescending(p => p.CreatedAt);
-                
-        //     var result = messages.GetPagedResult(pageNumber, pageSize, (m) => {
-        //         return m;
-        //     });
-        //     return result;
-        // }
-
-        // [HttpGet]
-        // [Route("users/{id}")]
-        // public UserCard GetUser(string id) {
-        //     var user = _store.GetUsers(Network.Yammer).FirstOrDefault(p => p.Id == id);
-        //     return UserCard.FromUser(user);
-        // }
-
-        public class YammerCredentialRequest : UserCredentialRequest
+        [HttpPost]
+        [Route("user")]
+        public async Task<Result<UserCard>> GetUser([FromBody] YammerUserQuery request)
         {
-            public string Token { get; set; }
-        }
-
-        public class SearchRequest : UserCredentialRequest
-        {
-            public string Search { get; set; }
-
-            public int PageSize { get; set; }
-
-            public int PageNumber { get; set;}
-        }
-
-        public class UserCredentialRequest
-        {
-            public string Username { get; set; }
-            public string Password { get; set; }
+            var user = await _mediator.Send(request);
+            
+            return new Result<UserCard>(UserCard.FromUser(user.Response));
         }
 
         [HttpPost]
         [Route("backfill")]
-        public QueuedJob Backfill([FromBody] YammerCredentialRequest request)
+        public QueuedJob Backfill([FromBody] TokenRequest request)
         {
             _credentials.Yammer.TryRemove(request.Username, out var _);
             _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
@@ -110,12 +76,30 @@ namespace Web.Controllers
                 PageSize = request.PageSize,
                 Search = request.Search,
             });
-            
-            if (result.IsError)
-                return new Result<PagedResult<UserCard>> { IsError = true, Message = result.Message }; 
 
-            var mapped = result.Response.Rows.Select(UserCard.FromUser).ToArray();
-            return new Result<PagedResult<UserCard>>(new PagedResult<UserCard> {
+            return Map(result, UserCard.FromUser);
+        }
+
+        [HttpPost]
+        [Route("messages")]
+        public async Task<Result<PagedResult<Events.Message>>> Messages([FromBody] SearchRequest request)
+        {
+            return await _mediator.Send(new YammerMessagesQuery { 
+                Username = request.Username, 
+                Password = request.Password, 
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize,
+                Search = request.Search,
+            });
+        }
+
+        private Result<PagedResult<TResult>> Map<T, TResult>(Result<PagedResult<T>> result, Func<T, TResult> mapper)
+        {
+            if (result.IsError)
+                return new Result<PagedResult<TResult>> { IsError = true, Message = result.Message }; 
+
+            var mapped = result.Response.Rows.Select(mapper).ToArray();
+            return new Result<PagedResult<TResult>>(new PagedResult<TResult> {
                 Rows = mapped,
                 Page = result.Response.Page,
                 PageSize = result.Response.PageSize,
@@ -134,21 +118,6 @@ namespace Web.Controllers
             });
 
             return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
-        }
-
-        private static PagedResult<TResult> PagedResult<TCollection, TResult>(TCollection[] items, int pageNumber, int pageSize, Func<TCollection, TResult> selector)
-        {
-            return new PagedResult<TResult>
-            {
-                Page = pageNumber,
-                PageSize = pageSize,
-                Rows = items
-                    .Skip(pageNumber * pageSize)
-                    .Take(pageSize)
-                    .Select(selector)
-                    .ToArray(),
-                TotalRows = items.Count()
-            };
         }
     }
 }

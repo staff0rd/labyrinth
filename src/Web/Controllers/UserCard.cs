@@ -14,7 +14,8 @@ namespace Web.Controllers
 
         internal static UserCard FromUser(Events.User u)
         {
-            return new UserCard
+            if (u != null)
+                return new UserCard
                 {
                     AvatarUrl = ScaleMugshot(u.AvatarUrl),
                     Id = u.Id,
@@ -22,6 +23,7 @@ namespace Web.Controllers
                     Name = u.Name,
                     Description = u.Description,
                 };
+            return new UserCard();
         }
         private static string ScaleMugshot(string url)
         {

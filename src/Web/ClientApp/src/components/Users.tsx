@@ -14,8 +14,8 @@ import SearchIcon from '@material-ui/icons/Search';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { UserCards } from './UserCards';
 import { useSelector } from '../store/useSelector';
-import { makeStyles } from '@material-ui/core/styles';
 import { AccountState } from '../store/Account';
+import { makeStyles } from '@material-ui/core/styles';
 import { postResponse } from '../api'
 import Alert from '@material-ui/lab/Alert';
 
@@ -45,10 +45,9 @@ export const Users = (props: UsersProps) => {
   const [pageNumber, setPageNumber] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const { password, userName } = useSelector<AccountState>(state => state.account);
-
   const [users, setUsers] = useState<Paged<User>>();
 
-  const searchRequest = (search: string, pageNumber: number, pageSize: number) =>
+  const searchRequest = () => {
     setError('');  
     postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize})
       .then(data => {
@@ -60,9 +59,10 @@ export const Users = (props: UsersProps) => {
           }
         }
       });
+    };
 
   useEffect(() => {
-    searchRequest(search, pageNumber, pageSize);
+    searchRequest();
   }, [pageNumber, pageSize, search]);
 
   return (

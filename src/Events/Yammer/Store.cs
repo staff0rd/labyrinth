@@ -23,6 +23,9 @@ namespace Events
         private readonly ILogger<Store> _logger;
         private readonly IProgress _progress;
 
+        private bool _isHydrated;
+        public bool IsHydrated => _isHydrated;
+
         public Dictionary<Network, NetworkStore> _store;
 
         public Store(EventRepository events, ILogger<Store> logger, IProgress progress) {
@@ -64,24 +67,26 @@ namespace Events
             var total = Stopwatch.StartNew();
             var sw = Stopwatch.StartNew();
 
-            _logger.LogInformation("Hydrating Yammer messages...");
-            var count = _events.GetCount(userName, Network.Yammer, "MessageCreated");
-            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages, count));
-            Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Messages.Count);
-
             _logger.LogInformation("Hydrating Yammer users...");
-            sw = Stopwatch.StartNew();
             _progress.New();
-            count = _events.GetCount(userName, Network.Yammer, "UserCreated");
+            var count = _events.GetCount(userName, Network.Yammer, "UserCreated");
             await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users, count));
             Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Users.Count);
 
+            sw = Stopwatch.StartNew();
+            _logger.LogInformation("Hydrating Yammer messages...");
+            _progress.New();
+            count = _events.GetCount(userName, Network.Yammer, "MessageCreated");
+            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages, count));
+            Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Messages.Count);
+
             _logger.LogInformation("Hydrating complete");
+            _isHydrated = true;
         }
 
         private void Log(TimeSpan time, Network network, int count)
         {
-            _logger.LogInformation($"It look {time} to read {count} entities from network {network}");
+            _logger.LogInformation($"{count} entities read from network {network} in {time}");
         }
 
         public void Add(Network network, User user)

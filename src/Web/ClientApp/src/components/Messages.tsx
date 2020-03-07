@@ -14,11 +14,14 @@ import SearchIcon from '@material-ui/icons/Search';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { makeStyles } from '@material-ui/core/styles';
 import { MessageCards } from './MessageCards';
+import { useSelector } from '../store/useSelector'
+import { AccountState } from '../store/Account';
+import { postResponse } from '../api'
+import Alert from '@material-ui/lab/Alert';
 
 type MessagesProps = {
+  url: string;
   searchPlaceholder: string;
-  searchRequest: (search: string, pageNumber: number, pageSize: number) => any;
-  messages: Paged<Message>;
 };
 
 const useStyles = makeStyles(theme => ({
@@ -35,12 +38,28 @@ const useStyles = makeStyles(theme => ({
   }));
 
 export const Messages = (props: MessagesProps) => {
-  const { searchPlaceholder, searchRequest, messages, } = props;
+  const { url, searchPlaceholder } = props;
   const classes = useStyles();
-  
+  const [error, setError] = useState<string>("");
   const [search, setSearch] = useState('');
-  const [pageNumber, setPageNumber] = useState(messages.page);
-  const [pageSize, setPageSize] = useState(messages.pageSize);
+  const [pageNumber, setPageNumber] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const { password, userName } = useSelector<AccountState>(state => state.account);
+  const [messages, setMessages] = useState<Paged<Message>>();
+
+  const searchRequest = (search: string, pageNumber: number, pageSize: number) => {
+    setError('');  
+    postResponse<Paged<Message>>(url, {userName, password, search, pageNumber, pageSize})
+      .then(data => {
+        if (data) {
+          if (data.isError)
+            setError(data.message!);
+          else {
+            setMessages(data.response);
+          }
+        }
+    });
+  };
 
   useEffect(() => {
     searchRequest(search, pageNumber, pageSize);
@@ -48,6 +67,7 @@ export const Messages = (props: MessagesProps) => {
 
   return (
     <React.Fragment>
+        { error && <Alert severity="error">{error}</Alert> }
         <AppBar className={classes.searchBar} position="static" color="default" elevation={0}>
             <Toolbar>
                 <Grid container spacing={2} alignItems="center">
@@ -71,15 +91,19 @@ export const Messages = (props: MessagesProps) => {
                 </Grid>
             </Toolbar>
         </AppBar>
-        <MessageCards messages={messages.rows} />
-        <TablePagination 
-            count={messages.totalRows}
-            rowsPerPage={messages.pageSize}
-            rowsPerPageOptions={[20, 50, 100]}
-            component={Paper}
-            onChangePage={(_: any, page: number) => setPageNumber(page)}
-            onChangeRowsPerPage={((_: any, select: any) => setPageSize(select.key)) as any}
-            page={messages.page}
-        />
+        { messages && (
+          <>
+            <MessageCards messages={messages.rows} />
+            <TablePagination 
+                count={messages.totalRows}
+                rowsPerPage={messages.pageSize}
+                rowsPerPageOptions={[20, 50, 100]}
+                component={Paper}
+                onChangePage={(_: any, page: number) => setPageNumber(page)}
+                onChangeRowsPerPage={((_: any, select: any) => setPageSize(select.key)) as any}
+                page={messages.page}
+            />
+          </>
+        )}
     </React.Fragment>);
 };

@@ -53,7 +53,7 @@ const MessageCard = (message: Message) => {
             return message;
 
         let replacedText = reactStringReplace(message, /\[\[user:(\d+)\]\]/g, (match, i) => (
-            <UserBullet id={match} />
+            <UserBullet id={`yammer/user/${match}`} />
           )); // users
         
           replacedText = reactStringReplace(replacedText, /(https?:\/\/.+.(?:gif|jpg))/g, (match, i) => (
@@ -81,14 +81,14 @@ const MessageCard = (message: Message) => {
                 <CardContent>
                     <Grid container>
                         <Grid item xs={3}>
-                            <UserSquare id={message.sender_id} />
+                            <UserSquare id={message.senderId} />
                         </Grid>
                         <Grid item xs={9}>
                             <Typography variant="overline">
-                                <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{message.created_at}</Moment>
+                                <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{message.createdAt}</Moment>
                             </Typography>
                             <Typography>
-                                {parse(message.body.parsed) || parse(message.body.plain)}
+                                {parse(message.bodyParsed) || parse(message.bodyPlain)}
                             </Typography>
                         </Grid>
                     </Grid>

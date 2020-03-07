@@ -3,9 +3,12 @@ import {User} from '../store/User';
 import Avatar from '@material-ui/core/Avatar';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from "@material-ui/core";
+import { postResponse } from '../api';
+import { useSelector } from '../store/useSelector';
+import { AccountState } from '../store/Account';
 
 type Props = {
-    id: number;
+    id: string;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -28,27 +31,32 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export const UserSquare = ({ id }: Props) => {
-    const [user, setUser] = useState<User|undefined>(undefined);
+    const [user, setUser] = useState<User>();
     const classes = useStyles();
+    const { password, userName } = useSelector<AccountState>(state => state.account);
 
     useEffect(() => {
-        fetch(`api/yammer/users/${id}`)
-        .then(response => response.json() as Promise<User>)
+        postResponse<User>(`api/yammer/user`, {userName, password, id})
         .then(data => {
-            setUser(data);
+          if (data && data.response) {
+            setUser(data.response);
+          }
         });
     }, [id])
 
-    if (user) 
-    return (
-      <React.Fragment>
-        <Avatar alt={user.name} src={user.avatarUrl.startsWith('data') ? undefined : user.avatarUrl} className={classes.large}>
-            {user.avatarUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
-        </Avatar>
-        <Typography>
-          {user.name}
-        </Typography>
-      </React.Fragment>
-    );
+    if (user && user.name) {
+      return (
+        <React.Fragment>
+          {user.avatarUrl ? (
+            <Avatar alt={user.name} src={user.avatarUrl.startsWith('data') ? undefined : user.avatarUrl} className={classes.large}>
+                {user.avatarUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
+            </Avatar>
+          ) : <Avatar></Avatar> }
+          <Typography>
+            {user.name}
+          </Typography>
+        </React.Fragment>
+      );
+    }
     return <Avatar>?</Avatar>
 }

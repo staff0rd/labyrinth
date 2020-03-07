@@ -24,7 +24,9 @@ namespace Events
     }
     public static class IdExtension {
         public static string AsId<T>(this object externalId, Network network) {
-            return $"{network.ToString().ToLower()}/{nameof(T).ToLower()}/{externalId}";
+            var typeName = typeof(T).Name;
+            var id = $"{network.ToString().ToLower()}/{typeName.ToLower()}/{externalId}";
+            return id;
         }
     }
 }
