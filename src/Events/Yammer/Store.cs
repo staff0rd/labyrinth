@@ -21,12 +21,14 @@ namespace Events
     {
         private readonly EventRepository _events;
         private readonly ILogger<Store> _logger;
+        private readonly IProgress _progress;
 
         public Dictionary<Network, NetworkStore> _store;
 
-        public Store(EventRepository events, ILogger<Store> logger) {
+        public Store(EventRepository events, ILogger<Store> logger, IProgress progress) {
             _events = events;
             _logger = logger;
+            _progress = progress;
             _store = new Dictionary<Network, NetworkStore> {
                 { Network.Yammer, new NetworkStore() },
                 { Network.LinkedIn, new NetworkStore() },
@@ -38,8 +40,9 @@ namespace Events
                 .ToArray();
         }
 
-        public Func<Event[], Task> FillFromEvents<T>(Dictionary<string, T> dictionary) where T : IExternalEntity
+        public Func<Event[], Task> FillFromEvents<T>(Dictionary<string, T> dictionary, int expectedCount) where T : IExternalEntity
         {
+            var count = 0;
             return (events) => {
                 var eventName = $"{typeof(T).Name}Created";
                 events
@@ -47,6 +50,8 @@ namespace Events
                     .Select(p => JsonConvert.DeserializeObject<T>(p.Body))
                     .ToList()
                     .ForEach(item => {
+                        count++;
+                        _progress.Set(count, expectedCount);
                         if (!dictionary.ContainsKey(item.Id))
                             dictionary.Add(item.Id, item);
                     });
@@ -56,12 +61,27 @@ namespace Events
 
         public async Task Hydrate(string userName, string password)
         {
+            var total = Stopwatch.StartNew();
             var sw = Stopwatch.StartNew();
-           
-            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages));
-            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users));
-            
-            _logger.LogInformation($"It look {sw.Elapsed} to read network {Network.Yammer}, {_store[Network.Yammer].Users.Count} users, {_store[Network.Yammer].Messages.Count} messages");
+
+            _logger.LogInformation("Hydrating Yammer messages...");
+            var count = _events.GetCount(userName, Network.Yammer, "MessageCreated");
+            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages, count));
+            Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Messages.Count);
+
+            _logger.LogInformation("Hydrating Yammer users...");
+            sw = Stopwatch.StartNew();
+            _progress.New();
+            count = _events.GetCount(userName, Network.Yammer, "UserCreated");
+            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users, count));
+            Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Users.Count);
+
+            _logger.LogInformation("Hydrating complete");
+        }
+
+        private void Log(TimeSpan time, Network network, int count)
+        {
+            _logger.LogInformation($"It look {time} to read {count} entities from network {network}");
         }
 
         public void Add(Network network, User user)

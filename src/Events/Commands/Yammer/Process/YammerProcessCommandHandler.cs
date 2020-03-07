@@ -12,22 +12,29 @@ namespace Events
         private readonly ILogger<YammerProcessCommandHandler> _logger;
         private readonly CredentialCache _credentials;
         private readonly EventRepository _events;
+        private readonly IProgress _progress;
         private readonly Store _store;
 
-        public YammerProcessCommandHandler(ILogger<YammerProcessCommandHandler> logger, CredentialCache credentials, Store store,
-            EventRepository events)
+        public YammerProcessCommandHandler(
+            ILogger<YammerProcessCommandHandler> logger, CredentialCache credentials, Store store,
+            EventRepository events, IProgress progress)
         {
             _logger = logger;
             _credentials = credentials;
             _store = store;
             _events = events;
+            _progress = progress;
         }
 
         public async Task<Unit> Handle(YammerProcessCommand request, CancellationToken cancellationToken)
         {
             var creds = _credentials.Yammer[request.Username];
+            _logger.LogInformation("Hydrating store");
             await _store.Hydrate(creds.Username, creds.Password);
 
+            var count = _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
+            var currentCount = 0;
+                
             await _events.ReadForward(creds.Username, creds.Password, Network.Yammer, async (events) => { 
                 var bodies = events
                     .Where(p => p.EventName == "RestApiRequest")
@@ -35,25 +42,32 @@ namespace Events
                     .ToList();
                 foreach (var body in bodies)
                 {
+                    _progress.Set(currentCount, count);
+                    currentCount++;
+
                     dynamic json = JsonConvert.DeserializeObject(body);
 
-                    foreach(var message in json.response.messages) {
-                        await ProcessMessage(Rest.Yammer.Message.FromJson(message.ToString()), creds);
-                    }
-                    
-                    foreach (var reference in json.response.references) {
-                        switch(reference.type.ToString()) {
-                            case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()), creds);
-                            break;
-                            case "message": await ProcessMessage(Rest.Yammer.Message.FromJson(reference.ToString()), creds);
-                            break;
-                            default: 
-                                _logger.LogWarning($"Unknown reference type: {reference.type}");
-                            break;
+                    if (json.response != null) {
+
+                        foreach(var message in json.response.messages) {
+                            await ProcessMessage(Rest.Yammer.Message.FromJson(message.ToString()), creds);
+                        }
+                        foreach (var reference in json.response.references) {
+                            switch(reference.type.ToString()) {
+                                case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()), creds);
+                                break;
+                                case "message": await ProcessMessage(Rest.Yammer.Message.FromJson(reference.ToString()), creds);
+                                break;
+                                default: 
+                                    _logger.LogWarning($"Unknown reference type: {reference.type}");
+                                break;
+                            }
                         }
                     }
                 }
             });
+
+            _logger.LogInformation("Completed processing");
             return Unit.Value;
         }
 

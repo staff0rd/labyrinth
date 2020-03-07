@@ -4,14 +4,17 @@ import { AccountState } from '../../store/Account';
 import { useSelector } from '../../store/useSelector';
 import { QueueJob } from './QueueJob';
 
+type Props = {
+    url: string
+}
 
 export interface Values {}
 
-export const Process = () => {
+export const Queue = (props: Props) => {
     const { password, userName } = useSelector<AccountState>(state => state.account);
 
     const apiCall = async (values: Values) => {
-        var response = await queue('api/yammer/process', {
+        var response = await queue(props.url, {
             password,
             userName
         });

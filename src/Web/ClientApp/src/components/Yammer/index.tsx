@@ -3,7 +3,7 @@ import { useLocation, Route } from 'react-router-dom'
 import { useHeader } from '../../store/useHeader';
 import { useDispatch } from 'react-redux';
 import { Backfill } from './Backfill';
-import { Process } from './Process';
+import { Queue } from './Queue';
 
 // type Overview = {
 //   groups: number;
@@ -38,6 +38,7 @@ const Yammer = () => {
         // { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
         // { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
         // { title: 'Notifications', to: '/notifications'},
+        { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
         { title: 'Process', to: '/process'},
       ],
@@ -52,10 +53,12 @@ const Yammer = () => {
   //   );
   //   default: return (<div>{location.pathname}</div>)
   // }
+
   return (
     <>
       <Route path='/yammer/backfill' component={Backfill} />
-      <Route path='/yammer/process' component={Process} />
+      <Route path='/yammer/hydrate' component={() => <Queue url={'api/yammer/hydrate'} />} />
+      <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} />} />
       { location.pathname === '/yammer' && <div>{location.pathname}</div> }
     </>
   );

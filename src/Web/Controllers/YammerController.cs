@@ -66,14 +66,12 @@ namespace Web.Controllers
 
         //     return users.GetPagedResult(pageNumber, pageSize, (u) => UserCard.FromUser(u));
         // }
-        public class BackfillYammerRequest
+        public class YammerCredentialRequest : UserCredentialRequest
         {
-            public string Username { get; set; }
             public string Token { get; set; }
-            public string Password { get; set; }
         }
 
-        public class ProcessYammerRequest
+        public class UserCredentialRequest
         {
             public string Username { get; set; }
             public string Password { get; set; }
@@ -81,7 +79,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("backfill")]
-        public QueuedJob Backfill([FromBody] BackfillYammerRequest request)
+        public QueuedJob Backfill([FromBody] YammerCredentialRequest request)
         {
             _credentials.Yammer.TryRemove(request.Username, out var _);
             _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
@@ -95,7 +93,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("process")]
-        public QueuedJob Backfill([FromBody] ProcessYammerRequest request)
+        public QueuedJob Process([FromBody] UserCredentialRequest request)
         {
             _credentials.Yammer.TryRemove(request.Username, out var _);
             _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
@@ -105,6 +103,21 @@ namespace Web.Controllers
 
             return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username });
         }
+
+        [HttpPost]
+        [Route("hydrate")]
+        public QueuedJob Hydrate([FromBody] UserCredentialRequest request)
+        {
+            _credentials.Yammer.TryRemove(request.Username, out var _);
+            _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
+                Username = request.Username,
+                Password = request.Password
+            });
+
+            return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
+        }
+
+        [HttpPost]
 
         private static PagedResult<TResult> PagedResult<TCollection, TResult>(TCollection[] items, int pageNumber, int pageSize, Func<TCollection, TResult> selector)
         {

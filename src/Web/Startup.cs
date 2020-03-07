@@ -63,13 +63,15 @@ namespace Web
             services.AddMediatR(typeof(Store).Assembly);
 
             services.AddSingleton<JobActivator, InjectContextJobActivator>();
+            services.AddTransient<IProgress, HangfireConsoleProgress>();
 
             services.AddScoped<Store>(provider => {
                 var logger = provider.GetRequiredService<ILogger<Store>>();
+                var progress = provider.GetRequiredService<IProgress>();
                 try
                 {
                     var events = provider.GetRequiredService<EventRepository>();
-                    var store = new Store(events, logger);
+                    var store = new Store(events, logger, progress);
                     return store;
                 } 
                 catch (Exception e)

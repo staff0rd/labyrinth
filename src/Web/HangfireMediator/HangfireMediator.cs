@@ -23,6 +23,7 @@ namespace Web {
     }
 
     [LogToHangfireConsole]
+    [ProgressToHangfireConsole]
     public class HangfireMediator
     {
         private readonly IMediator _mediator;

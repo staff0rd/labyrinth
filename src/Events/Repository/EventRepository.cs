@@ -12,9 +12,12 @@ namespace Events
 {
     public class EventRepository : NpgsqlRepository<Event, int>
     {
-        public EventRepository(NpgsqlConnectionFactory connectionFactory) : base(connectionFactory)
+        private ILogger<EventRepository> _logger;
+
+        public EventRepository(NpgsqlConnectionFactory connectionFactory, ILogger<EventRepository> logger) : base(connectionFactory)
         {
             Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+            _logger = logger;
         }
 
         public async Task<List<DateTime>> GetLastUpdated(string userName, string password, Network network, string eventName, string category, int limit)
@@ -88,10 +91,22 @@ namespace Events
             } while (currentSlice.Length == PAGE_SIZE);
         }
 
-        public async Task<Paginated<Event>> Paginate(string userName, string password, Network network, int page = 0, int pageSize = 200, string orderBy = "inserted_at ASC")
+        private string GetEventFilter(string[] eventTypes)
+        {
+            if (eventTypes == null || !eventTypes.Any())
+                return "";
+
+            var events = string.Join(",",eventTypes.Select(e => $"'{e}'"));
+            return $"AND event_name IN ({events})";
+        }
+
+        public async Task<Paginated<Event>> Paginate(string userName, string password, Network network, int page = 0, int pageSize = 200, string orderBy = "id ASC",
+        string[] eventTypes = null)
         {
             var offset = pageSize * page;
             var limit = pageSize;
+            
+
             using (var connection = _connectionFactory.CreateConnection())
             {
                 var rowsQuery = $@"
@@ -109,6 +124,7 @@ namespace Events
                     public.keys ON keys.name = '{userName}'
                 WHERE
                     network={(int)network}
+                {GetEventFilter(eventTypes)}
                 ORDER BY
                     {orderBy}
                 LIMIT
@@ -125,6 +141,20 @@ namespace Events
                     TotalRows = await connection.ExecuteAsync(totalRowsQuery),
                     Rows = await connection.QueryAsync<Event>(rowsQuery),
                 };
+            }
+        }
+
+        public int GetCount(string userName, Network network, string eventType)
+        {
+            return GetCount(userName, network, new [] { eventType });
+        }
+
+        public int GetCount(string userName, Network network, string[] eventTypes)
+        {
+            using (var connection = _connectionFactory.CreateConnection())
+            {
+                var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE network={(int)network} {GetEventFilter(eventTypes)}";
+                return connection.ExecuteScalar<int>(query);
             }
         }
 
