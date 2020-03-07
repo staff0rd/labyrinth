@@ -16,7 +16,7 @@ namespace Events
             {
                 AvatarUrl = user.MugshotUrl.AbsoluteUri,
                 Description = user.JobTitle,
-                Name = user.Name,
+                Name = user.FullName,
                 Network = Network.Yammer,
                 Id = user.Id.AsId<User>(Network.Yammer),
             };

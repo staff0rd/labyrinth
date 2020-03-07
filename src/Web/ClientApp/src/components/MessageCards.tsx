@@ -3,6 +3,7 @@ import { Message } from '../store/Message';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
+import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
@@ -12,6 +13,7 @@ import moment from 'moment';
 import {UserSquare} from './UserSquare';
 import {UserBullet} from './UserBullet';
 import reactStringReplace from 'react-string-replace';
+import { Button } from '@material-ui/core';
 
 type MessageCardsProps = {
     messages: Message[];
@@ -85,7 +87,9 @@ const MessageCard = (message: Message) => {
                         </Grid>
                         <Grid item xs={9}>
                             <Typography variant="overline">
-                                <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{message.createdAt}</Moment>
+                                
+                                    <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{message.createdAt}</Moment>
+                                    
                             </Typography>
                             <Typography>
                                 {parse(message.bodyParsed) || parse(message.bodyPlain)}
@@ -93,9 +97,9 @@ const MessageCard = (message: Message) => {
                         </Grid>
                     </Grid>
                 </CardContent>
-                {/* <CardActions>
-                <Button size="small">Learn More</Button>
-                </CardActions> */}
+                <CardActions>
+                    <Button variant='contained' href={message.permalink} target="_blank">Source</Button>
+                </CardActions>
             </Card>
         </Grid>
     );

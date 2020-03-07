@@ -4,5 +4,6 @@ export interface Message {
     createdAt: Date;
     id: string;
     network: string;
+    permalink: string;
     senderId: string;
 }

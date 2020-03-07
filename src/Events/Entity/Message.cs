@@ -10,6 +10,7 @@ namespace Events
         public string BodyParsed { get; set; }
         public DateTime CreatedAt { get; set; }
         public Network Network { get; set;}
+        public string Permalink { get; set; }
 
         public static Message From(Rest.Yammer.Message message)
         {
@@ -20,6 +21,7 @@ namespace Events
                 Id = $"yammer/message/{message.Id}",
                 Network = Network.Yammer,
                 SenderId = $"yammer/user/{message.SenderId}",
+                Permalink = message.WebUrl.AbsoluteUri,
             };
         }
     }
