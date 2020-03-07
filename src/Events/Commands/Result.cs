@@ -1,5 +1,16 @@
 namespace Events
 {
+    public class Result<T> : Result
+    {
+        private readonly T _response;
+        public Result(T response)
+        {
+            _response = response;
+        }
+        public Result() {}
+        public T Response => _response;
+    }
+
     public class Result
     {
         public bool IsError { get; set; }

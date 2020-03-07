@@ -16,7 +16,7 @@ namespace Events
         public async Task<Result> Handle(AuthorizeQuery request, CancellationToken cancellationToken)
         {
             var authorized = await _keys.TestPassword(request.Username, request.Password);
-            return new Result { IsError = !authorized };
+            return new Result { IsError = !authorized, Message = authorized ? "Authorized" : "Not authorized" };
         }
     }
 }

@@ -65,14 +65,18 @@ namespace Web
             services.AddSingleton<JobActivator, InjectContextJobActivator>();
             services.AddTransient<IProgress, HangfireConsoleProgress>();
 
-            services.AddScoped<Store>(provider => {
+            services.AddSingleton<Store>(provider => {
                 var logger = provider.GetRequiredService<ILogger<Store>>();
                 var progress = provider.GetRequiredService<IProgress>();
+                var scopeFactory = provider.GetRequiredService<IServiceScopeFactory>();
                 try
                 {
-                    var events = provider.GetRequiredService<EventRepository>();
-                    var store = new Store(events, logger, progress);
-                    return store;
+                    using (var scope = scopeFactory.CreateScope())
+                    {
+                        var events = scope.ServiceProvider.GetRequiredService<EventRepository>();
+                        var store = new Store(events, logger, progress);
+                        return store;
+                    }
                 } 
                 catch (Exception e)
                 {

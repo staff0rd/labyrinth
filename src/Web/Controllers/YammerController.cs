@@ -19,7 +19,7 @@ namespace Web.Controllers
 
         private readonly CredentialCache _credentials;
 
-        public YammerController(IMediator mediator, CredentialCache credentials)
+        public YammerController(IMediator mediator, CredentialCache credentials, Store store)
         {
             _mediator = mediator;
             _credentials = credentials;
@@ -36,14 +36,6 @@ namespace Web.Controllers
         //         return m;
         //     });
         //     return result;
-        // }
-
-        // [HttpGet]
-        // [Route("")]
-        // public Overview GetOverview()
-        // {
-        //     var overview = _store.GetOverview().FirstOrDefault(x => x.Network == Network.Yammer);
-        //     return overview;
         // }
 
         // [HttpGet]
@@ -102,6 +94,13 @@ namespace Web.Controllers
             });
 
             return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username });
+        }
+
+        [HttpPost]
+        [Route("overview")]
+        public Task<Result<Overview>> Overview([FromBody] UserCredentialRequest request)
+        {
+            return _mediator.Send(new YammerOverviewQuery { Username = request.Username, Password = request.Password});
         }
 
         [HttpPost]

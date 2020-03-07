@@ -3,6 +3,10 @@ export interface Result {
     message?: string;
 }
 
+export interface ResultObject<T> extends Result {
+    response: T;
+}
+
 export interface Command {
     id: string;
     command: string;
@@ -10,6 +14,7 @@ export interface Command {
 
 export const queue = (url: string, body: any) => _post<Command>(url, body);
 export const post = (url: string, body: any) => _post<Result>(url, body);
+export const postResponse = <T>(url: string, body: any) => _post<ResultObject<T>>(url, body);
 
 const _post = async <T>(url: string, body: any) => {
     const response = await fetch(url, {
