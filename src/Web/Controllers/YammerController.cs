@@ -10,13 +10,13 @@ namespace Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public partial class YammerController : ControllerBase
+    public class YammerController : ControllerBase
     {
         private readonly IMediator _mediator;
 
         private readonly CredentialCache _credentials;
 
-        public YammerController(IMediator mediator, CredentialCache credentials, Store store)
+        public YammerController(IMediator mediator, CredentialCache credentials)
         {
             _mediator = mediator;
             _credentials = credentials;
@@ -35,34 +35,32 @@ namespace Web.Controllers
         [Route("backfill")]
         public QueuedJob Backfill([FromBody] TokenRequest request)
         {
-            _credentials.Yammer.TryRemove(request.Username, out var _);
-            _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
+            _credentials.Add(Network.Yammer, new Credential {
                 Username = request.Username,
                 Password = request.Password,
-                Token = request.Token
+                ExternalIdentifier = request.Token
             });
 
             return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });
+        }
+        
+        [HttpPost]
+        [Route("overview")]
+        public Task<Result<Overview>> Overview([FromBody] UserCredentialRequest request)
+        {
+            return _mediator.Send(new YammerOverviewQuery { Username = request.Username, Password = request.Password});
         }
 
         [HttpPost]
         [Route("process")]
         public QueuedJob Process([FromBody] UserCredentialRequest request)
         {
-            _credentials.Yammer.TryRemove(request.Username, out var _);
-            _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
+            _credentials.Add(Network.Yammer, new Credential {
                 Username = request.Username,
                 Password = request.Password
             });
 
             return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username });
-        }
-
-        [HttpPost]
-        [Route("overview")]
-        public Task<Result<Overview>> Overview([FromBody] UserCredentialRequest request)
-        {
-            return _mediator.Send(new YammerOverviewQuery { Username = request.Username, Password = request.Password});
         }
 
         [HttpPost]
@@ -111,8 +109,7 @@ namespace Web.Controllers
         [Route("hydrate")]
         public QueuedJob Hydrate([FromBody] UserCredentialRequest request)
         {
-            _credentials.Yammer.TryRemove(request.Username, out var _);
-            _credentials.Yammer.TryAdd(request.Username, new YammerCredential {
+            _credentials.Add(Network.Yammer, new Credential {
                 Username = request.Username,
                 Password = request.Password
             });

@@ -88,6 +88,7 @@ export const Login = () => {
                             color="primary"
                             disabled={isSubmitting}
                             onClick={submitForm}
+                            id='login-button'
                         >
                             Login
                         </Button>

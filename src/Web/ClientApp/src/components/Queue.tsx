@@ -1,7 +1,7 @@
 import React from 'react';
-import { queue } from '../../api';
-import { AccountState } from '../../store/Account';
-import { useSelector } from '../../store/useSelector';
+import { queue } from '../api';
+import { AccountState } from '../store/Account';
+import { useSelector } from '../store/useSelector';
 import { QueueJob } from './QueueJob';
 
 type Props = {

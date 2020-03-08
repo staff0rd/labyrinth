@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Route } from 'react-router-dom'
+import { Route } from 'react-router-dom'
 import { useHeader } from '../../store/useHeader';
-import { useDispatch } from 'react-redux';
 import { Backfill } from './Backfill';
 import { Queue } from '../Queue';
 import { postResponse } from '../../api';
@@ -24,7 +23,7 @@ const Yammer = () => {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    postResponse<Overview>(`api/yammer/overview`, {userName, password})
+    postResponse<Overview>(`api/linkedin/overview`, {userName, password})
     .then(data => {
       if (data.isError)
         setError(data.message!);
@@ -34,12 +33,12 @@ const Yammer = () => {
   }, [])
 
   useHeader({
-      title: 'Yammer',
-      route: '/yammer',
+      title: 'LinkedIn',
+      route: '/linkedin',
       items: [
         { title: 'Overview', to: ''},
-        { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
-        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
+        // { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
+        // { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
         { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
         { title: 'Process', to: '/process'},
@@ -48,18 +47,18 @@ const Yammer = () => {
 
   return (
     <>
-      <Route path='/yammer/backfill' component={Backfill} />
-      <Route path='/yammer/hydrate' component={() => <Queue url={'api/yammer/hydrate'} />} />
-      <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} />} />
-      <Route path='/yammer/users' component={() => (
+      <Route path='/linkedin/backfill' component={Backfill} />
+      <Route path='/linkedin/hydrate' component={() => <Queue url={'api/linkedin/hydrate'} />} />
+      <Route path='/linkedin/process' component={() => <Queue url={'api/linkedin/process'} />} />
+      <Route path='/linkedin/users' component={() => (
         <Users
-          url={`api/yammer/users`} 
+          url={`api/linkedin/users`} 
           searchPlaceholder="Search by name or job title"
         />
       )} />
-      <Route path='/yammer/messages' component={() => (
+      <Route path='/linkedin/messages' component={() => (
         <Messages
-          url={`api/yammer/messages`} 
+          url={`api/linkedin/messages`} 
           searchPlaceholder="Search by sender or message content"
         />
       )} />

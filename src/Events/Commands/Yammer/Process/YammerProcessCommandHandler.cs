@@ -32,9 +32,9 @@ namespace Events
             if (!_store.IsHydrated)
                 throw new Exception("Store must be hydrated first");
 
-            var creds = _credentials.Yammer[request.Username];
+            var creds = _credentials.Get(Network.Yammer, request.Username);
 
-            var count = _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
+            var count = await _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
             var currentCount = 0;
                 
             await _events.ReadForward(creds.Username, creds.Password, Network.Yammer, async (events) => { 
@@ -74,7 +74,7 @@ namespace Events
             return Unit.Value;
         }
 
-        public async Task ProcessUser(Rest.Yammer.User user, YammerCredential creds)
+        public async Task ProcessUser(Rest.Yammer.User user, Credential creds)
         {
             var received = Events.User.From(user);
             var existing = _store.GetUser(Network.Yammer, received.Id);
@@ -85,7 +85,7 @@ namespace Events
             await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, _logger, new string[] {});
         }
 
-        public async Task ProcessMessage(Rest.Yammer.Message message, YammerCredential creds)
+        public async Task ProcessMessage(Rest.Yammer.Message message, Credential creds)
         {
             var received = Events.Message.From(message);
             var existing = _store.GetMessage(Network.Yammer, received.Id);

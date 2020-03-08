@@ -9,38 +9,53 @@ import { QueueJob } from '../QueueJob';
 
 
 export interface Values {
-    token: string;
+    userName: string;
+    password: string;
 }
 
 export const Backfill = () => {
     const { password, userName } = useSelector<AccountState>(state => state.account);
 
     const apiCall = async (values: Values) => {
-        var response = await queue('api/yammer/backfill', {
+        var response = await queue('api/linkedin/backfill', {
             password,
             userName,
-            token: values.token,
+            externalIdentifier: values.userName,
+            externalSecret: values.password,
         });
         return response;
     }
 
     const validate = (values: Values) => {
         const errors: Partial<Values> = {};
-        if (!values.token) {
-            errors.token = 'Required';
+        if (!values.userName) {
+            errors.userName = 'Required';
+        }
+        if (!values.password) {
+            errors.password = 'Required';
         }
         return errors;
     };
 
     const formFields = () => (
+        <>
         <Grid item xs={12}>
             <Field
                 component={TextField}
-                name="token"
+                name="userName"
                 type="text"
-                label="token"
+                label="LinkedIn Username"
             />
         </Grid>
+        <Grid item xs={12}>
+            <Field
+                component={TextField}
+                name="password"
+                type="password"
+                label="LinkedIn Password"
+            />
+        </Grid>
+        </>
     );
 
     return (

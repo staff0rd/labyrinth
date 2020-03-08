@@ -1,7 +1,7 @@
 using System;
 using OpenQA.Selenium;
 
-namespace Browser.LinkedIn
+namespace Events
 {
     public class ConnectionCard {
         private readonly IWebElement _div;

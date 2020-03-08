@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Browser.LinkedIn
+namespace Events
 {
     public class RelativeTimeConverter
     {

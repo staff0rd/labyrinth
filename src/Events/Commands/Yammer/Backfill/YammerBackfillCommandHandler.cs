@@ -25,28 +25,26 @@ namespace Events
         {
             try
             {
-                if (_credentials.Yammer.TryGetValue(request.Username, out var credential))
+                var credential = _credentials.Get(Network.Yammer, request.Username);
+                long? last = null;
+                do 
                 {
-                    long? last = null;
-                    do 
-                    {
-                        var queryString = new { older_than = last };
+                    var queryString = new { older_than = last };
 
-                        var response = await _rest.Get(credential.Username, credential.Password, Network.Yammer, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.Token);
-                        if (response != null) {
-                            last = response.Messages.Last()?.Id;
-                            _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
-                        } else {
-                            last = null;
-                        }
-                    } while(last != null);
-                }
+                    var response = await _rest.Get(credential.Username, credential.Password, Network.Yammer, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.ExternalIdentifier);
+                    if (response != null) {
+                        last = response.Messages.Last()?.Id;
+                        _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
+                    } else {
+                        last = null;
+                    }
+                } while(last != null);
             } catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
             }
 
-            return new Unit();
+            return Unit.Value;
         }
     }
 }

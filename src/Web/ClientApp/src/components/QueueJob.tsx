@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Grid, LinearProgress } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 import { Formik, Form, FormikValues } from 'formik';
-import { Command, Result } from '../../api';
+import { Command, Result } from '../api';
 
 
 type Props<T extends FormikValues> = {

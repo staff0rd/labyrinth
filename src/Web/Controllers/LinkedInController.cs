@@ -1,27 +1,38 @@
-﻿// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using Events;
-// using Events.LinkedIn;
-// using Microsoft.AspNetCore.Mvc;
-// using Microsoft.Extensions.Logging;
+﻿using System;
+using Events;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
-// namespace Web.Controllers
-// {
-//     [ApiController]
-//     [Route("api/[controller]")]
-//     public class LinkedInController : ControllerBase
-//     {
-//         private readonly ILogger<LinkedInController> _logger;
+namespace Web.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class LinkedInController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly CredentialCache _credentials;
 
-//         private readonly RestEventManager _events;
+        public LinkedInController(IMediator mediator, CredentialCache credentials)
+        {
+            _mediator = mediator;
+            _credentials = credentials;
+        }
 
-//         public LinkedInController(ILogger<LinkedInController> logger, RestEventManager events)
-//         {
-//             _logger = logger;
-//             _events = events;
-//         }
+        [HttpPost]
+        [Route("backfill")]
+        public QueuedJob Backfill([FromBody] CredentialRequest request)
+        {
+            _credentials.Add(Network.LinkedIn, new Credential {
+                Username = request.Username,
+                Password = request.Password,
+                ExternalIdentifier = request.ExternalIdentifier,
+                ExternalSecret = request.ExternalSecret
+            });
+
+            return _mediator.Enqueue(new LinkedInBackfillCommand { Username = request.Username });
+        }
+    }
+}
 
 //         [HttpGet]
 //         public async Task<PagedResult<UserCard>> Get(int pageNumber = 0, int pageSize = 20, string search = "")

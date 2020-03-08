@@ -69,14 +69,14 @@ namespace Events
 
             _logger.LogInformation("Hydrating Yammer users...");
             _progress.New();
-            var count = _events.GetCount(userName, Network.Yammer, "UserCreated");
+            var count = await _events.GetCount(userName, Network.Yammer, "UserCreated");
             await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users, count));
             Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Users.Count);
 
             sw = Stopwatch.StartNew();
             _logger.LogInformation("Hydrating Yammer messages...");
             _progress.New();
-            count = _events.GetCount(userName, Network.Yammer, "MessageCreated");
+            count = await _events.GetCount(userName, Network.Yammer, "MessageCreated");
             await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages, count));
             Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Messages.Count);
 
