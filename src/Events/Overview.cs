@@ -1,4 +1,4 @@
-namespace Events.Yammer
+namespace Events
 {
     public class Overview
     {
@@ -7,5 +7,6 @@ namespace Events.Yammer
          public int Users { get; set; }
          public int Threads { get; set; }
          public int Groups { get; set; }
+         public EventCount[] Events { get; set;}
     }
 }

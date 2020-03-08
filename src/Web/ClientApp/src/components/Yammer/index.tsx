@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Route } from 'react-router-dom'
 import { useHeader } from '../../store/useHeader';
-import { useDispatch } from 'react-redux';
 import { Backfill } from './Backfill';
 import { Queue } from '../Queue';
 import { postResponse } from '../../api';
@@ -10,21 +9,16 @@ import { AccountState } from '../../store/Account';
 import { Users } from '../Users';
 import { Messages } from '../Messages';
 import Alert from '@material-ui/lab/Alert';
-
-type Overview = {
-  groups: number;
-  messages: number;
-  threads: number;
-  users: number;
-}
+import { OverviewProps, Overview } from '../Overview';
 
 const Yammer = () => {
-  const [overview, setOverview] = useState<Overview|undefined>(undefined);
+  const [overview, setOverview] = useState<OverviewProps>();
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [error, setError] = useState<string>("");
+  const location = useLocation();
 
   useEffect(() => {
-    postResponse<Overview>(`api/yammer/overview`, {userName, password})
+    postResponse<OverviewProps>(`api/events/overview?network=Yammer`, {userName, password})
     .then(data => {
       if (data.isError)
         setError(data.message!);
@@ -65,6 +59,8 @@ const Yammer = () => {
       )} />
 
       { error && <Alert severity="error">{error}</Alert> }
+
+      { location.pathname === "/yammer" && overview && (<Overview {...overview} />) }
     </>
   );
 };

@@ -47,6 +47,16 @@ namespace Events
             }
         }
 
+        internal async Task<EventCount[]> GetEventTypes(string username, Network network)
+        {
+            using (var connection = _connectionFactory.CreateConnection())
+            {
+                var query = $"select count(*), event_name FROM {TableName(username)} WHERE network={(int)network} group by event_name";
+                var result = await connection.QueryAsync<EventCount>(query);
+                return result.ToArray();
+            }
+        }
+
         internal async Task Delete(string userName, string password, Network network, string[] events)
         {
             using (var connection = _connectionFactory.CreateConnection())
@@ -151,12 +161,13 @@ namespace Events
             return GetCount(userName, network, new [] { eventType });
         }
 
-        public Task<int> GetCount(string userName, Network network, string[] eventTypes)
+        public async Task<int> GetCount(string userName, Network network, string[] eventTypes)
         {
             using (var connection = _connectionFactory.CreateConnection())
             {
                 var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE network={(int)network} {GetEventFilter(eventTypes)}";
-                return connection.ExecuteScalarAsync<int>(query);
+                var result = await connection.ExecuteScalarAsync<int>(query);
+                return result;
             }
         }
 

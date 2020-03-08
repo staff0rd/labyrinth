@@ -2,20 +2,17 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Events.Yammer;
 using MediatR;
 
 namespace Events
 {
     public class YammerMessagesQueryHandler : IRequestHandler<YammerMessagesQuery, Result<PagedResult<Message>>>
     {
-        private readonly KeyRepository _keys;
         private readonly IMediator _mediator;
         private readonly Store _store;
 
-        public YammerMessagesQueryHandler(IMediator mediator, KeyRepository keys, Store store)
+        public YammerMessagesQueryHandler(IMediator mediator, Store store)
         {
-            _keys = keys;
             _mediator = mediator;
             _store = store;
         }

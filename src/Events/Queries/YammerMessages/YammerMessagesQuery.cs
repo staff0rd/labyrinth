@@ -1,5 +1,4 @@
 using System;
-using Events.Yammer;
 using MediatR;
 
 namespace Events

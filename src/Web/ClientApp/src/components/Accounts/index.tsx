@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route } from 'react-router-dom'
 import { useHeader } from '../../store/useHeader';
 import { Create } from './Create';
@@ -6,13 +6,14 @@ import { Login } from './Login';
 import { Overview } from './Overview';
 import { Logout } from './Logout';
 import { ChangePassword } from './ChangePassword';
-import { useLocation} from "react-router";
+import { useLocation, useHistory} from "react-router";
 import * as AccountStore from '../../store/Account';
 import * as HeaderStore from '../../store/Header';
 import { useSelector } from '../../store/useSelector';
 
 const Accounts = () => {
   const location = useLocation();
+  const history = useHistory();
   const { userName } = useSelector<AccountStore.AccountState>(state => state.account);
 
   const includeIfLoggedIn = (item: HeaderStore.HeaderItem) => {
@@ -33,6 +34,12 @@ const Accounts = () => {
       ...includeIfLoggedOut({ title: 'Create', to: '/create'}),
       ...includeIfLoggedIn({ title: 'Change Password', to: '/change-password'}),
     ],
+  }, [userName]);
+
+  useEffect(() => {
+    if (location.pathname === '/accounts' && !userName) {
+      history.push('/accounts/login');
+    }
   }, [userName]);
 
   return (

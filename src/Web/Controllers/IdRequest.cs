@@ -1,6 +1,6 @@
 namespace Web.Controllers
 {
-    public class IdRequest : UserCredentialRequest
+    public class IdRequest : QueryRequest
     {
         public string Id { get; set; }
     }

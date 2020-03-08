@@ -1,6 +1,6 @@
 namespace Web.Controllers
 {
-    public class SearchRequest : UserCredentialRequest
+    public class SearchRequest : QueryRequest
     {
         public string Search { get; set; }
 

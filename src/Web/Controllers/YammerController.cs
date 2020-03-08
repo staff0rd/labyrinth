@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Events;
-using Events.Yammer;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,17 +42,10 @@ namespace Web.Controllers
 
             return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });
         }
-        
-        [HttpPost]
-        [Route("overview")]
-        public Task<Result<Overview>> Overview([FromBody] UserCredentialRequest request)
-        {
-            return _mediator.Send(new YammerOverviewQuery { Username = request.Username, Password = request.Password});
-        }
 
         [HttpPost]
         [Route("process")]
-        public QueuedJob Process([FromBody] UserCredentialRequest request)
+        public QueuedJob Process([FromBody] QueryRequest request)
         {
             _credentials.Add(Network.Yammer, new Credential {
                 Username = request.Username,
@@ -107,7 +99,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("hydrate")]
-        public QueuedJob Hydrate([FromBody] UserCredentialRequest request)
+        public QueuedJob Hydrate([FromBody] QueryRequest request)
         {
             _credentials.Add(Network.Yammer, new Credential {
                 Username = request.Username,

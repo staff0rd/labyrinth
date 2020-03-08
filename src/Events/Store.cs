@@ -1,22 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Events.Yammer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Rest.Yammer;
 
 namespace Events
 {
-    public class NetworkStore
-    {
-        public Dictionary<string, Message> Messages { get; set; } = new Dictionary<string, Message>();
-        public Dictionary<string, User> Users { get; set; } = new Dictionary<string, User>();
-    }
-
     public class Store
     {
         private readonly EventRepository _events;
@@ -38,7 +29,7 @@ namespace Events
             };
         }
 
-        public Events.Yammer.Overview[] GetOverview() {
+        public Overview[] GetOverview() {
             return _store.Select(p => new Overview { Network = p.Key, Messages = p.Value.Messages.Count, Users = p.Value.Users.Count})
                 .ToArray();
         }
