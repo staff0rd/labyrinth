@@ -25,7 +25,7 @@ namespace Events
 
         public async Task<Unit> Handle(HydrateCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(Network.Yammer, request.Username); 
+            var credential = _credentials.Get(Network.Self, request.Username); 
             await _store.Hydrate(request.Username, credential.Password);
             return Unit.Value;
         }

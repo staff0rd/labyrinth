@@ -101,8 +101,8 @@ namespace Events
     
         public async Task SaveResponses(Credential credential, object responses) {
             var jsonArray = JArray.FromObject(responses);
-            foreach (var item in jsonArray) {
-                var payload = item.ToObject<JsonPayload>();
+            foreach (dynamic item in jsonArray) {
+                var payload = new JsonPayload { Url = item.url, Json = item.json };
                 _logger.LogInformation($"Saving {payload.Url}");
                 var json = JsonConvert.SerializeObject(payload);
                 await _events.Add(credential.Username, credential.Password, Network.LinkedIn, Guid.NewGuid().ToString(), "JsonPayload", json);

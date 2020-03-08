@@ -96,17 +96,5 @@ namespace Web.Controllers
                 TotalRows = result.Response.TotalRows,
             });
         }
-
-        [HttpPost]
-        [Route("hydrate")]
-        public QueuedJob Hydrate([FromBody] QueryRequest request)
-        {
-            _credentials.Add(Network.Yammer, new Credential {
-                Username = request.Username,
-                Password = request.Password
-            });
-
-            return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
-        }
     }
 }

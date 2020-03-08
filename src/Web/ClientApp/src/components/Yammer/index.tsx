@@ -43,7 +43,7 @@ const Yammer = () => {
   return (
     <>
       <Route path='/yammer/backfill' component={Backfill} />
-      <Route path='/yammer/hydrate' component={() => <Queue url={'api/yammer/hydrate'} />} />
+      <Route path='/yammer/hydrate' component={() => <Queue url={'api/events/hydrate'} />} />
       <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} />} />
       <Route path='/yammer/users' component={() => (
         <Users

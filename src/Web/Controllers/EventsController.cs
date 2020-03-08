@@ -25,5 +25,17 @@ namespace Web.Controllers
         {
             return _mediator.Send(new OverviewQuery { Username = request.Username, Password = request.Password, Network = network});
         }
+
+        [HttpPost]
+        [Route("hydrate")]
+        public QueuedJob Hydrate([FromBody] QueryRequest request)
+        {
+            _credentials.Add(Network.Self, new Credential {
+                Username = request.Username,
+                Password = request.Password
+            });
+
+            return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
+        }
     }
 }

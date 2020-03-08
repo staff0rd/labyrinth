@@ -31,6 +31,18 @@ namespace Web.Controllers
 
             return _mediator.Enqueue(new LinkedInBackfillCommand { Username = request.Username });
         }
+
+        [HttpPost]
+        [Route("process")]
+        public QueuedJob Process([FromBody] QueryRequest request)
+        {
+            _credentials.Add(Network.LinkedIn, new Credential {
+                Username = request.Username,
+                Password = request.Password
+            });
+
+            return _mediator.Enqueue(new LinkedInProcessCommand { Username = request.Username });
+        }
     }
 }
 
