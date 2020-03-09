@@ -82,7 +82,7 @@ namespace Events
             {
                 _store.Add(Network.Yammer, received);
             } 
-            await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, _logger, new string[] {});
+            await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, new string[] {});
         }
 
         public async Task ProcessMessage(Rest.Yammer.Message message, Credential creds)
@@ -93,7 +93,7 @@ namespace Events
             {
                 _store.Add(Network.Yammer, received);
             } 
-            await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, _logger, new [] { "BodyParsed" });
+            await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, new [] { "BodyParsed" });
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Events.LinkedIn;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -51,8 +52,23 @@ namespace Events
                     var payload = JsonConvert.DeserializeObject<JsonPayload>(body);
 
                     var uri = new Uri($"https://linkedin.com{payload.Url}");
-                    _logger.LogInformation(uri.LocalPath);
-                    
+
+                    if (uri.LocalPath.EndsWith("connections"))
+                    {
+                        var values = JsonConvert.DeserializeObject<Connections>(payload.Json);
+                        foreach ( var user in values.Included.Where(u => u.Type == "com.linkedin.voyager.identity.shared.MiniProfile"))
+                        {
+                            var scraped = new User {
+                                Id = user.PublicIdentifier,
+                                KnownSince = DateTimeOffset.FromUnixTimeMilliseconds(values.Included.Single( u => u.MiniProfile == user.EntityUrn).CreatedAt ?? 0),
+                                Name = $"{user.FirstName} {user.LastName}",
+                                Network = Network.LinkedIn,
+                                Description = user.Occupation
+                            };
+                            var existing = _store.GetUser(Network.LinkedIn, scraped.Id);
+                           await _events.Sync(creds.Username, creds.Password, Network.LinkedIn, scraped, existing);
+                        }
+                    }
                 }
                 return events.Last().Id;
             });

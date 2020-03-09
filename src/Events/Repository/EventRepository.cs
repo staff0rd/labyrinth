@@ -171,12 +171,12 @@ namespace Events
             }
         }
 
-        public Task Sync<T>(string userName, string password, Network network, T payload, T existing, ILogger logger) where T: IEntity<string> 
+        public Task Sync<T>(string userName, string password, Network network, T payload, T existing) where T: IEntity<string> 
         {
-            return Sync(userName, password, network, payload, existing, logger, new string[] {});
+            return Sync(userName, password, network, payload, existing, new string[] {});
         }
 
-        public async Task Sync<T>(string userName, string password, Network network, T payload, T existing, ILogger logger, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
+        public async Task Sync<T>(string userName, string password, Network network, T payload, T existing, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
         {
             if (existing != null)
             {
@@ -189,7 +189,7 @@ namespace Events
                     if (importantDifferences > 0) {
                         var eventName = $"{payload.GetType().Name}Updated";
                         await Add(userName, password, network, payload.Id, eventName, payload.ToJson());
-                        logger.LogInformation("Raised {eventName} in {network}", eventName, network);
+                        _logger.LogInformation("Raised {eventName} in {network}", eventName, network);
                     }
                 }
             }
@@ -197,7 +197,7 @@ namespace Events
             {
                 var eventName = $"{payload.GetType().Name}Created";
                 await Add(userName, password, network, payload.Id, eventName, payload.ToJson());
-                logger.LogInformation("Raised {eventName} in {network}", eventName, network);
+                _logger.LogInformation("Raised {eventName} in {network}", eventName, network);
             }
         }
     }
