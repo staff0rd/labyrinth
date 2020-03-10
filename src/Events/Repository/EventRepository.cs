@@ -93,7 +93,7 @@ namespace Events
             }
         }
 
-        public async Task ReadForward(string userName, string password, Network network, Func<Event[], Task<int>> eventProcessor)
+        public async Task ReadForward(string userName, string password, Network network, int totalEvents, Func<Event[], int, Task<int>> eventProcessor)
         {
             Event[] currentSlice;
             int lastId = 0;
@@ -104,7 +104,7 @@ namespace Events
                 currentSlice = result.Rows.ToArray();
 
 
-                lastId = await eventProcessor(currentSlice);
+                lastId = await eventProcessor(currentSlice, totalEvents);
                     
             } while (currentSlice.Length == PAGE_SIZE);
         }

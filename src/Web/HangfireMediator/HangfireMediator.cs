@@ -40,7 +40,7 @@ namespace Web {
             try {
                 await _mediator.Send(request);
             } catch (Exception e) {
-                _logger.LogError(e, e.Message);
+                _logger.LogError(e, e.ToString());
             }
         }
     }

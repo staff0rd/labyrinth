@@ -39,7 +39,7 @@ namespace Events
 
             var currentCount = 0;
                 
-            await _events.ReadForward(creds.Username, creds.Password, Network.LinkedIn, async (events) => { 
+            await _events.ReadForward(creds.Username, creds.Password, Network.LinkedIn, count, async (events, totalEvents) => { 
                 var bodies = events
                     .Where(p => p.EventName == "JsonPayload")
                     .Select(p => p.Body)
@@ -47,7 +47,7 @@ namespace Events
                 foreach (var body in bodies)
                 {
                     currentCount++;
-                    _progress.Set(currentCount, count);
+                    _progress.Set(currentCount, totalEvents);
 
                     var payload = JsonConvert.DeserializeObject<JsonPayload>(body);
 

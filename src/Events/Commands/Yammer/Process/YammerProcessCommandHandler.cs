@@ -37,7 +37,7 @@ namespace Events
             var count = await _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
             var currentCount = 0;
                 
-            await _events.ReadForward(creds.Username, creds.Password, Network.Yammer, async (events) => { 
+            await _events.ReadForward(creds.Username, creds.Password, Network.Yammer, count, async (events, totalCount) => { 
                 var bodies = events
                     .Where(p => p.EventName == "RestApiRequest")
                     .Select(p => p.Body)
@@ -45,7 +45,7 @@ namespace Events
                 foreach (var body in bodies)
                 {
                     currentCount++;
-                    _progress.Set(currentCount, count);
+                    _progress.Set(currentCount, totalCount);
 
                     dynamic json = JsonConvert.DeserializeObject(body);
 

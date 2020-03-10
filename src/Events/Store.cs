@@ -34,45 +34,47 @@ namespace Events
                 .ToArray();
         }
 
-        public Func<Event[], Task<int>> FillFromEvents<T>(Dictionary<string, T> dictionary, int expectedCount) where T : IExternalEntity
+        public Func<Event[], int, Task<int>> FillFromEvents<T>(Dictionary<string, T> dictionary) where T : IExternalEntity
         {
             var count = 0;
-            return (events) => {
+            return (events, totalCount) => {
                 var eventName = $"{typeof(T).Name}Created";
-                events
+                var deserialized = events
                     .Where(p => p.EventName == eventName)
                     .Select(p => JsonConvert.DeserializeObject<T>(p.Body))
-                    .ToList()
-                    .ForEach(item => {
-                        count++;
-                        _progress.Set(count, expectedCount);
-                        if (!dictionary.ContainsKey(item.Id))
-                            dictionary.Add(item.Id, item);
-                    });
+                    .ToList();
+                foreach (var item in deserialized) {
+                    count++;
+                    _progress.Set(count, totalCount);
+                    if (!dictionary.ContainsKey(item.Id))
+                        dictionary.Add(item.Id, item);
+                }
                 return Task.FromResult(events.Last().Id);
             };
         }
 
         public async Task Hydrate(string userName, string password)
         {
-            var total = Stopwatch.StartNew();
-            var sw = Stopwatch.StartNew();
-
-            _logger.LogInformation("Hydrating Yammer users...");
-            _progress.New();
-            var count = await _events.GetCount(userName, Network.Yammer, "UserCreated");
-            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<User>(_store[Network.Yammer].Users, count));
-            Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Users.Count);
-
-            sw = Stopwatch.StartNew();
-            _logger.LogInformation("Hydrating Yammer messages...");
-            _progress.New();
-            count = await _events.GetCount(userName, Network.Yammer, "MessageCreated");
-            await _events.ReadForward(userName, password, Network.Yammer, FillFromEvents<Message>(_store[Network.Yammer].Messages, count));
-            Log(sw.Elapsed, Network.Yammer, _store[Network.Yammer].Messages.Count);
+            await Hydrate(userName, password, "Yammer users", Network.Yammer, "UserCreated", _store[Network.Yammer].Users);
+            await Hydrate(userName, password, "Yammer messages", Network.Yammer, "MessageCreated", _store[Network.Yammer].Messages);
+            await Hydrate(userName, password, "LinkedIn users", Network.LinkedIn, "UserCreated", _store[Network.LinkedIn].Users);
 
             _logger.LogInformation("Hydrating complete");
             _isHydrated = true;
+        }
+
+        private async Task Hydrate<T>(string userName, string password, string entityType, Network network, string eventType, Dictionary<string, T> dictionary)
+            where T : IExternalEntity
+        {
+            var count = await _events.GetCount(userName, network, eventType);
+            if (count == 0)
+                return;
+            _logger.LogInformation($"Hydrating {entityType}...");
+            var sw = Stopwatch.StartNew();
+            _progress.New();
+            Func<Event[], int, Task<int>> eventProcessor = FillFromEvents<T>(dictionary);
+            await _events.ReadForward(userName, password, network, count, eventProcessor);
+            Log(sw.Elapsed, network, dictionary.Count);
         }
 
         private void Log(TimeSpan time, Network network, int count)

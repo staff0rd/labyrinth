@@ -13,6 +13,6 @@ public class ProgressToHangfireConsoleAttribute : JobFilterAttribute, IServerFil
     }
     public void OnPerformed(PerformedContext filterContext)
     {
-        _subscription?.Dispose();
+        //_subscription?.Dispose();
     }
 }
