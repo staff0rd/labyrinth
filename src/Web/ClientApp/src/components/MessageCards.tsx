@@ -50,12 +50,12 @@ export const MessageCards = (props: MessageCardsProps) => {
 const MessageCard = (message: Message) => {
     const classes = useStyles();
 
-    const parse = (message: string) => {
+    const parse = (message: string, network: string) => {
         if (!message)
             return message;
 
         let replacedText = reactStringReplace(message, /\[\[user:(\d+)\]\]/g, (match, i) => (
-            <UserBullet id={`yammer/user/${match}`} />
+            <UserBullet id={`yammer/user/${match}`} network={network} />
           )); // users
         
           replacedText = reactStringReplace(replacedText, /(https?:\/\/.+.(?:gif|jpg))/g, (match, i) => (
@@ -83,7 +83,7 @@ const MessageCard = (message: Message) => {
                 <CardContent>
                     <Grid container>
                         <Grid item xs={3}>
-                            <UserSquare id={message.senderId} />
+                            <UserSquare id={message.senderId} network={message.network} />
                         </Grid>
                         <Grid item xs={9}>
                             <Typography variant="overline">
@@ -92,7 +92,7 @@ const MessageCard = (message: Message) => {
                                     
                             </Typography>
                             <Typography>
-                                {parse(message.bodyParsed) || parse(message.bodyPlain)}
+                                {parse(message.bodyParsed, message.network) || parse(message.bodyPlain, message.network)}
                             </Typography>
                         </Grid>
                     </Grid>

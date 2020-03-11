@@ -1,3 +1,5 @@
+using Events;
+
 namespace Web.Controllers
 {
     public class SearchRequest : QueryRequest
@@ -7,5 +9,6 @@ namespace Web.Controllers
         public int PageSize { get; set; }
 
         public int PageNumber { get; set;}
+        public Network Network { get; set;}
     }
 }

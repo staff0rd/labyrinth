@@ -11,6 +11,7 @@ import { AccountState } from '../store/Account';
 
 type Props = {
     id: string;
+    network: string;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -20,14 +21,14 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export const UserBullet = ({ id }: Props) => {
+export const UserBullet = ({ id, network }: Props) => {
     const [user, setUser] = useState<User|undefined>(undefined);
     const classes = useStyles();
 
     const { password, userName } = useSelector<AccountState>(state => state.account);
 
     useEffect(() => {
-        postResponse<User>(`api/yammer/user`, {userName, password, id})
+        postResponse<User>(`api/events/user`, {userName, password, id, network})
         .then(data => {
           if (data && data.response)
             setUser(data.response);

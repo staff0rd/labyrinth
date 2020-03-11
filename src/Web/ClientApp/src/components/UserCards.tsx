@@ -77,9 +77,11 @@ const UserCard = (user: User) => {
                         </Grid>
                     </Grid>
                     <div className={classes.root}>
-                        <Avatar alt={user.name} src={user.avatarUrl.startsWith('data') ? undefined : user.avatarUrl} className={classes.large}>
-                            {user.avatarUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
-                        </Avatar>
+                        { user.avatarUrl ? (
+                            <Avatar alt={user.name} src={user.avatarUrl.startsWith('data') ? undefined : user.avatarUrl} className={classes.large}>
+                                {user.avatarUrl.startsWith('data') ? user.name.split(' ').map(i => i.charAt(0).toUpperCase()) : undefined }
+                            </Avatar>
+                        ) : <Avatar></Avatar> }
                         <div>
                             <Typography variant="h5" component="h2">
                                 {user.name}
