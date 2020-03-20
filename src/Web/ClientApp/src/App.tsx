@@ -4,6 +4,7 @@ import Home from './components/Paperbase/Content';
 import LinkedIn from './components/LinkedIn';
 import Accounts from './components/Accounts';
 import Yammer from './components/Yammer';
+import Teams from './components/Teams';
 import Paperbase from './components/Paperbase/Paperbase'
 import { About } from './components/About'
 
@@ -14,6 +15,7 @@ export default () => (
         <Route exact path='/' component={Home} />
         <Route path='/linkedin' component={LinkedIn} />
         <Route path='/yammer' component={Yammer} />
+        <Route path='/teams' component={Teams} />
         <Route path='/about' component={About} />
         <Route path='/accounts' component={Accounts} />
     </Paperbase>

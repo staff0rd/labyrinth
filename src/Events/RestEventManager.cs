@@ -58,14 +58,19 @@ namespace Events
                 return default(T);
             }
             finally {
-                await _events.Add(userName, password, network, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
-                {
-                    Category = request.Category,
-                    Data = queryString.ToJson(),
-                    Method = "GET",
-                    Response =  response,
-                }.ToJson());
+                await SaveResponse(userName, password, network, request.Endpoint, request.Category, queryString, response);
             }
+        }
+        public async Task SaveResponse(string userName, string password, Network network, string url, string category, object queryString, string response)
+        {
+            await _events.Add(userName, password, network, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
+            {
+                Uri = url,
+                Category = category,
+                Data = queryString.ToJson(),
+                Method = "GET",
+                Response =  response,
+            }.ToJson());
         }
     }
 }

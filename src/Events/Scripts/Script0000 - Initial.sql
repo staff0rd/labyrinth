@@ -24,6 +24,8 @@ CREATE TABLE public.networks (
 
 insert into public.networks 
 select 10, 'Yammer';
+select 11, 'LinkedIn';
+select 12, 'Teams';
 
 CREATE TABLE public.keys (
   name text,

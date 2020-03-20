@@ -18,6 +18,7 @@ import Constants from '../../Constants'
 import Link from '@material-ui/core/Link';
 import { useLocation } from 'react-router';
 import YammerIcon from '../YammerIcon';
+import TeamsIcon from '../TeamsIcon';
 
 const categories = [
   {
@@ -25,6 +26,7 @@ const categories = [
     children: [
       { id: 'LinkedIn', icon: <LinkedInIcon />, route: '/linkedin' },
       { id: 'Yammer', icon: <YammerIcon />, route: '/yammer' },
+      { id: 'Teams', icon: <TeamsIcon />, route: '/teams' },
     ],
   },
   {
@@ -49,7 +51,7 @@ const styles = (theme: Theme) =>
     item: {
       paddingTop: 1,
       paddingBottom: 1,
-      color: 'rgba(255, 255, 255, 0.7)',
+      color: '#bcbcbc',
       '&:hover,&:focus': {
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
       },

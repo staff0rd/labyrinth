@@ -37,7 +37,7 @@ namespace Web.Controllers
             _credentials.Add(Network.Yammer, new Credential {
                 Username = request.Username,
                 Password = request.Password,
-                ExternalIdentifier = request.Token
+                ExternalSecret = request.Token
             });
 
             return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });

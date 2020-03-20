@@ -31,7 +31,7 @@ namespace Events
                 {
                     var queryString = new { older_than = last };
 
-                    var response = await _rest.Get(credential.Username, credential.Password, Network.Yammer, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.ExternalIdentifier);
+                    var response = await _rest.Get(credential.Username, credential.Password, Network.Yammer, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.ExternalSecret);
                     if (response != null) {
                         last = response.Messages.Last()?.Id;
                         _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
