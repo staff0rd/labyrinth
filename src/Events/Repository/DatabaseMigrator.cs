@@ -41,7 +41,7 @@ namespace Events
 
             var result = upgrader.PerformUpgrade();
 
-            if (!result.Successful)
+            if (result.Successful)
             {
                 _logger.LogInformation("Database upgrade successful");
             } else {

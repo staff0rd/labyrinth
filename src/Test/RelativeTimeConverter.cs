@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Browser.LinkedIn;
+using Events;
 using Shouldly;
 using Xunit;
 
