@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { User } from '../store/User';
+import { User } from '../../store/User';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';

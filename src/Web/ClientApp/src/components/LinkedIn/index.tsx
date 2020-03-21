@@ -6,8 +6,8 @@ import { Queue } from '../Queue';
 import { postResponse } from '../../api';
 import { useSelector } from '../../store/useSelector';
 import { AccountState } from '../../store/Account';
-import { Users } from '../Users';
-import { Messages } from '../Messages';
+import { Users } from '../Users/Users';
+import { Messages } from '../Messages/Messages';
 import Alert from '@material-ui/lab/Alert';
 import { Overview, OverviewProps } from '../Overview'
 

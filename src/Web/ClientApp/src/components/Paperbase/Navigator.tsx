@@ -17,8 +17,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import Constants from '../../Constants'
 import Link from '@material-ui/core/Link';
 import { useLocation } from 'react-router';
-import YammerIcon from '../YammerIcon';
-import TeamsIcon from '../TeamsIcon';
+import YammerIcon from '../Icons/YammerIcon';
+import TeamsIcon from '../Icons/TeamsIcon';
 
 const categories = [
   {

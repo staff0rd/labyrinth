@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from "react";
 import { Link } from 'react-router-dom';
-import {User} from '../store/User';
+import {User} from '../../store/User';
 import Avatar from '@material-ui/core/Avatar';
 import Chip from '@material-ui/core/Chip';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from "@material-ui/core";
-import { postResponse } from '../api';
-import { useSelector } from '../store/useSelector';
-import { AccountState } from '../store/Account';
+import { postResponse } from '../../api';
+import { useSelector } from '../../store/useSelector';
+import { AccountState } from '../../store/Account';
 
 type Props = {
     id: string;

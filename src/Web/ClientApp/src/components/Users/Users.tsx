@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Paged } from '../store/Paged';
-import { Message } from '../store/Message';
+import { Paged } from '../../store/Paged';
+import { User } from '../../store/User';
 import Grid from '@material-ui/core/Grid';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -12,14 +12,14 @@ import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import SearchIcon from '@material-ui/icons/Search';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import { UserCards } from './UserCards';
+import { useSelector } from '../../store/useSelector';
+import { AccountState } from '../../store/Account';
 import { makeStyles } from '@material-ui/core/styles';
-import { MessageCards } from './MessageCards';
-import { useSelector } from '../store/useSelector'
-import { AccountState } from '../store/Account';
-import { postResponse } from '../api'
+import { postResponse } from '../../api'
 import Alert from '@material-ui/lab/Alert';
 
-type MessagesProps = {
+type UsersProps = {
   url: string;
   searchPlaceholder: string;
 };
@@ -37,7 +37,7 @@ const useStyles = makeStyles(theme => ({
     }
   }));
 
-export const Messages = (props: MessagesProps) => {
+export const Users = (props: UsersProps) => {
   const { url, searchPlaceholder } = props;
   const classes = useStyles();
   const [error, setError] = useState<string>("");
@@ -45,24 +45,24 @@ export const Messages = (props: MessagesProps) => {
   const [pageNumber, setPageNumber] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const { password, userName } = useSelector<AccountState>(state => state.account);
-  const [messages, setMessages] = useState<Paged<Message>>();
+  const [users, setUsers] = useState<Paged<User>>();
 
-  const searchRequest = (search: string, pageNumber: number, pageSize: number) => {
+  const searchRequest = () => {
     setError('');  
-    postResponse<Paged<Message>>(url, {userName, password, search, pageNumber, pageSize})
+    postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize})
       .then(data => {
         if (data) {
           if (data.isError)
             setError(data.message!);
           else {
-            setMessages(data.response);
+            setUsers(data.response);
           }
         }
-    });
-  };
+      });
+    };
 
   useEffect(() => {
-    searchRequest(search, pageNumber, pageSize);
+    searchRequest();
   }, [pageNumber, pageSize, search]);
 
   return (
@@ -91,17 +91,17 @@ export const Messages = (props: MessagesProps) => {
                 </Grid>
             </Toolbar>
         </AppBar>
-        { messages && (
+        { users && (
           <>
-            <MessageCards messages={messages.rows} />
+            <UserCards users={users.rows} />
             <TablePagination 
-                count={messages.totalRows}
-                rowsPerPage={messages.pageSize}
+                count={users.totalRows}
+                rowsPerPage={users.pageSize}
                 rowsPerPageOptions={[20, 50, 100]}
                 component={Paper}
                 onChangePage={(_: any, page: number) => setPageNumber(page)}
                 onChangeRowsPerPage={((_: any, select: any) => setPageSize(select.key)) as any}
-                page={messages.page}
+                page={users.page}
             />
           </>
         )}

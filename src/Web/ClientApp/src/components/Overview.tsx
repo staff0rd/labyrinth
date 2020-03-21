@@ -1,6 +1,6 @@
 import React from 'react';
 import { Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, makeStyles } from '@material-ui/core';
-import { EventCounts } from './EventCounts';
+import { EventCounts } from './Events/EventCounts';
 
 export type OverviewProps = {
     groups: number;
