@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,12 +41,20 @@ namespace Events
             {
                 i++;
                 _progress.Set(i, chats.Count);
-                var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
-                do 
-                {   
-                    await _rest.SaveResponse(credential.Username, credential.Password, Network.Teams, null, "Chat-Messages", new { id=chat.Id, topic=chat.Topic }, messages.ToJson());
-                    messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
-                } while (messages != null && messages.Count > 0);
+                try {
+                    var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
+                    do 
+                    {   
+                        await _rest.SaveResponse(credential.Username, credential.Password, Network.Teams, null, "Chat-Messages", new { id=chat.Id, topic=chat.Topic }, messages.ToJson());
+                        messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
+                    } while (messages != null && messages.Count > 0);
+                } catch (ServiceException e)
+                {
+                    if (e.StatusCode == HttpStatusCode.Forbidden) {
+                        _logger.LogError($"Access to {chat.Id} was Forbidden");
+                        continue;
+                    }
+                }
             }
             return Unit.Value;
         }
