@@ -22,6 +22,7 @@ import Alert from '@material-ui/lab/Alert';
 type UsersProps = {
   url: string;
   searchPlaceholder: string;
+  network: string;
 };
 
 const useStyles = makeStyles(theme => ({
@@ -38,7 +39,11 @@ const useStyles = makeStyles(theme => ({
   }));
 
 export const Users = (props: UsersProps) => {
-  const { url, searchPlaceholder } = props;
+  const {
+    url,
+    searchPlaceholder,
+    network,
+  } = props;
   const classes = useStyles();
   const [error, setError] = useState<string>("");
   const [search, setSearch] = useState('');
@@ -49,7 +54,7 @@ export const Users = (props: UsersProps) => {
 
   const searchRequest = () => {
     setError('');  
-    postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize})
+    postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize, network})
       .then(data => {
         if (data) {
           if (data.isError)

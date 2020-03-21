@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Events;
 using MediatR;
@@ -36,6 +37,45 @@ namespace Web.Controllers
             });
 
             return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
+        }
+
+        [HttpPost]
+        [Route("user")]
+        public async Task<Result<UserCard>> GetUser([FromBody] GetUserQuery request)
+        {
+            var user = await _mediator.Send(request);
+            
+            return new Result<UserCard>(UserCard.FromUser(user.Response));
+        }
+
+        [HttpPost]
+        [Route("users")]
+        public async Task<Result<PagedResult<UserCard>>> Users([FromBody] SearchRequest request)
+        {
+            var result = await _mediator.Send(new GetUsersQuery { 
+                Username = request.Username, 
+                Password = request.Password, 
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize,
+                Search = request.Search,
+                Network = request.Network
+            });
+
+            return Map(result, UserCard.FromUser);
+        }
+
+        private Result<PagedResult<TResult>> Map<T, TResult>(Result<PagedResult<T>> result, Func<T, TResult> mapper)
+        {
+            if (result.IsError)
+                return new Result<PagedResult<TResult>> { IsError = true, Message = result.Message }; 
+
+            var mapped = result.Response.Rows.Select(mapper).ToArray();
+            return new Result<PagedResult<TResult>>(new PagedResult<TResult> {
+                Rows = mapped,
+                Page = result.Response.Page,
+                PageSize = result.Response.PageSize,
+                TotalRows = result.Response.TotalRows,
+            });
         }
     }
 }

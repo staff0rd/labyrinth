@@ -47,8 +47,9 @@ const Yammer = () => {
       <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} />} />
       <Route path='/yammer/users' component={() => (
         <Users
-          url={`api/yammer/users`} 
+          url={`api/events/users`} 
           searchPlaceholder="Search by name or job title"
+          network="Yammer"
         />
       )} />
       <Route path='/yammer/messages' component={() => (

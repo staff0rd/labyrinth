@@ -32,8 +32,8 @@ const Yammer = () => {
       route: '/linkedin',
       items: [
         { title: 'Overview', to: ''},
-        // { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
-        // { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
+        { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
+        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
         { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
         { title: 'Process', to: '/process'},
@@ -47,8 +47,9 @@ const Yammer = () => {
       <Route path='/linkedin/process' component={() => <Queue url={'api/linkedin/process'} />} />
       <Route path='/linkedin/users' component={() => (
         <Users
-          url={`api/linkedin/users`} 
+          url={`api/events/users`} 
           searchPlaceholder="Search by name or job title"
+          network="LinkedIn"
         />
       )} />
       <Route path='/linkedin/messages' component={() => (
