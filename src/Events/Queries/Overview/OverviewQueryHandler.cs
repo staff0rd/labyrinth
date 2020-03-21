@@ -27,14 +27,14 @@ namespace Events
 
             var result = _store.GetOverview().FirstOrDefault(p => p.Network == request.Network);
 
+            if (result == null)
+                return new Result<Overview> { IsError = true, Message = $"No store initialised for {request.Network}" };
+
             var eventTypes = await _mediator.Send(new GetEventTypesQuery {
                 Password = request.Password,
                 Username = request.Username,
                 Network = request.Network,
             });
-
-            if (result == null)
-                return new Result<Overview> { IsError = true, Message = "No events yet" };
 
             if (eventTypes.IsError)
                 return new Result<Overview> { IsError = true, Message = eventTypes.Message};

@@ -26,6 +26,7 @@ namespace Events
             _store = new Dictionary<Network, NetworkStore> {
                 { Network.Yammer, new NetworkStore() },
                 { Network.LinkedIn, new NetworkStore() },
+                { Network.Teams, new NetworkStore() },
             };
         }
 
