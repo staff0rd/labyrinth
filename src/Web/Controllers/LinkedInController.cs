@@ -46,32 +46,3 @@ namespace Web.Controllers
         }
     }
 }
-
-//         [HttpGet]
-//         public async Task<PagedResult<UserCard>> Get(int pageNumber = 0, int pageSize = 20, string search = "")
-//         {
-//             var users = _store.Users.Select(x => x.Value);
-//             if (!string.IsNullOrWhiteSpace(search))
-//             {
-//                 users = users.Where(u => u.Name.ToLower().Contains(search.ToLower()) || u.Occupation.ToLower().Contains(search.ToLower())).ToArray();
-//             }
-//             return new PagedResult<UserCard> {
-//                 Page = pageNumber,
-//                 PageSize = pageSize,
-//                 Rows = users
-//                     .Skip(pageNumber * pageSize)
-//                     .Take(pageSize)
-//                     .Select(u => new UserCard {
-//                         AvatarUrl = u.MugshotUrl,
-//                         Description = u.Occupation,
-//                         Id = u.Id,
-//                         Name = u.Name,
-//                         Network = "LinkedIn",
-//                         KnownSince = u.Connected
-//                     })
-//                     .ToArray(),
-//                 TotalRows = users.Count()
-//             };
-//         }
-//     }
-// }

@@ -36,6 +36,7 @@ const Teams = () => {
         { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
         { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
+        { title: 'Events', to: '/events'},
 //        { title: 'Process', to: '/process'},
       ],
     }, [overview]);

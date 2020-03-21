@@ -64,6 +64,22 @@ namespace Web.Controllers
             return Map(result, UserCard.FromUser);
         }
 
+        [HttpPost]
+        [Route("events")]
+        public async Task<Result<NextPagedResult<Event>>> Events([FromBody] EventsRequest request)
+        {
+            var result = await _mediator.Send(new GetEventsQuery { 
+                Username = request.Username, 
+                Password = request.Password, 
+                LastId = request.LastId,
+                PageSize = request.PageSize,
+                Search = request.Search,
+                Network = request.Network
+            });
+
+            return result;
+        }
+
         private Result<PagedResult<TResult>> Map<T, TResult>(Result<PagedResult<T>> result, Func<T, TResult> mapper)
         {
             if (result.IsError)

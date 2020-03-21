@@ -4,9 +4,17 @@ using System.Linq;
 
 namespace Events
 {
-        public class PagedResult<T>
+    public class PagedResult<T>
     {
         public int Page { get; set; }
+        public int PageSize { get; set; }
+        public T[] Rows { get; set; }
+        public int TotalRows { get; set; }
+    }
+
+    public class NextPagedResult<T>
+    {
+        public int LastId { get; set; }
         public int PageSize { get; set; }
         public T[] Rows { get; set; }
         public int TotalRows { get; set; }
