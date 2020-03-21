@@ -33,9 +33,12 @@ namespace Events
                 Network = request.Network,
             });
 
+            if (result == null)
+                return new Result<Overview> { IsError = true, Message = "No events yet" };
+
             if (eventTypes.IsError)
                 return new Result<Overview> { IsError = true, Message = eventTypes.Message};
-                
+            
             result.Events = eventTypes.Response;
 
             return new Result<Overview>(result);
