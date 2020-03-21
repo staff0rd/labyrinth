@@ -7,6 +7,7 @@ import { postResponse } from '../../api';
 import { useSelector } from '../../store/useSelector';
 import { AccountState } from '../../store/Account';
 import { Users } from '../Users/Users';
+import { Events } from '../Events/Events';
 import { Messages } from '../Messages/Messages';
 import Alert from '@material-ui/lab/Alert';
 import { OverviewProps, Overview } from '../Overview';
@@ -32,8 +33,8 @@ const Teams = () => {
       route: '/teams',
       items: [
         { title: 'Overview', to: ''},
-        { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
-        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
+        // { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
+        // { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
         { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
         { title: 'Events', to: '/events'},
@@ -48,8 +49,16 @@ const Teams = () => {
       <Route path='/teams/process' component={() => <Queue url={'api/teams/process'} />} />
       <Route path='/teams/users' component={() => (
         <Users
-          url={`api/teams/users`} 
+          url={`api/events/users`} 
           searchPlaceholder="Search by name or job title"
+          network='Teams'
+        />
+      )} />
+      <Route path='/teams/events' component={() => (
+        <Events
+          url={`api/events/events`} 
+          searchPlaceholder="Search events"
+          network='Teams'
         />
       )} />
       <Route path='/teams/messages' component={() => (

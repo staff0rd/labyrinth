@@ -3,4 +3,5 @@ export interface Paged<T> {
     pageSize: number;
     page: number;
     totalRows: number;
+    lastId?: number;
 }

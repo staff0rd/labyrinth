@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Message } from '../store/Message';
+import { Message } from '../../store/Message';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
@@ -10,8 +10,8 @@ import Avatar from '@material-ui/core/Avatar';
 import { makeStyles } from '@material-ui/core/styles';
 import Moment from 'react-moment';
 import moment from 'moment';
-import {UserSquare} from './UserSquare';
-import {UserBullet} from './UserBullet';
+import {UserSquare} from '../Users/UserSquare';
+import {UserBullet} from '../Users/UserBullet';
 import reactStringReplace from 'react-string-replace';
 import { Button } from '@material-ui/core';
 

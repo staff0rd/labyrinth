@@ -14,6 +14,7 @@ import {UserSquare} from '../Users/UserSquare';
 import {UserBullet} from '../Users/UserBullet';
 import reactStringReplace from 'react-string-replace';
 import { Button } from '@material-ui/core';
+import ReactJson from 'react-json-view'
 
 type EventCardsProps = {
     events: Event[];
@@ -60,9 +61,7 @@ const EventCard = (event: Event) => {
                             <Typography variant="overline">
                                     <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{event.inserted_at}</Moment>
                             </Typography>
-                            <Typography>
-                                { event.body } 
-                            </Typography>
+                            <ReactJson src={JSON.parse(event.body)} />
                         </Grid>
                     </Grid>
                 </CardContent>

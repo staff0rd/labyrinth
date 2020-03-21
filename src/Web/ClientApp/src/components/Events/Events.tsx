@@ -19,9 +19,10 @@ import { postResponse } from '../../api'
 import Alert from '@material-ui/lab/Alert';
 import { EventCards } from './EventCards';
 
-type MessagesProps = {
+type EventsProps = {
   url: string;
   searchPlaceholder: string;
+  network: string;
 };
 
 const useStyles = makeStyles(theme => ({
@@ -37,32 +38,34 @@ const useStyles = makeStyles(theme => ({
     }
   }));
 
-export const Messages = (props: MessagesProps) => {
-  const { url, searchPlaceholder } = props;
+export const Events = (props: EventsProps) => {
+  const { url, searchPlaceholder, network } = props;
   const classes = useStyles();
   const [error, setError] = useState<string>("");
   const [search, setSearch] = useState('');
   const [pageNumber, setPageNumber] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [lastId, setLastId] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [events, setEvents] = useState<Paged<Event>>();
 
-  const searchRequest = (search: string, pageNumber: number, pageSize: number) => {
+  const searchRequest = (search: string, lastId: number, pageSize: number) => {
     setError('');  
-    postResponse<Paged<Event>>(url, {userName, password, search, pageNumber, pageSize})
+    postResponse<Paged<Event>>(url, {userName, password, search, lastId, pageSize, network})
       .then(data => {
         if (data) {
           if (data.isError)
             setError(data.message!);
           else {
             setEvents(data.response);
+            setLastId(data.response.lastId!);
           }
         }
     });
   };
 
   useEffect(() => {
-    searchRequest(search, pageNumber, pageSize);
+    searchRequest(search, lastId, pageSize);
   }, [pageNumber, pageSize, search]);
 
   return (

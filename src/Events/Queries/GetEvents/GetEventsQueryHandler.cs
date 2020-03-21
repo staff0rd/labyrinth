@@ -28,7 +28,7 @@ namespace Events
             var totalRows = await _events.GetCount(request.Username, request.Network, request.EventTypes);
 
             return new Result<NextPagedResult<Event>>(new NextPagedResult<Event> {
-                LastId = events.Rows.Last().Id,
+                LastId = events.Rows.Any() ? events.Rows.Last().Id : 0,
                 PageSize = request.PageSize,
                 Rows = events.Rows.ToArray(),
                 TotalRows = totalRows,
