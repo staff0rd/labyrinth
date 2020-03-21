@@ -44,7 +44,7 @@ namespace Events
                 do 
                 {   
                     await _rest.SaveResponse(credential.Username, credential.Password, Network.Teams, null, "Chat-Messages", new { id=chat.Id, topic=chat.Topic }, messages.ToJson());
-                    messages = await messages?.NextPageRequest?.GetAsync();
+                    messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
                 } while (messages != null && messages.Count > 0);
             }
             return Unit.Value;
