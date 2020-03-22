@@ -27,7 +27,7 @@ namespace Web.Controllers
                 ExternalSecret = request.Token
             });
 
-            return _mediator.Enqueue(new TeamsBackfillCommand { LabyrinthUsername = request.Username });
+            return _mediator.Enqueue(new TeamsBackfillCommand { LabyrinthUsername = request.Username, SourceId = request.SourceId });
         }
     }
 }

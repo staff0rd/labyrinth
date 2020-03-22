@@ -31,7 +31,7 @@ namespace Web.Controllers
                 ExternalSecret = request.Token
             });
 
-            return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username });
+            return _mediator.Enqueue(new YammerBackfillCommand { Username = request.Username, SourceId = request.SourceId });
         }
 
         [HttpPost]
@@ -43,7 +43,7 @@ namespace Web.Controllers
                 Password = request.Password
             });
 
-            return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username });
+            return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username, SourceId = request.SourceId });
         }
 
         

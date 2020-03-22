@@ -30,7 +30,7 @@ namespace Web.Controllers
                 ExternalSecret = request.ExternalSecret
             });
 
-            return _mediator.Enqueue(new LinkedInBackfillCommand { Username = request.Username });
+            return _mediator.Enqueue(new LinkedInBackfillCommand { Username = request.Username, SourceId = request.SourceId });
         }
 
         [HttpPost]
@@ -42,7 +42,7 @@ namespace Web.Controllers
                 Password = request.Password
             });
 
-            return _mediator.Enqueue(new LinkedInProcessCommand { Username = request.Username });
+            return _mediator.Enqueue(new LinkedInProcessCommand { Username = request.Username, SourceId = request.SourceId });
         }
     }
 }
