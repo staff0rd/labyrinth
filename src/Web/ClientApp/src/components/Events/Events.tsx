@@ -18,6 +18,7 @@ import { AccountState } from '../../store/Account';
 import { postResponse } from '../../api'
 import Alert from '@material-ui/lab/Alert';
 import { EventCards } from './EventCards';
+import { useSource } from '../useSource';
 
 type EventsProps = {
   url: string;
@@ -48,10 +49,11 @@ export const Events = (props: EventsProps) => {
   const [pageSize, setPageSize] = useState(1);
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [events, setEvents] = useState<Paged<Event>>();
+  const { sourceId } = useSource(network);
 
   const searchRequest = (search: string, lastId: number, pageSize: number) => {
     setError('');  
-    postResponse<Paged<Event>>(url, {userName, password, search, lastId, pageSize, network})
+    postResponse<Paged<Event>>(url, {userName, password, search, lastId, pageSize, network, sourceId})
       .then(data => {
         if (data) {
           if (data.isError)
@@ -63,6 +65,10 @@ export const Events = (props: EventsProps) => {
         }
     });
   };
+
+  const next = () => {
+    searchRequest(search, lastId, pageSize);
+  }
 
   useEffect(() => {
     searchRequest(search, lastId, pageSize);
@@ -87,7 +93,7 @@ export const Events = (props: EventsProps) => {
                     <Grid item>
                         <Tooltip title="Reload">
                             <IconButton>
-                                <RefreshIcon className={classes.block} color="inherit" />
+                                <RefreshIcon className={classes.block} color="inherit" onClick={next} />
                             </IconButton>
                         </Tooltip>
                     </Grid>
