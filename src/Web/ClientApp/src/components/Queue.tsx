@@ -6,17 +6,19 @@ import { QueueJob } from './QueueJob';
 
 type Props = {
     url: string
+    sourceId: string
 }
 
 export interface Values {}
 
-export const Queue = (props: Props) => {
+export const Queue = ({url, sourceId}: Props) => {
     const { password, userName } = useSelector<AccountState>(state => state.account);
 
     const apiCall = async (values: Values) => {
-        var response = await queue(props.url, {
+        var response = await queue(url, {
             password,
-            userName
+            userName,
+            sourceId
         });
         return response;
     }

@@ -66,7 +66,7 @@ namespace Events
                                 Description = user.Occupation
                             };
                             var existing = _store.GetUser(request.SourceId, scraped.Id);
-                           await _events.Sync(creds, request.SourceId, scraped, existing);
+                           await _events.Sync(creds, request.SourceId, scraped, existing, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                         }
                     }
                 }

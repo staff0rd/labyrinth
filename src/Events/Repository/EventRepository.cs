@@ -67,7 +67,7 @@ namespace Events
             }
         }
 
-        public async Task Add(Credential creds, Guid sourceId, string entityId, string eventName, string body)
+        public async Task Add(Credential creds, Guid sourceId, string entityId, string eventName, string body, long timestamp)
         {
             var ev = body.ToEvent(sourceId, entityId, eventName);
 
@@ -81,7 +81,7 @@ namespace Events
                     '{sourceId}',
                     '{entityId}',
                     '{eventName}',
-                    {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()},
+                    {timestamp},
                     pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{creds.Password}'))
                 FROM
                     public.keys
@@ -176,12 +176,12 @@ namespace Events
             }
         }
 
-        public Task Sync<T>(Credential creds, Guid sourceId, T payload, T existing) where T: IEntity<string> 
+        public Task Sync<T>(Credential creds, Guid sourceId, T payload, T existing, long timestamp) where T: IEntity<string> 
         {
-            return Sync(creds, sourceId, payload, existing, new string[] {});
+            return Sync(creds, sourceId, payload, existing, timestamp, new string[] {});
         }
 
-        public async Task Sync<T>(Credential creds, Guid sourceId, T payload, T existing, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
+        public async Task Sync<T>(Credential creds, Guid sourceId, T payload, T existing, long timestamp, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
         {
             if (existing != null)
             {
@@ -193,7 +193,7 @@ namespace Events
                     var importantDifferences = result.Differences.Count(p => !ignoreNulls.Contains(p.PropertyName) || p.Object2 != null);
                     if (importantDifferences > 0) {
                         var eventName = $"{payload.GetType().Name}Updated";
-                        await Add(creds, sourceId, payload.Id, eventName, payload.ToJson());
+                        await Add(creds, sourceId, payload.Id, eventName, payload.ToJson(), timestamp);
                         _logger.LogInformation("Raised {eventName} in {sourceId}", eventName, sourceId);
                     }
                 }
@@ -201,7 +201,7 @@ namespace Events
             else
             {
                 var eventName = $"{payload.GetType().Name}Created";
-                await Add(creds, sourceId, payload.Id, eventName, payload.ToJson());
+                await Add(creds, sourceId, payload.Id, eventName, payload.ToJson(), timestamp);
                 _logger.LogInformation("Raised {eventName} in {sourceId}", eventName, sourceId);
             }
         }

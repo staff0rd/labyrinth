@@ -70,7 +70,7 @@ namespace Events
                 Data = queryString.ToJson(),
                 Method = "GET",
                 Response =  response,
-            }.ToJson());
+            }.ToJson(), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         }
     }
 }

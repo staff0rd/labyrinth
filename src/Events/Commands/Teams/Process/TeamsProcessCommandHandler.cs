@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Rest;
 
 namespace Events
@@ -55,7 +56,8 @@ namespace Events
                     if (payload.Category == TeamsRequestTypes.Chats) {
                         await Process(creds, request.SourceId, JsonConvert.DeserializeObject<IUserChatsCollectionPage>(payload.Response));
                     } else if (payload.Category == TeamsRequestTypes.ChatMessages) {
-                        await Process(JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response));
+                        dynamic data = JObject.Parse(payload.Data);
+                        await Process(creds, request.SourceId, data.id as string, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response));
                     } else
                         throw new NotImplementedException(payload.Category);
                 }
@@ -76,13 +78,33 @@ namespace Events
                 {
                     _store.Add(sourceId, received);
                 } 
-                await _events.Sync(creds, sourceId, received, existing);
+                await _events.Sync(creds, sourceId, received, existing, received.LastUpdated.ToUnixTimeMilliseconds());
             }
-            throw new NotImplementedException();
         }
-        private Task Process(IChatMessagesCollectionPage chatMessagesCollectionPage)
+        private async Task Process(Credential creds, Guid sourceId, Identity user)
         {
-            throw new NotImplementedException();
+            var received = Events.User.From(user, sourceId);
+            var existing = _store.GetUser(sourceId, received.Id);
+            if (existing == null)
+            {
+                _store.Add(sourceId, received);
+            } 
+            await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), received.KnownSince.ToUnixTimeMilliseconds()));
+        }
+
+        private async Task Process(Credential creds, Guid sourceId, string topicId, IChatMessagesCollectionPage chatMessagesCollectionPage)
+        {
+            foreach (var message in chatMessagesCollectionPage)
+            {
+                await Process(creds, sourceId, message.From.User);
+                var received = Events.Message.From(message, sourceId, topicId);
+                var existing = _store.GetMessage(sourceId, received.Id);
+                if (existing == null)
+                {
+                    _store.Add(sourceId, received);
+                } 
+                await _events.Sync(creds, sourceId, received, existing, message.LastModifiedDateTime.Value.ToUnixTimeMilliseconds());
+            }
         }
     }
 }

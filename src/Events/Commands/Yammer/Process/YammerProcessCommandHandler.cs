@@ -76,24 +76,24 @@ namespace Events
 
         public async Task ProcessUser(Rest.Yammer.User user, Guid sourceId, Credential creds)
         {
-            var received = Events.User.From(user);
+            var received = Events.User.From(user, sourceId);
             var existing = _store.GetUser(sourceId, received.Id);
             if (existing == null)
             {
                 _store.Add(sourceId, received);
             } 
-            await _events.Sync(creds, sourceId, received, existing, new string[] {});
+            await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), existing.KnownSince.ToUnixTimeMilliseconds()));
         }
 
         public async Task ProcessMessage(Rest.Yammer.Message message, Guid sourceId, Credential creds)
         {
-            var received = Events.Message.From(message);
+            var received = Events.Message.From(message, sourceId);
             var existing = _store.GetMessage(sourceId, received.Id);
             if (existing == null)
             {
                 _store.Add(sourceId, received);
             } 
-            await _events.Sync(creds, sourceId, received, existing, new [] { "BodyParsed" });
+            await _events.Sync(creds, sourceId, received, existing, received.CreatedAt.ToUnixTimeMilliseconds(), new [] { "BodyParsed" });
         }
     }
 }

@@ -105,7 +105,7 @@ namespace Events
                 var payload = new JsonPayload { Url = item.url, Json = item.json };
                 _logger.LogInformation($"Saving {payload.Url}");
                 var json = JsonConvert.SerializeObject(payload);
-                await _events.Add(credential, sourceId, Guid.NewGuid().ToString(), "JsonPayload", json);
+                await _events.Add(credential, sourceId, Guid.NewGuid().ToString(), "JsonPayload", json, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             }
         }
     }

@@ -10,12 +10,14 @@ import { Users } from '../Users/Users';
 import { Messages } from '../Messages/Messages';
 import Alert from '@material-ui/lab/Alert';
 import { OverviewProps, Overview } from '../Overview';
+import { useSource } from '../useSource';
 
 const Yammer = () => {
   const [overview, setOverview] = useState<OverviewProps>();
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [error, setError] = useState<string>("");
   const location = useLocation();
+  const { sourceId, sourceName } = useSource('Yammer');
 
   useEffect(() => {
     postResponse<OverviewProps>(`api/events/overview?network=Yammer`, {userName, password})
@@ -43,8 +45,8 @@ const Yammer = () => {
   return (
     <>
       <Route path='/yammer/backfill' component={Backfill} />
-      <Route path='/yammer/hydrate' component={() => <Queue url={'api/events/hydrate'} />} />
-      <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} />} />
+      <Route path='/yammer/hydrate' component={() => <Queue url={'api/events/hydrate'} sourceId={sourceId} />} />
+      <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} sourceId={sourceId} />} />
       <Route path='/yammer/users' component={() => (
         <Users
           url={`api/events/users`} 

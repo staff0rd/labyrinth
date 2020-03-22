@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Graph;
 
 namespace Events
 {
@@ -7,10 +8,21 @@ namespace Events
         public string Id { get; set;}
         public string AvatarUrl { get; set; }
         public string Name { get; set;}
-        public DateTimeOffset? KnownSince { get; set;}
+        public DateTimeOffset KnownSince { get; set;}
         public Network Network { get; set;}
         public string Description { get; set; }
-        public static User From(Rest.Yammer.User user)
+        public Guid SourceId { get; set; }
+
+        public static User From(Identity user, Guid sourceId)
+        {
+            return new User {
+                Id = user.Id,
+                Name = user.DisplayName,
+                SourceId = sourceId
+            };
+        }
+        
+        public static User From(Rest.Yammer.User user, Guid sourceId)
         {
             return new User
             {
@@ -19,6 +31,7 @@ namespace Events
                 Name = user.FullName,
                 Network = Network.Yammer,
                 Id = user.Id.AsId<User>(Network.Yammer),
+                SourceId = sourceId
             };
         }
     }

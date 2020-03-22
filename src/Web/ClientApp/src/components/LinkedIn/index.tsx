@@ -10,12 +10,14 @@ import { Users } from '../Users/Users';
 import { Messages } from '../Messages/Messages';
 import Alert from '@material-ui/lab/Alert';
 import { Overview, OverviewProps } from '../Overview'
+import { useSource } from '../useSource';
 
 const Yammer = () => {
   const [overview, setOverview] = useState<OverviewProps>();
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [error, setError] = useState<string>("");
   const location = useLocation();
+  const { sourceId, sourceName } = useSource('LinkedIn');
 
   useEffect(() => {
     postResponse<OverviewProps>(`api/events/overview?network=LinkedIn`, {userName, password})
@@ -43,8 +45,8 @@ const Yammer = () => {
   return (
     <>
       <Route path='/linkedin/backfill' component={Backfill} />
-      <Route path='/linkedin/hydrate' component={() => <Queue url={'api/events/hydrate'} />} />
-      <Route path='/linkedin/process' component={() => <Queue url={'api/linkedin/process'} />} />
+      <Route path='/linkedin/hydrate' component={() => <Queue url={'api/events/hydrate'} sourceId={sourceId} />} />
+      <Route path='/linkedin/process' component={() => <Queue url={'api/linkedin/process'} sourceId={sourceId} />} />
       <Route path='/linkedin/users' component={() => (
         <Users
           url={`api/events/users`} 

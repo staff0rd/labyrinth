@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Graph;
 
 namespace Events
 {
@@ -13,7 +14,19 @@ namespace Events
         public Guid SourceId { get; set;}
         public string Permalink { get; set; }
 
-        public static Message From(Rest.Yammer.Message message)
+        public static Message From (ChatMessage message, Guid sourceId, string topicId)
+        {
+            return new Message {
+                BodyParsed = message.Body.Content,
+                BodyPlain = message.Body.Content,
+                CreatedAt = message.CreatedDateTime?.DateTime ?? DateTimeOffset.UtcNow.DateTime,
+                Id = message.Id,
+                SenderId = message.From.User.Id,
+                TopicId = topicId,
+                SourceId = sourceId
+            };
+        }
+        public static Message From(Rest.Yammer.Message message, Guid sourceId)
         {
             return new Message {
                 BodyParsed = message.Body.Parsed,
@@ -22,6 +35,7 @@ namespace Events
                 Id = $"yammer/message/{message.Id}",
                 SenderId = $"yammer/user/{message.SenderId}",
                 Permalink = message.WebUrl.AbsoluteUri,
+                SourceId = sourceId
             };
         }
     }

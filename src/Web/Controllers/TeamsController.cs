@@ -29,5 +29,17 @@ namespace Web.Controllers
 
             return _mediator.Enqueue(new TeamsBackfillCommand { LabyrinthUsername = request.Username, SourceId = request.SourceId });
         }
+
+        [HttpPost]
+        [Route("process")]
+        public QueuedJob Process([FromBody] QueryRequest request)
+        {
+            _credentials.Add(request.SourceId, new Credential {
+                Username = request.Username,
+                Password = request.Password
+            });
+
+            return _mediator.Enqueue(new TeamsProcessCommand { Username = request.Username, SourceId = request.SourceId });
+        }
     }
 }
