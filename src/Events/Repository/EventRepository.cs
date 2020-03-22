@@ -76,11 +76,12 @@ namespace Events
                 var query = $@"
                 
                 INSERT INTO
-                    {TableName(creds.Username)} (source_id, entity_id, event_name, body)
+                    {TableName(creds.Username)} (source_id, entity_id, event_name, timestamp, body)
                 SELECT
                     '{sourceId}',
                     '{entityId}',
                     '{eventName}',
+                    {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()},
                     pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{creds.Password}'))
                 FROM
                     public.keys
@@ -143,7 +144,7 @@ namespace Events
                 JOIN
                     public.keys ON keys.name = '{userName}'
                 WHERE
-                    sourceId='{sourceId}'
+                    source_id='{sourceId}'
                 AND
                     id > {lastId}
                 {GetEventFilter(eventTypes)}
