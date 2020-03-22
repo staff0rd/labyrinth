@@ -83,6 +83,9 @@ namespace Events
         }
         private async Task Process(Credential creds, Guid sourceId, Identity user)
         {
+            if (!_store.IsHydrated)
+                throw new Exception("Store must be hydrated first");
+
             var received = Events.User.From(user, sourceId);
             var existing = _store.GetUser(sourceId, received.Id);
             if (existing == null)
@@ -103,7 +106,7 @@ namespace Events
                 {
                     _store.Add(sourceId, received);
                 } 
-                await _events.Sync(creds, sourceId, received, existing, message.LastModifiedDateTime.Value.ToUnixTimeMilliseconds());
+                await _events.Sync(creds, sourceId, received, existing, message.LastModifiedDateTime?.ToUnixTimeMilliseconds() ?? message.CreatedDateTime.Value.ToUnixTimeMilliseconds());
             }
         }
     }

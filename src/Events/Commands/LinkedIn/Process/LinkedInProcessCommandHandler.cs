@@ -30,8 +30,8 @@ namespace Events
 
         public async Task<Unit> Handle(LinkedInProcessCommand request, CancellationToken cancellationToken)
         {
-            // if (!_store.IsHydrated)
-            //     throw new Exception("Store must be hydrated first");
+            if (!_store.IsHydrated)
+                throw new Exception("Store must be hydrated first");
 
             var creds = _credentials.Get(request.SourceId, request.Username);
 

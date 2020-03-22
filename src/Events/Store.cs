@@ -90,6 +90,9 @@ namespace Events
                         break;
                     }
                     case (Network.Teams): {
+                        await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
+                        await Hydrate(credential, $"{source.Name} topics", source.Id, "TopicCreated", _store[source.Id].Topics);
+                        await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
                         break;
                     }
                     default: throw new NotImplementedException(source.Network.ToString());

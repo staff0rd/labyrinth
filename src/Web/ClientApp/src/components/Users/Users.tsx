@@ -18,6 +18,7 @@ import { AccountState } from '../../store/Account';
 import { makeStyles } from '@material-ui/core/styles';
 import { postResponse } from '../../api'
 import Alert from '@material-ui/lab/Alert';
+import { useSource } from '../useSource';
 
 type UsersProps = {
   url: string;
@@ -51,10 +52,11 @@ export const Users = (props: UsersProps) => {
   const [pageSize, setPageSize] = useState(20);
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [users, setUsers] = useState<Paged<User>>();
+  const { sourceId } = useSource(props.network);
 
   const searchRequest = () => {
     setError('');  
-    postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize, network})
+    postResponse<Paged<User>>(url, {userName, password, search, pageNumber, pageSize, network, sourceId})
       .then(data => {
         if (data) {
           if (data.isError)

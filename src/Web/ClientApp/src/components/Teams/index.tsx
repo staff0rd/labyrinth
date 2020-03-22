@@ -37,8 +37,8 @@ const Teams = () => {
       route: '/teams',
       items: [
         { title: 'Overview', to: ''},
-        // { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
-        // { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
+        { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
+        { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
         { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
         { title: 'Events', to: '/events'},
@@ -67,8 +67,9 @@ const Teams = () => {
       )} />
       <Route path='/teams/messages' component={() => (
         <Messages
-          url={`api/teams/messages`} 
+          url={`api/events/messages`} 
           searchPlaceholder="Search by sender or message content"
+          network='Teams'
         />
       )} />
 

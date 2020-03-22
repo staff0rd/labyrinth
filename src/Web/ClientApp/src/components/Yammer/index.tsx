@@ -56,8 +56,9 @@ const Yammer = () => {
       )} />
       <Route path='/yammer/messages' component={() => (
         <Messages
-          url={`api/yammer/messages`} 
+          url={`api/events/messages`} 
           searchPlaceholder="Search by sender or message content"
+          network='Yammer'
         />
       )} />
 
