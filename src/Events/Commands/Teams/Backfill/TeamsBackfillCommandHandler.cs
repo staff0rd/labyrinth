@@ -8,6 +8,11 @@ using Microsoft.Graph;
 
 namespace Events
 {
+    public class TeamsRequestTypes {
+        public const string Chats = "Chats";
+        public const string ChatMessages = "Chat-Messages";
+    }
+
     public class TeamsBackfillCommandHandler : IRequestHandler<TeamsBackfillCommand>
     {
         private readonly RestEventManager _rest;
@@ -26,7 +31,7 @@ namespace Events
 
         public async Task<Unit> Handle(TeamsBackfillCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(Network.Teams, request.LabyrinthUsername);
+            var credential = _credentials.Get(request.SourceId, request.LabyrinthUsername);
             var client = GetGraphClient(credential.ExternalSecret);
             var chats = await client
                 .Me
@@ -34,7 +39,7 @@ namespace Events
                 .Request()
                 .GetAsync();
             
-            await _rest.SaveResponse(credential.Username, credential.Password, Network.Teams, null, "Chats", null, chats.ToJson());
+            await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.Chats, null, chats.ToJson());
             
             int i = 0;
             foreach (var chat in chats)
@@ -45,7 +50,7 @@ namespace Events
                     var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
                     do 
                     {   
-                        await _rest.SaveResponse(credential.Username, credential.Password, Network.Teams, null, "Chat-Messages", new { id=chat.Id, topic=chat.Topic }, messages.ToJson());
+                        await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new { id=chat.Id, topic=chat.Topic }, messages.ToJson());
                         messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
                     } while (messages != null && messages.Count > 0);
                 } catch (ServiceException e)

@@ -24,8 +24,8 @@ namespace Events
                 return new Result<NextPagedResult<Event>> { IsError = true, Message = auth.Message};
             }
 
-            var events = await _events.Paginate(request.Username, request.Password, request.Network, request.LastId, request.PageSize);
-            var totalRows = await _events.GetCount(request.Username, request.Network, request.EventTypes);
+            var events = await _events.Paginate(new Credential(request.Password, request.Username), request.SourceId, request.LastId, request.PageSize);
+            var totalRows = await _events.GetCount(request.Username, request.SourceId, request.EventTypes);
 
             return new Result<NextPagedResult<Event>>(new NextPagedResult<Event> {
                 LastId = events.Rows.Any() ? events.Rows.Last().Id : 0,

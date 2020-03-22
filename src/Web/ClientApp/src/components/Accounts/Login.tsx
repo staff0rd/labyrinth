@@ -3,9 +3,10 @@ import { Button, Grid, makeStyles, LinearProgress } from "@material-ui/core"
 import Alert from "@material-ui/lab/Alert"
 import { Formik, Form, Field } from 'formik';
 import { TextField } from 'formik-material-ui';
-import { post, Result } from '../../api';
+import { post, Result, postResponse } from '../../api';
 import { actionCreators as accountActions } from '../../store/Account';
 import { useDispatch } from 'react-redux';
+import { Source } from '../../store/Source';
 
 
 interface Values {
@@ -25,6 +26,15 @@ export const Login = () => {
                 return <Alert severity="success">Login successful</Alert>
             }
         }
+    }
+
+    const getSources = (userName: string, password: string) => {
+        postResponse<Source[]>(`/api/sources`, {userName, password})
+            .then(data => {
+                if (data && !data.isError) {
+                    dispatch(accountActions.setSources(data.response));
+                }
+            });
     }
 
     return (
@@ -50,6 +60,7 @@ export const Login = () => {
                     setResult(response);
                     if (!response.isError) {
                         dispatch(accountActions.setAccount(values.userName, values.password));
+                        getSources(values.userName, values.password);
                     }
                 } catch (err) {
                     setResult(err);
@@ -98,6 +109,4 @@ export const Login = () => {
             )}
         </Formik>
     );
-    }
-    
-
+}

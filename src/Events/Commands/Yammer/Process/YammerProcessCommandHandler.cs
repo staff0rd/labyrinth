@@ -32,12 +32,12 @@ namespace Events
             if (!_store.IsHydrated)
                 throw new Exception("Store must be hydrated first");
 
-            var creds = _credentials.Get(Network.Yammer, request.Username);
+            var creds = _credentials.Get(request.SourceId, request.Username);
 
-            var count = await _events.GetCount(creds.Username, Network.Yammer, "RestApiRequest");
+            var count = await _events.GetCount(creds.Username, request.SourceId, "RestApiRequest");
             var currentCount = 0;
                 
-            await _events.ReadForward(creds.Username, creds.Password, Network.Yammer, count, async (events, totalCount) => { 
+            await _events.ReadForward(creds, request.SourceId, count, async (events, totalCount) => { 
                 var bodies = events
                     .Where(p => p.EventName == "RestApiRequest")
                     .Select(p => p.Body)
@@ -52,13 +52,13 @@ namespace Events
                     if (json.response != null) {
 
                         foreach(var message in json.response.messages) {
-                            await ProcessMessage(Rest.Yammer.Message.FromJson(message.ToString()), creds);
+                            await ProcessMessage(Rest.Yammer.Message.FromJson(message.ToString()), request.SourceId, creds);
                         }
                         foreach (var reference in json.response.references) {
                             switch(reference.type.ToString()) {
-                                case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()), creds);
+                                case "user": await ProcessUser(Rest.Yammer.User.FromJson(reference.ToString()), request.SourceId, creds);
                                 break;
-                                case "message": await ProcessMessage(Rest.Yammer.Message.FromJson(reference.ToString()), creds);
+                                case "message": await ProcessMessage(Rest.Yammer.Message.FromJson(reference.ToString()), request.SourceId, creds);
                                 break;
                                 default: 
                                     _logger.LogWarning($"Unknown reference type: {reference.type}");
@@ -74,26 +74,26 @@ namespace Events
             return Unit.Value;
         }
 
-        public async Task ProcessUser(Rest.Yammer.User user, Credential creds)
+        public async Task ProcessUser(Rest.Yammer.User user, Guid sourceId, Credential creds)
         {
             var received = Events.User.From(user);
-            var existing = _store.GetUser(Network.Yammer, received.Id);
+            var existing = _store.GetUser(sourceId, received.Id);
             if (existing == null)
             {
-                _store.Add(Network.Yammer, received);
+                _store.Add(sourceId, received);
             } 
-            await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, new string[] {});
+            await _events.Sync(creds, sourceId, received, existing, new string[] {});
         }
 
-        public async Task ProcessMessage(Rest.Yammer.Message message, Credential creds)
+        public async Task ProcessMessage(Rest.Yammer.Message message, Guid sourceId, Credential creds)
         {
             var received = Events.Message.From(message);
-            var existing = _store.GetMessage(Network.Yammer, received.Id);
+            var existing = _store.GetMessage(sourceId, received.Id);
             if (existing == null)
             {
-                _store.Add(Network.Yammer, received);
+                _store.Add(sourceId, received);
             } 
-            await _events.Sync(creds.Username, creds.Password, Network.Yammer, received, existing, new [] { "BodyParsed" });
+            await _events.Sync(creds, sourceId, received, existing, new [] { "BodyParsed" });
         }
     }
 }

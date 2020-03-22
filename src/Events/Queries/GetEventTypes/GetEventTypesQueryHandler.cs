@@ -22,7 +22,7 @@ namespace Events
                 return new Result<EventCount[]> { IsError = true, Message = auth.Message};
             }
 
-            return new Result<EventCount[]>(await _events.GetEventTypes(request.Username, request.Network));
+            return new Result<EventCount[]>(await _events.GetEventTypes(request.Username, request.SourceId));
         }
     }
 }

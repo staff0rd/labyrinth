@@ -24,7 +24,7 @@ namespace Events
                 return new Result<PagedResult<Message>> { IsError = true, Message = auth.Message};
             }
             
-            var messages = _store.GetMessages(Network.Yammer);
+            var messages = _store.GetMessages(request.SourceId);
             var search = request.Search;
             if (!string.IsNullOrWhiteSpace(search))
             {

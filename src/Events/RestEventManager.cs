@@ -26,9 +26,9 @@ namespace Events
             _events = events;
         }
 
-        public async Task<T> Get<T>(string userName, string password, Network network, Request<T> request, object queryString, string token)
+        public async Task<T> Get<T>(Credential creds, Guid sourceId, Request<T> request, object queryString, string token)
         {
-            var oldest = await _events.GetLastUpdated(userName, password, network, "RestApiRequest", request.Category, request.RateLimit.RequestCount);
+            var oldest = await _events.GetLastInserted(creds, sourceId, "RestApiRequest", request.Category, request.RateLimit.RequestCount);
             if (oldest.Count() == request.RateLimit.RequestCount)
             {
                 var waitUntil = oldest.Last().Add(request.RateLimit.Duration);
@@ -58,12 +58,12 @@ namespace Events
                 return default(T);
             }
             finally {
-                await SaveResponse(userName, password, network, request.Endpoint, request.Category, queryString, response);
+                await SaveResponse(creds, sourceId, request.Endpoint, request.Category, queryString, response);
             }
         }
-        public async Task SaveResponse(string userName, string password, Network network, string url, string category, object queryString, string response)
+        public async Task SaveResponse(Credential creds, Guid sourceId, string url, string category, object queryString, string response)
         {
-            await _events.Add(userName, password, network, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
+            await _events.Add(creds, sourceId, Guid.NewGuid().ToString(), "RestApiRequest", new RestApiRequest
             {
                 Uri = url,
                 Category = category,

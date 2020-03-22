@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace Events
@@ -19,6 +20,6 @@ namespace Events
         public string Password { get; set; }
         public string Search { get; set; }
         public int PageSize { get; set; }
-        public Network Network { get; set; }
+        public Guid SourceId { get; set; }
     }
 }

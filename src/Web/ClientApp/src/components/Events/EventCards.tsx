@@ -59,7 +59,7 @@ const EventCard = (event: Event) => {
                     <Grid container>
                         <Grid item xs={12}>
                             <Typography variant="overline">
-                                    <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{event.inserted_at}</Moment>
+                                    <Moment format="dddd, MMMM Do YYYY, h:mm:ss a">{event.timestamp}</Moment>
                             </Typography>
                             <ReactJson src={JSON.parse(event.body)} />
                         </Grid>

@@ -7,12 +7,14 @@ import Yammer from './components/Yammer';
 import Teams from './components/Teams';
 import Paperbase from './components/Paperbase/Paperbase'
 import { About } from './components/About'
+import { AddSource } from './components/AddSource';
 
 import './custom.css'
 
 export default () => (
     <Paperbase>
         <Route exact path='/' component={Home} />
+        <Route path='/add-source' component={AddSource} />
         <Route path='/linkedin' component={LinkedIn} />
         <Route path='/yammer' component={Yammer} />
         <Route path='/teams' component={Teams} />

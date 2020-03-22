@@ -7,9 +7,7 @@ namespace Events
         T Id { get; set;}
     }
 
-    public interface IEntity<T> : Id<T> {
-        Network Network { get; set; }
-    }
+    public interface IEntity<T> : Id<T> { }
 
     public interface IExternalEntity : IEntity<string>
     {

@@ -22,16 +22,16 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("overview")]
-        public Task<Result<Overview>> Overview([FromQuery] Network network, [FromBody] QueryRequest request)
+        public Task<Result<Overview>> Overview([FromQuery] Guid sourceId, [FromBody] QueryRequest request)
         {
-            return _mediator.Send(new OverviewQuery { Username = request.Username, Password = request.Password, Network = network});
+            return _mediator.Send(new OverviewQuery { Username = request.Username, Password = request.Password, SourceId = sourceId});
         }
 
         [HttpPost]
         [Route("hydrate")]
         public QueuedJob Hydrate([FromBody] QueryRequest request)
         {
-            _credentials.Add(Network.Self, new Credential {
+            _credentials.Add(Network.Self.ToString(), new Credential {
                 Username = request.Username,
                 Password = request.Password
             });
@@ -58,7 +58,7 @@ namespace Web.Controllers
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize,
                 Search = request.Search,
-                Network = request.Network
+                SourceId = request.SourceId
             });
 
             return Map(result, UserCard.FromUser);
@@ -74,7 +74,7 @@ namespace Web.Controllers
                 LastId = request.LastId,
                 PageSize = request.PageSize,
                 Search = request.Search,
-                Network = request.Network
+                SourceId = request.SourceId
             });
 
             return result;

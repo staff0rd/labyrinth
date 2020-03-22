@@ -20,15 +20,15 @@ namespace Events
 
         public async Task<Unit> Handle(PurgeEventsCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(request.Network, request.Username); 
+            var credential = _credentials.Get(request.SourceId, request.Username); 
 
-            var count = _events.GetCount(request.Username, request.Network, request.Events);
+            var count = _events.GetCount(request.Username, request.SourceId, request.Events);
 
             var events = string.Join(", ", request.Events);
 
-            _logger.LogInformation($"Purging {count} {events} events from {request.Network}");
+            _logger.LogInformation($"Purging {count} {events} events from {request.SourceId}");
 
-            await _events.Delete(request.Username, credential.Password, request.Network, request.Events);
+            await _events.Delete(request.Username, credential.Password, request.SourceId, request.Events);
 
             return Unit.Value;
         }

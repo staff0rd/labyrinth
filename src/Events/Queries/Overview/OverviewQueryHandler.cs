@@ -25,15 +25,15 @@ namespace Events
                 return new Result<Overview> { IsError = true, Message = auth.Message};
             }
 
-            var result = _store.GetOverview().FirstOrDefault(p => p.Network == request.Network);
+            var result = _store.GetOverview().FirstOrDefault(p => p.SourceId == request.SourceId);
 
             if (result == null)
-                return new Result<Overview> { IsError = true, Message = $"No store initialised for {request.Network}" };
+                return new Result<Overview> { IsError = true, Message = $"No store initialised for {request.SourceId}" };
 
             var eventTypes = await _mediator.Send(new GetEventTypesQuery {
                 Password = request.Password,
                 Username = request.Username,
-                Network = request.Network,
+                SourceId = request.SourceId,
             });
 
             if (eventTypes.IsError)

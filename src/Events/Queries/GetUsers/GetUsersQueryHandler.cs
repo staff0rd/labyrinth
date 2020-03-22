@@ -24,7 +24,7 @@ namespace Events
                 return new Result<PagedResult<User>> { IsError = true, Message = auth.Message};
             }
             
-            var users = _store.GetUsers(request.Network);
+            var users = _store.GetUsers(request.SourceId);
             var search = request.Search;
             if (!string.IsNullOrWhiteSpace(search))
             {

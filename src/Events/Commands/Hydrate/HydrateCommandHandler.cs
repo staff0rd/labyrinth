@@ -25,8 +25,8 @@ namespace Events
 
         public async Task<Unit> Handle(HydrateCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(Network.Self, request.Username); 
-            await _store.Hydrate(request.Username, credential.Password);
+            var credential = _credentials.Get(Network.Self.ToString(), request.Username); 
+            await _store.Hydrate(credential);
             return Unit.Value;
         }
     }

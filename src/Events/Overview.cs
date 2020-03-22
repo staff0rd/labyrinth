@@ -1,8 +1,10 @@
+using System;
+
 namespace Events
 {
     public class Overview
     {
-         public Network Network { get; set; }
+         public Guid SourceId { get; set;}
          public int Messages { get; set; }
          public int Users { get; set; }
          public int Threads { get; set; }

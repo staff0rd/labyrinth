@@ -9,6 +9,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import HomeIcon from '@material-ui/icons/Home';
 import LinkedInIcon from '@material-ui/icons/LinkedIn';
+import AddIcon from '@material-ui/icons/Add';
 import InfoIcon from '@material-ui/icons/Info';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import PeopleIcon from '@material-ui/icons/People';
@@ -19,25 +20,38 @@ import Link from '@material-ui/core/Link';
 import { useLocation } from 'react-router';
 import YammerIcon from '../Icons/YammerIcon';
 import TeamsIcon from '../Icons/TeamsIcon';
+import { useSelector } from '../../store/useSelector';
+import { Source } from '../../store/Source';
 
-const categories = [
-  {
-    id: 'Networks',
-    children: [
-      { id: 'LinkedIn', icon: <LinkedInIcon />, route: '/linkedin' },
-      { id: 'Yammer', icon: <YammerIcon />, route: '/yammer' },
-      { id: 'Teams', icon: <TeamsIcon />, route: '/teams' },
-    ],
-  },
-  {
+const getCategories = (sources: Source[]|undefined) => {
+  const categories = [];
+
+  if (sources) {
+    const children = [
+        { id: 'LinkedIn', icon: <LinkedInIcon />, route: '/linkedin' },
+        { id: 'Yammer', icon: <YammerIcon />, route: '/yammer' },
+        { id: 'Teams', icon: <TeamsIcon />, route: '/teams' },
+    ].filter(c => sources.find(s => s.network == c.id));
+    categories.push({
+      id: 'Sources',
+      children: [
+        ...children,
+        { id: 'Add source', icon: <AddIcon />, route:'/add-source' }
+      ],
+    })
+  }
+
+  categories.push({
     id: 'Help',
     children: [
       { id: 'About', icon: <InfoIcon />, route: '/about' },
       { id: 'Accounts', icon: <PeopleIcon />, route: '/accounts' },
       { id: 'Contribute', icon: <GitHubIcon />, route: 'https://github.com/staff0rd/labyrinth'  },
     ],
-  },
-];
+  });
+  
+  return categories;
+};
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -103,6 +117,9 @@ export interface NavigatorProps extends Omit<DrawerProps, 'classes'>, WithStyles
 function Navigator(props: NavigatorProps) {
   const { classes, ...other } = props;
   const location = useLocation();
+  const sources = useSelector<Source[]|undefined>(state => state.account.sources);
+  const categories = getCategories(sources);
+  
   return (
     <Drawer variant="permanent" {...other}>
       <List disablePadding>
@@ -132,7 +149,7 @@ function Navigator(props: NavigatorProps) {
                 {id}
               </ListItemText>
             </ListItem>
-            {children.map(({ id: childId, icon, route }) => { 
+            {children!.map(({ id: childId, icon, route }) => { 
               const active = location.pathname === route;
               return (
               <ListItemLink

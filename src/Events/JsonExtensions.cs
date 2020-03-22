@@ -11,12 +11,13 @@ namespace Events
         {
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            settings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
             return JsonConvert.SerializeObject(obj, settings);
         }
 
-        public static Event ToEvent(this string json, Network network, string entityId, string eventName) {
+        public static Event ToEvent(this string json, Guid sourceId, string entityId, string eventName) {
             return new Event {
-                Network = network,
+                SourceId = sourceId,
                 EntityId = entityId,
                 EventName = eventName,
                 Body = json,

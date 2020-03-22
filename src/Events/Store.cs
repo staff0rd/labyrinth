@@ -11,27 +11,32 @@ namespace Events
     public class Store
     {
         private readonly EventRepository _events;
+        private readonly SourceRepository _sources;
         private readonly ILogger<Store> _logger;
         private readonly IProgress _progress;
 
         private bool _isHydrated;
         public bool IsHydrated => _isHydrated;
 
-        public Dictionary<Network, NetworkStore> _store;
+        public List<Source> Sources { get; private set; } = new List<Source>();
 
-        public Store(EventRepository events, ILogger<Store> logger, IProgress progress) {
+        public Dictionary<Guid, NetworkStore> _store;
+
+        public Store(EventRepository events, SourceRepository sources, ILogger<Store> logger, IProgress progress) {
             _events = events;
             _logger = logger;
             _progress = progress;
-            _store = new Dictionary<Network, NetworkStore> {
-                { Network.Yammer, new NetworkStore() },
-                { Network.LinkedIn, new NetworkStore() },
-                { Network.Teams, new NetworkStore() },
-            };
+            _sources = sources;
+            _store = new Dictionary<Guid, NetworkStore>();
+        }
+
+        internal object GetUsers(object sourceId)
+        {
+            throw new NotImplementedException();
         }
 
         public Overview[] GetOverview() {
-            return _store.Select(p => new Overview { Network = p.Key, Messages = p.Value.Messages.Count, Users = p.Value.Users.Count})
+            return _store.Select(p => new Overview { SourceId = p.Key, Messages = p.Value.Messages.Count, Users = p.Value.Users.Count})
                 .ToArray();
         }
 
@@ -54,64 +59,100 @@ namespace Events
             };
         }
 
-        public async Task Hydrate(string userName, string password)
+        public async Task Hydrate(Credential credential)
         {
-            await Hydrate(userName, password, "Yammer users", Network.Yammer, "UserCreated", _store[Network.Yammer].Users);
-            await Hydrate(userName, password, "Yammer messages", Network.Yammer, "MessageCreated", _store[Network.Yammer].Messages);
-            await Hydrate(userName, password, "LinkedIn users", Network.LinkedIn, "UserCreated", _store[Network.LinkedIn].Users);
+            Sources = await _sources.Get(credential);
+
+            foreach (var source in Sources)
+            {
+                switch(source.Network)
+                {
+                    case (Network.Yammer):
+                    {
+                        await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
+                        await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
+                        break;
+                    }
+                    case (Network.LinkedIn): {
+                        await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
+                        break;
+                    }
+                    case (Network.Teams): {
+                        break;
+                    }
+                    default: throw new NotImplementedException(source.Network.ToString());
+                }
+            }
 
             _logger.LogInformation("Hydrating complete");
             _isHydrated = true;
         }
 
-        private async Task Hydrate<T>(string userName, string password, string entityType, Network network, string eventType, Dictionary<string, T> dictionary)
+        private async Task Hydrate<T>(Credential credential, string entityType, Guid sourceId, string eventType, Dictionary<string, T> dictionary)
             where T : IExternalEntity
         {
-            var count = await _events.GetCount(userName, network, eventType);
+            var count = await _events.GetCount(credential.Username, sourceId, eventType);
             if (count == 0)
                 return;
             _logger.LogInformation($"Hydrating {entityType}...");
             var sw = Stopwatch.StartNew();
             _progress.New();
             Func<Event[], int, Task<int>> eventProcessor = FillFromEvents<T>(dictionary);
-            await _events.ReadForward(userName, password, network, count, eventProcessor);
-            Log(sw.Elapsed, network, dictionary.Count);
+            await _events.ReadForward(credential, sourceId, count, eventProcessor);
+            Log(sw.Elapsed, sourceId, dictionary.Count);
         }
 
-        private void Log(TimeSpan time, Network network, int count)
+        private void Log(TimeSpan time, Guid sourceId, int count)
         {
-            _logger.LogInformation($"{count} entities read from network {network} in {time}");
+            _logger.LogInformation($"{count} entities read from {GetSourceName(sourceId)} in {time}");
         }
 
-        public void Add(Network network, User user)
+        private string GetSourceName(Guid sourceId)
         {
-            _store[network].Users.Add(user.Id.ToString(), user);
-            _logger.LogInformation($"Added user {user.Id} to {network}");
+            return Sources.Single(p => p.Id == sourceId).Name;
         }
 
-        public void Add(Network network, Message message)
+        public void Add(Guid sourceId, User user)
         {
-            _store[network].Messages.Add(message.Id.ToString(), message);
-            _logger.LogInformation($"Added message {message.Id} to {Network.Yammer}");
+            _store[sourceId].Users.Add(user.Id, user);
+            _logger.LogInformation($"Added user {user.Id} to {GetSourceName(sourceId)}");
         }
 
-        public User GetUser(Network network, string id)
+        public void Add(Guid sourceId, Message message)
         {
-            _store[network].Users.TryGetValue(id, out var existing);
+            _store[sourceId].Messages.Add(message.Id, message);
+            _logger.LogInformation($"Added message {message.Id} to {GetSourceName(sourceId)}");
+        }
+
+        public void Add(Guid sourceId, Topic topic)
+        {
+            _store[sourceId].Topics.Add(topic.Id, topic);
+            _logger.LogInformation($"Added topic {topic.Id} to {GetSourceName(sourceId)}");
+        }
+
+        public User GetUser(Guid sourceId, string id)
+        {
+            _store[sourceId].Users.TryGetValue(id, out var existing);
             return existing;
         }
 
-        public Message GetMessage(Network network, string id)
+        public Message GetMessage(Guid sourceId, string id)
         {
-            _store[network].Messages.TryGetValue(id, out var existing);
+            _store[sourceId].Messages.TryGetValue(id, out var existing);
             return existing;
         }
 
-        public IEnumerable<Message> GetMessages(Network network) {
-            return _store[network].Messages.ToList().Select(x => x.Value);
+        internal Topic GetTopics(Guid sourceId, string id)
+        {
+            _store[sourceId].Topics.TryGetValue(id, out var existing);
+            return existing;
         }
-        public IEnumerable<User> GetUsers(Network network) {
-            return _store[network].Users.ToList().Select(x => x.Value);
+
+        public IEnumerable<Message> GetMessages(Guid sourceId) {
+            return _store[sourceId].Messages.ToList().Select(x => x.Value);
+        }
+        public IEnumerable<User> GetUsers(Guid sourceId) {
+            return _store[sourceId].Users.ToList().Select(x => x.Value);
         }
     }
 }

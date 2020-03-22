@@ -45,14 +45,14 @@ namespace Events
         
         public async Task<Unit> Handle(LinkedInBackfillCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(Network.LinkedIn, request.Username);
+            var credential = _credentials.Get(request.SourceId, request.Username);
 
-            await Browse(credential);
+            await Browse(credential, request.SourceId);
 
             return Unit.Value;
         }
         
-        public async Task Browse(Credential credential) {
+        public async Task Browse(Credential credential, Guid sourceId) {
             var driver = new ChromeDriver(new ChromeOptions { PageLoadStrategy = PageLoadStrategy.Eager });
             WebDriverWait _wait = new WebDriverWait(driver, new TimeSpan(0, 0, 10));
             try {
@@ -87,7 +87,7 @@ namespace Events
                     connections = driver.FindElementsByClassName("mn-connection-card");
                     var responses = driver.ExecuteScript("return window.lresponses;");
                     driver.ExecuteScript("window.lresponses.clear();");
-                    await SaveResponses(credential, responses);
+                    await SaveResponses(credential, sourceId, responses);
                 }
 
             }
@@ -99,13 +99,13 @@ namespace Events
             }
         }
     
-        public async Task SaveResponses(Credential credential, object responses) {
+        public async Task SaveResponses(Credential credential, Guid sourceId, object responses) {
             var jsonArray = JArray.FromObject(responses);
             foreach (dynamic item in jsonArray) {
                 var payload = new JsonPayload { Url = item.url, Json = item.json };
                 _logger.LogInformation($"Saving {payload.Url}");
                 var json = JsonConvert.SerializeObject(payload);
-                await _events.Add(credential.Username, credential.Password, Network.LinkedIn, Guid.NewGuid().ToString(), "JsonPayload", json);
+                await _events.Add(credential, sourceId, Guid.NewGuid().ToString(), "JsonPayload", json);
             }
         }
     }

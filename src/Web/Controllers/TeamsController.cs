@@ -21,7 +21,7 @@ namespace Web.Controllers
         [Route("backfill")]
         public QueuedJob Backfill([FromBody] TokenRequest request)
         {
-            _credentials.Add(Network.Teams, new Credential {
+            _credentials.Add(request.SourceId, new Credential {
                 Username = request.Username,
                 Password = request.Password,
                 ExternalSecret = request.Token

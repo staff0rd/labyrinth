@@ -25,7 +25,7 @@ namespace Web.Controllers
         [Route("backfill")]
         public QueuedJob Backfill([FromBody] TokenRequest request)
         {
-            _credentials.Add(Network.Yammer, new Credential {
+            _credentials.Add(request.SourceId, new Credential {
                 Username = request.Username,
                 Password = request.Password,
                 ExternalSecret = request.Token
@@ -38,7 +38,7 @@ namespace Web.Controllers
         [Route("process")]
         public QueuedJob Process([FromBody] QueryRequest request)
         {
-            _credentials.Add(Network.Yammer, new Credential {
+            _credentials.Add(request.SourceId, new Credential {
                 Username = request.Username,
                 Password = request.Password
             });

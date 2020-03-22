@@ -33,13 +33,22 @@ namespace Events
                 await connection.ExecuteAsync(query);
 
                 query = $@"
+                    CREATE TABLE IF NOT EXISTS user_{username}.sources (
+                        id uuid primary key not null,
+                        body bytea NOT NULL
+                    );";
+
+                await connection.ExecuteAsync(query);
+
+                query = $@"
                     CREATE TABLE IF NOT EXISTS user_{username}.events (
                         id int GENERATED ALWAYS AS IDENTITY primary key not null,
                         entity_id text NOT NULL,
-                        network int NOT NULL references public.networks(id),
+                        source_id uuid NOT NULL references user_{username}.sources(id),
                         event_name text NOT NULL,
                         body bytea NOT NULL,
-                        inserted_at timestamp(6) NOT NULL DEFAULT statement_timestamp()
+                        inserted_at timestamp(6) NOT NULL DEFAULT statement_timestamp(),
+                        timestamp bigint NOT NULL
                     );";
                 await connection.ExecuteAsync(query);
 

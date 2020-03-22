@@ -33,13 +33,13 @@ namespace Events
             // if (!_store.IsHydrated)
             //     throw new Exception("Store must be hydrated first");
 
-            var creds = _credentials.Get(Network.LinkedIn, request.Username);
+            var creds = _credentials.Get(request.SourceId, request.Username);
 
-            var count = await _events.GetCount(creds.Username, Network.LinkedIn, "JsonPayload");
+            var count = await _events.GetCount(creds.Username, request.SourceId, "JsonPayload");
 
             var currentCount = 0;
                 
-            await _events.ReadForward(creds.Username, creds.Password, Network.LinkedIn, count, async (events, totalEvents) => { 
+            await _events.ReadForward(creds, request.SourceId, count, async (events, totalEvents) => { 
                 var bodies = events
                     .Where(p => p.EventName == "JsonPayload")
                     .Select(p => p.Body)
@@ -65,8 +65,8 @@ namespace Events
                                 Network = Network.LinkedIn,
                                 Description = user.Occupation
                             };
-                            var existing = _store.GetUser(Network.LinkedIn, scraped.Id);
-                           await _events.Sync(creds.Username, creds.Password, Network.LinkedIn, scraped, existing);
+                            var existing = _store.GetUser(request.SourceId, scraped.Id);
+                           await _events.Sync(creds, request.SourceId, scraped, existing);
                         }
                     }
                 }

@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace Events
@@ -6,7 +7,7 @@ namespace Events
     {
         public string[] Events { get; set; }
 
-        public Network Network { get; set; }
+        public Guid SourceId { get; set; }
 
         public string Username { get; set; }
     }

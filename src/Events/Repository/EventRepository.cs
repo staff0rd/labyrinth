@@ -20,7 +20,7 @@ namespace Events
             _logger = logger;
         }
 
-        public async Task<List<DateTime>> GetLastUpdated(string userName, string password, Network network, string eventName, string category, int limit)
+        public async Task<List<DateTime>> GetLastInserted(Credential creds, Guid sourceId, string eventName, string category, int limit)
         {
             using (var connection = _connectionFactory.CreateConnection()) 
             {
@@ -29,62 +29,63 @@ namespace Events
                 SELECT
                     inserted_at
                 FROM
-                    {TableName(userName)}
+                    {TableName(creds.Username)}
                 JOIN
-                    public.keys ON keys.name = '{userName}'
+                    public.keys ON keys.name = '{creds.Username}'
                 WHERE
-                    network={(int)network}
+                    source_id='{sourceId}'
                 AND
                     event_name='{eventName}'
                 AND
-                    cast(pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{password}')) as jsonb) ->> 'category' = '{category}'
+                    cast(pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{creds.Password}')) as jsonb) ->> 'category' = '{category}'
                 ORDER BY
-                    inserted_at DESC LIMIT {limit}
-                    
+                    inserted_at DESC
+                LIMIT
+                    {limit}    
                 ");
 
                 return result.ToList();
             }
         }
 
-        internal async Task<EventCount[]> GetEventTypes(string username, Network network)
+        internal async Task<EventCount[]> GetEventTypes(string username, Guid sourceId)
         {
             using (var connection = _connectionFactory.CreateConnection())
             {
-                var query = $"select count(*), event_name FROM {TableName(username)} WHERE network={(int)network} group by event_name";
+                var query = $"select count(*), event_name FROM {TableName(username)} WHERE source_id='{sourceId}' group by event_name";
                 var result = await connection.QueryAsync<EventCount>(query);
                 return result.ToArray();
             }
         }
 
-        internal async Task Delete(string userName, string password, Network network, string[] events)
+        internal async Task Delete(string userName, string password, Guid sourceId, string[] events)
         {
             using (var connection = _connectionFactory.CreateConnection())
             {
-                var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE network={(int)network} {GetEventFilter(events)}";
+                var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE source_id='{sourceId}' {GetEventFilter(events)}";
                 await connection.ExecuteAsync(query);
             }
         }
 
-        public async Task Add(string userName, string password, Network network, string entityId, string eventName, string body)
+        public async Task Add(Credential creds, Guid sourceId, string entityId, string eventName, string body)
         {
-            var ev = body.ToEvent(network, entityId, eventName);
+            var ev = body.ToEvent(sourceId, entityId, eventName);
 
             using (var connection = _connectionFactory.CreateConnection()) 
             {
                 var query = $@"
                 
                 INSERT INTO
-                    {TableName(userName)} (network, entity_id, event_name, body)
+                    {TableName(creds.Username)} (source_id, entity_id, event_name, body)
                 SELECT
-                    {(int)network},
+                    '{sourceId}',
                     '{entityId}',
                     '{eventName}',
-                    pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{password}'))
+                    pgp_sym_encrypt(@json, pgp_sym_decrypt(keys.key, '{creds.Password}'))
                 FROM
                     public.keys
                 WHERE
-                    keys.name = '{userName}'
+                    keys.name = '{creds.Username}'
                 ";
 
                 var parameters = new DynamicParameters();
@@ -93,14 +94,14 @@ namespace Events
             }
         }
 
-        public async Task ReadForward(string userName, string password, Network network, int totalEvents, Func<Event[], int, Task<int>> eventProcessor)
+        public async Task ReadForward(Credential credential, Guid sourceId, int totalEvents, Func<Event[], int, Task<int>> eventProcessor)
         {
             Event[] currentSlice;
             int lastId = 0;
             const int PAGE_SIZE = 200;
             do
             {
-                var result = await Paginate(userName, password, network, lastId, PAGE_SIZE);
+                var result = await Paginate(credential, sourceId, lastId, PAGE_SIZE);
                 currentSlice = result.Rows.ToArray();
 
 
@@ -118,10 +119,12 @@ namespace Events
             return $"AND event_name IN ({events})";
         }
 
-        public async Task<Paginated<Event>> Paginate(string userName, string password, Network network, int lastId = 0, int pageSize = 200, string orderBy = "id ASC",
+        public async Task<Paginated<Event>> Paginate(Credential credential, Guid sourceId, int lastId = 0, int pageSize = 200, string orderBy = "id ASC",
         string[] eventTypes = null)
         {
             var limit = pageSize;
+            var userName = credential.Username;
+            var password = credential.Password;
 
             using (var connection = _connectionFactory.CreateConnection())
             {
@@ -130,16 +133,17 @@ namespace Events
                 SELECT
                     id,
                     entity_id,
-                    network,
+                    source_id,
                     event_name,
                     pgp_sym_decrypt(body, pgp_sym_decrypt(keys.key, '{password}')) as body,
-                    inserted_at
+                    inserted_at,
+                    timestamp
                 FROM
                     {TableName(userName)}
                 JOIN
                     public.keys ON keys.name = '{userName}'
                 WHERE
-                    network={(int)network}
+                    sourceId='{sourceId}'
                 AND
                     id > {lastId}
                 {GetEventFilter(eventTypes)}
@@ -156,27 +160,27 @@ namespace Events
             }
         }
 
-        public Task<int> GetCount(string userName, Network network, string eventType)
+        public Task<int> GetCount(string userName, Guid sourceId, string eventType)
         {
-            return GetCount(userName, network, new [] { eventType });
+            return GetCount(userName, sourceId, new [] { eventType });
         }
 
-        public async Task<int> GetCount(string userName, Network network, string[] eventTypes)
+        public async Task<int> GetCount(string userName, Guid sourceId, string[] eventTypes)
         {
             using (var connection = _connectionFactory.CreateConnection())
             {
-                var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE network={(int)network} {GetEventFilter(eventTypes)}";
+                var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE source_id='{sourceId}' {GetEventFilter(eventTypes)}";
                 var result = await connection.ExecuteScalarAsync<int>(query);
                 return result;
             }
         }
 
-        public Task Sync<T>(string userName, string password, Network network, T payload, T existing) where T: IEntity<string> 
+        public Task Sync<T>(Credential creds, Guid sourceId, T payload, T existing) where T: IEntity<string> 
         {
-            return Sync(userName, password, network, payload, existing, new string[] {});
+            return Sync(creds, sourceId, payload, existing, new string[] {});
         }
 
-        public async Task Sync<T>(string userName, string password, Network network, T payload, T existing, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
+        public async Task Sync<T>(Credential creds, Guid sourceId, T payload, T existing, IEnumerable<string> ignoreNulls) where T: IEntity<string> 
         {
             if (existing != null)
             {
@@ -188,16 +192,16 @@ namespace Events
                     var importantDifferences = result.Differences.Count(p => !ignoreNulls.Contains(p.PropertyName) || p.Object2 != null);
                     if (importantDifferences > 0) {
                         var eventName = $"{payload.GetType().Name}Updated";
-                        await Add(userName, password, network, payload.Id, eventName, payload.ToJson());
-                        _logger.LogInformation("Raised {eventName} in {network}", eventName, network);
+                        await Add(creds, sourceId, payload.Id, eventName, payload.ToJson());
+                        _logger.LogInformation("Raised {eventName} in {sourceId}", eventName, sourceId);
                     }
                 }
             }
             else
             {
                 var eventName = $"{payload.GetType().Name}Created";
-                await Add(userName, password, network, payload.Id, eventName, payload.ToJson());
-                _logger.LogInformation("Raised {eventName} in {network}", eventName, network);
+                await Add(creds, sourceId, payload.Id, eventName, payload.ToJson());
+                _logger.LogInformation("Raised {eventName} in {sourceId}", eventName, sourceId);
             }
         }
     }

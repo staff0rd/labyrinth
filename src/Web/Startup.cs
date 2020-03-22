@@ -33,9 +33,10 @@ namespace Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews().AddNewtonsoftJson(options =>
-                options.SerializerSettings.ContractResolver =
-                new CamelCasePropertyNamesContractResolver());
+            services.AddControllersWithViews().AddNewtonsoftJson(options => {
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+            });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -51,6 +52,7 @@ namespace Web
 
             services.AddSingleton<CredentialCache>();
             services.AddScoped<EventRepository>();
+            services.AddScoped<SourceRepository>();
             services.AddScoped<RestEventManager>();
 
             services.AddSingleton<NpgsqlConnectionFactory>((services) => {
@@ -74,7 +76,8 @@ namespace Web
                     using (var scope = scopeFactory.CreateScope())
                     {
                         var events = scope.ServiceProvider.GetRequiredService<EventRepository>();
-                        var store = new Store(events, logger, progress);
+                        var sources = scope.ServiceProvider.GetRequiredService<SourceRepository>();
+                        var store = new Store(events, sources, logger, progress);
                         return store;
                     }
                 } 

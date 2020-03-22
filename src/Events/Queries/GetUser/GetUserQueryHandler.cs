@@ -22,7 +22,7 @@ namespace Events
             if (auth.IsError) {
                 return new Result<User> { IsError = true, Message = auth.Message};
             }
-            var user = _store.GetUsers(request.Network).FirstOrDefault(p => p.Id == request.Id);
+            var user = _store.GetUsers(request.SourceId).FirstOrDefault(p => p.Id == request.Id);
             return new Result<User>(user);
         }
     }

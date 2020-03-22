@@ -23,7 +23,7 @@ namespace Web.Controllers
         [Route("backfill")]
         public QueuedJob Backfill([FromBody] CredentialRequest request)
         {
-            _credentials.Add(Network.LinkedIn, new Credential {
+            _credentials.Add(request.SourceId, new Credential {
                 Username = request.Username,
                 Password = request.Password,
                 ExternalIdentifier = request.ExternalIdentifier,
@@ -37,7 +37,7 @@ namespace Web.Controllers
         [Route("process")]
         public QueuedJob Process([FromBody] QueryRequest request)
         {
-            _credentials.Add(Network.LinkedIn, new Credential {
+            _credentials.Add(request.SourceId, new Credential {
                 Username = request.Username,
                 Password = request.Password
             });
