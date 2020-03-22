@@ -80,7 +80,7 @@ export const AddSource = () => {
                     const source = { ...values, id: uuid(), userName, password };
                     const response = await post('api/sources/add', source);
                     if (!response.isError) {
-                        dispatch(accountActions.setSources([...sources!, source]));
+                        dispatch(accountActions.addSource(source));
                         history.push(`/${values.network.toLowerCase()}`);
                     }
                 } catch (err) {

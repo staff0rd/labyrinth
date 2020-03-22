@@ -11,25 +11,29 @@ import { Events } from '../Events/Events';
 import { Messages } from '../Messages/Messages';
 import Alert from '@material-ui/lab/Alert';
 import { OverviewProps, Overview } from '../Overview';
+import { useSource } from '../useSource';
+import { SourceSelector } from './SourceSelector';
+import { Grid } from '@material-ui/core';
 
 const Teams = () => {
   const [overview, setOverview] = useState<OverviewProps>();
   const { password, userName } = useSelector<AccountState>(state => state.account);
   const [error, setError] = useState<string>("");
   const location = useLocation();
-
+  const { sourceId, sourceName } = useSource('Teams');
+  
   useEffect(() => {
-    postResponse<OverviewProps>(`api/events/overview?network=Teams`, {userName, password})
+    postResponse<OverviewProps>(`api/events/overview?network=Teams`, {userName, password, sourceId})
     .then(data => {
       if (data.isError)
         setError(data.message!);
       else
         data && setOverview(data.response);
     });
-  }, [])
+  }, [sourceId])
 
   useHeader({
-      title: 'Teams',
+      title: `Teams - ${sourceName}`,
       route: '/teams',
       items: [
         { title: 'Overview', to: ''},
@@ -68,9 +72,29 @@ const Teams = () => {
         />
       )} />
 
-      { error && <Alert severity="error">{error}</Alert> }
+      { location.pathname === "/teams" && (
+        <Grid container>
+          <Grid item xs={12}>
+            <SourceSelector network='Teams' />
+          </Grid>
+          
+          { error && (
+            <Grid item xs={12}>
+              <Alert severity="error">{error}</Alert>
+            </Grid>
+          )}
+          
+          { overview && (
+            <Grid item xs={12}>
+              <Overview {...overview} />
+            </Grid>
+          )}
+        </Grid>
+      )}
 
-      { location.pathname === "/teams" && overview && (<Overview {...overview} />) }
+      
+
+      
     </>
   );
 };

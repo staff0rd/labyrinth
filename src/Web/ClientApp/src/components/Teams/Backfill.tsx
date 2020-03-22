@@ -6,6 +6,7 @@ import { queue } from '../../api';
 import { AccountState } from '../../store/Account';
 import { useSelector } from '../../store/useSelector';
 import { QueueJob } from '../QueueJob';
+import { useSource } from '../useSource';
 
 
 export interface Values {
@@ -14,12 +15,14 @@ export interface Values {
 
 export const Backfill = () => {
     const { password, userName } = useSelector<AccountState>(state => state.account);
-
+    const { sourceId } = useSource('Teams');
+    
     const apiCall = async (values: Values) => {
         var response = await queue('api/teams/backfill', {
             password,
             userName,
             token: values.token,
+            sourceId
         });
         return response;
     }
