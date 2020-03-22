@@ -22,9 +22,9 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("overview")]
-        public Task<Result<Overview>> Overview([FromQuery] Guid sourceId, [FromBody] QueryRequest request)
+        public Task<Result<Overview>> Overview([FromBody] OverviewQuery request)
         {
-            return _mediator.Send(new OverviewQuery { Username = request.Username, Password = request.Password, SourceId = sourceId});
+            return _mediator.Send(request);
         }
 
         [HttpPost]

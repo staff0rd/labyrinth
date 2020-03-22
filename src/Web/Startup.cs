@@ -76,8 +76,7 @@ namespace Web
                     using (var scope = scopeFactory.CreateScope())
                     {
                         var events = scope.ServiceProvider.GetRequiredService<EventRepository>();
-                        var sources = scope.ServiceProvider.GetRequiredService<SourceRepository>();
-                        var store = new Store(events, sources, logger, progress);
+                        var store = new Store(events, logger, progress);
                         return store;
                     }
                 } 

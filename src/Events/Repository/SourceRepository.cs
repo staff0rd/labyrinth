@@ -48,7 +48,7 @@ namespace Events
             }
         }
 
-        public async Task Add(Credential creds, Guid id, Network network, string name)
+        public async Task<Source> Add(Credential creds, Guid id, Network network, string name)
         {
             var source = new Source
             { 
@@ -77,6 +77,8 @@ namespace Events
                 parameters.Add("json", json);
                 await connection.ExecuteAsync(query, parameters);
             }
+
+            return source;
         }
     }
 }

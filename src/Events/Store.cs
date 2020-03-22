@@ -11,7 +11,6 @@ namespace Events
     public class Store
     {
         private readonly EventRepository _events;
-        private readonly SourceRepository _sources;
         private readonly ILogger<Store> _logger;
         private readonly IProgress _progress;
 
@@ -22,12 +21,27 @@ namespace Events
 
         public Dictionary<Guid, NetworkStore> _store;
 
-        public Store(EventRepository events, SourceRepository sources, ILogger<Store> logger, IProgress progress) {
+        public Store(EventRepository events, ILogger<Store> logger, IProgress progress) {
             _events = events;
             _logger = logger;
             _progress = progress;
-            _sources = sources;
             _store = new Dictionary<Guid, NetworkStore>();
+        }
+
+        public void UpdateSources(IEnumerable<Source> sources)
+        {
+            Sources = sources.ToList();
+            foreach (var source in Sources)
+            {
+                if (!_store.ContainsKey(source.Id))
+                    _store.Add(source.Id, new NetworkStore());
+            }
+        }
+
+        public void AddSource(Source source)
+        {
+            Sources.Add(source);
+            _store.Add(source.Id, new NetworkStore());
         }
 
         internal object GetUsers(object sourceId)
@@ -61,8 +75,6 @@ namespace Events
 
         public async Task Hydrate(Credential credential)
         {
-            Sources = await _sources.Get(credential);
-
             foreach (var source in Sources)
             {
                 switch(source.Network)

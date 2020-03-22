@@ -8,10 +8,12 @@ namespace Events
     public class AddSourceCommandHandler : IRequestHandler<AddSourceCommand, Result>
     {
         private SourceRepository _sources;
+        private Store _store;
 
-        public AddSourceCommandHandler(SourceRepository sources)
+        public AddSourceCommandHandler(SourceRepository sources, Store store)
         {
             _sources = sources;
+            _store = store;
         }
 
         public async Task<Result> Handle(AddSourceCommand request, CancellationToken cancellationToken)
@@ -24,7 +26,8 @@ namespace Events
                 return Result.Error($"A source called {request.Name} already exists for ${request.Network}");
             }
 
-            await _sources.Add(creds, request.Id, request.Network, request.Name);
+            var source = await _sources.Add(creds, request.Id, request.Network, request.Name);
+            _store.AddSource(source);
             return Result.Ok();
         }
     }
