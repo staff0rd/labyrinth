@@ -71,13 +71,12 @@ namespace Events
             foreach (var chat in userChatsCollectionPage)
             {
                 var received = Events.Topic.From(chat);
-                var existing = _store.GetUser(sourceId, received.Id);
+                var existing = _store.GetTopic(sourceId, received.Id);
                 if (existing == null)
                 {
                     _store.Add(sourceId, received);
                 } 
-                throw new NotImplementedException();
-                //await _events.Sync(creds, Network.Yammer, received, existing, new string[] {});
+                await _events.Sync(creds, sourceId, received, existing);
             }
             throw new NotImplementedException();
         }

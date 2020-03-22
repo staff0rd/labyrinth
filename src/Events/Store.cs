@@ -154,6 +154,11 @@ namespace Events
             return existing;
         }
 
+        internal Topic GetTopic(Guid sourceId, string id)
+        {
+            throw new NotImplementedException();
+        }
+
         internal Topic GetTopics(Guid sourceId, string id)
         {
             _store[sourceId].Topics.TryGetValue(id, out var existing);
