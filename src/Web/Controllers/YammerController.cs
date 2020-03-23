@@ -45,20 +45,5 @@ namespace Web.Controllers
 
             return _mediator.Enqueue(new YammerProcessCommand { Username = request.Username, SourceId = request.SourceId });
         }
-
-        
-
-        [HttpPost]
-        [Route("messages")]
-        public async Task<Result<PagedResult<Events.Message>>> Messages([FromBody] SearchRequest request)
-        {
-            return await _mediator.Send(new YammerMessagesQuery { 
-                Username = request.Username, 
-                Password = request.Password, 
-                PageNumber = request.PageNumber,
-                PageSize = request.PageSize,
-                Search = request.Search,
-            });
-        }
     }
 }

@@ -6,18 +6,18 @@ using MediatR;
 
 namespace Events
 {
-    public class YammerMessagesQueryHandler : IRequestHandler<YammerMessagesQuery, Result<PagedResult<Message>>>
+    public class GetMessagesQueryHandler : IRequestHandler<GetMessagesQuery, Result<PagedResult<Message>>>
     {
         private readonly IMediator _mediator;
         private readonly Store _store;
 
-        public YammerMessagesQueryHandler(IMediator mediator, Store store)
+        public GetMessagesQueryHandler(IMediator mediator, Store store)
         {
             _mediator = mediator;
             _store = store;
         }
 
-        public async Task<Result<PagedResult<Message>>> Handle(YammerMessagesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedResult<Message>>> Handle(GetMessagesQuery request, CancellationToken cancellationToken)
         {
             var auth = await _mediator.Send(new AuthorizeQuery { Username = request.Username, Password = request.Password});
             if (auth.IsError) {

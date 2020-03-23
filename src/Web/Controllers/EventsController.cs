@@ -50,34 +50,25 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("users")]
-        public async Task<Result<PagedResult<UserCard>>> Users([FromBody] SearchRequest request)
+        public async Task<Result<PagedResult<UserCard>>> Users([FromBody] GetUsersQuery request)
         {
-            var result = await _mediator.Send(new GetUsersQuery { 
-                Username = request.Username, 
-                Password = request.Password, 
-                PageNumber = request.PageNumber,
-                PageSize = request.PageSize,
-                Search = request.Search,
-                SourceId = request.SourceId
-            });
+            var result = await _mediator.Send(request);
 
             return Map(result, UserCard.FromUser);
         }
 
         [HttpPost]
         [Route("events")]
-        public async Task<Result<NextPagedResult<Event>>> Events([FromBody] EventsRequest request)
+        public async Task<Result<NextPagedResult<Event>>> Events([FromBody] GetEventsQuery request)
         {
-            var result = await _mediator.Send(new GetEventsQuery { 
-                Username = request.Username, 
-                Password = request.Password, 
-                LastId = request.LastId,
-                PageSize = request.PageSize,
-                Search = request.Search,
-                SourceId = request.SourceId
-            });
+            return await _mediator.Send(request);
+        }
 
-            return result;
+        [HttpPost]
+        [Route("messages")]
+        public async Task<Result<PagedResult<Events.Message>>> Messages([FromBody] GetMessagesQuery request)
+        {
+            return await _mediator.Send(request);
         }
 
         private Result<PagedResult<TResult>> Map<T, TResult>(Result<PagedResult<T>> result, Func<T, TResult> mapper)
