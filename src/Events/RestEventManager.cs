@@ -12,6 +12,7 @@ using DbUp;
 using System.Reflection;
 using System.Linq;
 using Dapper;
+using System.IO;
 
 namespace Events
 {
@@ -24,6 +25,17 @@ namespace Events
         {
             _logger = logger;
             _events = events;
+        }
+
+        public async Task DownloadImage(Credential creds, Guid sourceId, Image image, string token, string downloadPath)
+        {
+            var url = image.Url.WithOAuthBearerToken(token);
+            
+            var response = await url.GetBytesAsync();
+
+            File.WriteAllBytes(Path.Combine(downloadPath, image.Id.ToString()), response);
+
+            await _events.Add(creds, sourceId, image.FromEntityId, "ImageCreated", image.ToJson(), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         }
 
         public async Task<T> Get<T>(Credential creds, Guid sourceId, Request<T> request, object queryString, string token)

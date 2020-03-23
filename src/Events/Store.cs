@@ -93,6 +93,7 @@ namespace Events
                         await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
                         await Hydrate(credential, $"{source.Name} topics", source.Id, "TopicCreated", _store[source.Id].Topics);
                         await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
+                        await Hydrate(credential, $"{source.Name} images", source.Id, "ImageCreated", _store[source.Id].Images);
                         break;
                     }
                     default: throw new NotImplementedException(source.Network.ToString());
@@ -143,6 +144,17 @@ namespace Events
         {
             _store[sourceId].Topics.Add(topic.Id, topic);
             _logger.LogInformation($"Added topic {topic.Id} to {GetSourceName(sourceId)}");
+        }
+
+        public void Add(Guid sourceId, Image image)
+        {
+            _store[sourceId].Images.Add(image.Id.ToString(), image);
+            _logger.LogInformation($"Added image {image.Id} to {GetSourceName(sourceId)}");
+        }
+
+        public Image GetImage(Guid sourceId, string fromEntityId, string url)
+        {
+            return _store[sourceId].Images.Select(p => p.Value).FirstOrDefault(p => p.FromEntityId == fromEntityId && p.Url == url); 
         }
 
         public User GetUser(Guid sourceId, string id)

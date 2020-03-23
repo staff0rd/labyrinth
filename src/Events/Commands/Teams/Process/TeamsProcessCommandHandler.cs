@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,22 +20,24 @@ namespace Events
         private readonly EventRepository _events;
         private readonly IProgress _progress;
         private readonly Store _store;
+        private readonly RestEventManager _rest;
 
         public TeamsProcessCommandHandler(
             ILogger<TeamsProcessCommandHandler> logger, CredentialCache credentials, Store store,
-            EventRepository events, IProgress progress)
+            EventRepository events, IProgress progress, RestEventManager rest)
         {
             _logger = logger;
             _credentials = credentials;
             _store = store;
             _events = events;
             _progress = progress;
+            _rest = rest;
         }
 
         public async Task<Unit> Handle(TeamsProcessCommand request, CancellationToken cancellationToken)
         {
-            // if (!_store.IsHydrated)
-            //     throw new Exception("Store must be hydrated first");
+            if (!_store.IsHydrated)
+                throw new Exception("Store must be hydrated first");
 
             var creds = _credentials.Get(request.SourceId, request.Username);
 
@@ -57,7 +60,7 @@ namespace Events
                         await Process(creds, request.SourceId, JsonConvert.DeserializeObject<IUserChatsCollectionPage>(payload.Response));
                     } else if (payload.Category == TeamsRequestTypes.ChatMessages) {
                         dynamic data = JObject.Parse(payload.Data);
-                        await Process(creds, request.SourceId, data.id as string, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response));
+                        await ProcessMessages(creds, request.SourceId, data.id as string, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response), creds.ExternalSecret);
                     } else
                         throw new NotImplementedException(payload.Category);
                 }
@@ -95,12 +98,26 @@ namespace Events
             await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), received.KnownSince.ToUnixTimeMilliseconds()));
         }
 
-        private async Task Process(Credential creds, Guid sourceId, string topicId, IChatMessagesCollectionPage chatMessagesCollectionPage)
+        private async Task ProcessImages(Credential creds, Guid sourceId, Message message, string token)
+        {
+            var images = new ImageProcessor().Process(message);
+            foreach (var image in images)
+            {
+                if (_store.GetImage(sourceId, image.FromEntityId, image.Url) == null)
+                {
+                    await _rest.DownloadImage(creds, sourceId, image, token, Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images"));
+                    _store.Add(sourceId, image);
+                }
+            }
+        }
+
+        private async Task ProcessMessages(Credential creds, Guid sourceId, string topicId, IChatMessagesCollectionPage chatMessagesCollectionPage, string token)
         {
             foreach (var message in chatMessagesCollectionPage)
             {
                 await Process(creds, sourceId, message.From.User);
                 var received = Events.Message.From(message, sourceId, topicId);
+                await ProcessImages(creds, sourceId, received, token);
                 var existing = _store.GetMessage(sourceId, received.Id);
                 if (existing == null)
                 {
