@@ -29,6 +29,9 @@ namespace Events
 
         public async Task DownloadImage(Credential creds, Guid sourceId, Image image, string token, string downloadPath)
         {
+            if (!Directory.Exists(downloadPath))
+                Directory.CreateDirectory(downloadPath);
+                
             var url = image.Url.WithOAuthBearerToken(token);
             
             var response = await url.GetBytesAsync();

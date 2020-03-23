@@ -50,7 +50,7 @@ const Teams = () => {
     <>
       <Route path='/teams/backfill' component={Backfill} />
       <Route path='/teams/hydrate' component={() => <Queue url={'api/events/hydrate'} sourceId={sourceId} />} />
-      <Route path='/teams/process' component={() => <Queue url={'api/teams/process'} sourceId={sourceId} />} />
+      <Route path='/teams/process' component={() => <Queue url={'api/teams/process'} sourceId={sourceId} token/>} />
       <Route path='/teams/users' component={() => (
         <Users
           url={`api/events/users`} 

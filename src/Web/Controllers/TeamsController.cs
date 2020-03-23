@@ -32,11 +32,12 @@ namespace Web.Controllers
 
         [HttpPost]
         [Route("process")]
-        public QueuedJob Process([FromBody] QueryRequest request)
+        public QueuedJob Process([FromBody] TokenRequest request)
         {
             _credentials.Add(request.SourceId, new Credential {
                 Username = request.Username,
-                Password = request.Password
+                Password = request.Password,
+                ExternalSecret = request.Token,
             });
 
             return _mediator.Enqueue(new TeamsProcessCommand { Username = request.Username, SourceId = request.SourceId });

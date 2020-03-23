@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using HtmlAgilityPack;
 
 namespace Events
 {
@@ -17,8 +18,8 @@ namespace Events
 
             foreach (var image in _foundImages)
             {
-                message.BodyParsed.Replace(image.Url, $"{IMAGE_PREFIX}/{image.Id}");
-                message.BodyPlain.Replace(image.Url, $"{IMAGE_PREFIX}/{image.Id}");
+                message.BodyParsed = message.BodyParsed.Replace(image.Url, $"{IMAGE_PREFIX}/{image.Id}");
+                message.BodyPlain = message.BodyPlain.Replace(image.Url, $"{IMAGE_PREFIX}/{image.Id}");
             }
 
             return _foundImages.ToArray();
@@ -26,39 +27,54 @@ namespace Events
 
         private void ExtractImages(string message, string entityId)
         {
-            var fields = GetFields(message);
-            if (fields.Count() == 3)
+            var matches = ExtractImages(message);
+            foreach (var image in matches)
             {
-                if (!_foundImages.Any(i => i.Url == fields[0]))
+                if (!_foundImages.Any(i => i.Url == image.Url))
                 {
-                    var image = new Image
-                    {
-                        Url = fields[0],
-                        Width = int.Parse(fields[1]),
-                        Height = int.Parse(fields[2]),
-                        FromEntityId = entityId,
-                        Id = Guid.NewGuid().ToString(),
-                    };
+                    image.FromEntityId = entityId;
+                    image.Id = Guid.NewGuid().ToString();
+                    
                     _foundImages.Add(image);
                 }
             }
         }
 
-        private string[] GetFields(string text) {
-            var pattern = "img src=\"(.+\\$value)\" .+width:(\\d+)px; height:(\\d+)px";
+        public Image[] ExtractImages(string text) {
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(text);
 
-            var matches = Regex.Matches(text, pattern)
-                .Cast<Match>()
-                .Single() .Groups
-                .Cast<Group>()
-                .Skip(1)
-                .Select(g => g.Value)
-                .ToArray();
+            var imgs = htmlDoc.DocumentNode.SelectNodes("//img");
 
-            if (matches.Count() != 3 || matches.Count() != 0)
-                throw new NotImplementedException();
+            var images = new List<Image>();
 
-            return matches;
+            if (imgs != null) {
+                foreach (var img in imgs)
+                {
+                    var src = img.GetAttributeValue<string>("src", null);
+                    var style = img.GetAttributeValue<string>("style", null);
+                    int width = 0;
+                    int height = 0;
+                    if (style != null) {
+                        var styleMatches = Regex.Matches(style, @"width:(\d+)(?:px)?; height:(\d+)(?:px)?")
+                            .Cast<Match>()
+                            .Single() .Groups
+                            .Cast<Group>()
+                            .Skip(1)
+                            .Select(g => g.Value)
+                            .ToArray();
+                        width = int.Parse(styleMatches[0]);
+                        height = int.Parse(styleMatches[1]);
+                    } else {
+                        width = img.GetAttributeValue<int>("width", 128);
+                        height = img.GetAttributeValue<int>("height", 128);
+                    }
+
+                    images.Add(new Image { Url = src, Width = width, Height = height });
+                }
+            }
+
+            return images.ToArray();
         }
     }
 }
