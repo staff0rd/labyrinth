@@ -6,6 +6,7 @@ import { Typography } from "@material-ui/core";
 import { postResponse } from '../../api';
 import { useSelector } from '../../store/useSelector';
 import { AccountState } from '../../store/Account';
+import { useSource } from "../useSource";
 
 type Props = {
     id: string;
@@ -35,9 +36,10 @@ export const UserSquare = ({ id, network }: Props) => {
     const [user, setUser] = useState<User>();
     const classes = useStyles();
     const { password, userName, } = useSelector<AccountState>(state => state.account);
+    const { sourceId } = useSource(network);
 
     useEffect(() => {
-        postResponse<User>(`api/events/user`, {userName, password, id, network})
+        postResponse<User>(`api/events/user`, {userName, password, id, sourceId })
         .then(data => {
           if (data && data.response) {
             setUser(data.response);
