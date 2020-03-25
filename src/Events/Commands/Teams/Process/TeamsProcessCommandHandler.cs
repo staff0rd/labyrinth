@@ -23,6 +23,8 @@ namespace Events
         private readonly RestEventManager _rest;
 
         private readonly string _imageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
+        private readonly string _imageDirectoryNew = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images-new");
+
         public TeamsProcessCommandHandler(
             ILogger<TeamsProcessCommandHandler> logger, CredentialCache credentials, Store store,
             EventRepository events, IProgress progress, RestEventManager rest)
@@ -37,6 +39,57 @@ namespace Events
 
         public async Task<Unit> Handle(TeamsProcessCommand request, CancellationToken cancellationToken)
         {
+            if (!_store.IsHydrated)
+                throw new Exception("Store must be hydrated first");
+
+            var creds = _credentials.Get(request.SourceId, request.Username);
+
+            var count = await _events.GetCount(creds.Username, request.SourceId, "RestApiRequest");
+
+            var currentCount = 0;
+                
+            await _events.ReadForward(creds, request.SourceId, count, async (events, totalEvents) => { 
+                var requests = events
+                    .Where(p => p.EventName == "RestApiRequest")
+                    .ToList();
+                foreach (var apiRequest in requests)
+                {
+                    currentCount++;
+                    _progress.Set(currentCount, totalEvents);
+
+                    var payload = JsonConvert.DeserializeObject<RestApiRequest>(apiRequest.Body);
+
+                    if (payload.Category == TeamsRequestTypes.ChatMessages) {
+                        var data = JsonConvert.DeserializeObject<TeamsMessageData>(payload.Data);
+
+                        var chatMessagesCollectionPage = JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response);
+                        foreach (var chatMessage in chatMessagesCollectionPage)
+                        {
+                            var message = Events.Message.From(chatMessage, request.SourceId, data.Id);
+                            var images = _store.GetImages(request.SourceId, message.Id);
+                            foreach (var image in images)
+                            {
+                                if (image.Url.EndsWith("$value")) {
+                                    System.IO.File.Move(Path.Combine(_imageDirectory, image.Id), Path.Combine(_imageDirectoryNew, image.Id));
+                                    chatMessage.Body.Content = chatMessage.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
+                                }
+                            }
+                        }
+                        payload.Response = chatMessagesCollectionPage.ToJson();
+                    }
+                    await _events.Add(creds, Guid.Parse("c1bfac18-ff7e-4f21-890d-c61a76890a2e"), Guid.NewGuid().ToString(),
+                        "RestApiRequest", payload.ToJson(), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                }
+                return events.Last().Id;
+            });
+
+            _logger.LogInformation("Completed processing");
+            return Unit.Value;
+        }
+
+        public async Task<Unit> Handle(TeamsProcessCommand request, CancellationToken cancellationToken)
+        {
+            
             if (!_store.IsHydrated)
                 throw new Exception("Store must be hydrated first");
 
