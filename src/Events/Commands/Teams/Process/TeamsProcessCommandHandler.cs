@@ -61,7 +61,7 @@ namespace Events
                         await Process(creds, request.SourceId, JsonConvert.DeserializeObject<IUserChatsCollectionPage>(payload.Response));
                     } else if (payload.Category == TeamsRequestTypes.ChatMessages) {
                         dynamic data = JObject.Parse(payload.Data);
-                        await ProcessMessages(creds, request.SourceId, data.id, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response), creds.ExternalSecret);
+                        await ProcessMessages(creds, request.SourceId, (string)data.id, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response), creds.ExternalSecret);
                     } else
                         throw new NotImplementedException(payload.Category);
                 }
