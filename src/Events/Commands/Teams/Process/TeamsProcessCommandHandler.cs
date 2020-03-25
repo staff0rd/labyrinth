@@ -22,6 +22,7 @@ namespace Events
         private readonly Store _store;
         private readonly RestEventManager _rest;
 
+        private readonly string _imageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
         public TeamsProcessCommandHandler(
             ILogger<TeamsProcessCommandHandler> logger, CredentialCache credentials, Store store,
             EventRepository events, IProgress progress, RestEventManager rest)
@@ -105,7 +106,7 @@ namespace Events
             {
                 if (_store.GetImage(sourceId, image.FromEntityId, image.Url) == null)
                 {
-                    await _rest.DownloadImage(creds, sourceId, image, token, Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images"));
+                    await _rest.DownloadImage(creds, sourceId, image, token, _imageDirectory);
                     _store.Add(sourceId, image);
                 }
             }
