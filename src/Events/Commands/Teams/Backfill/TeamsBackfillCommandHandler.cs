@@ -8,6 +8,12 @@ using Microsoft.Graph;
 
 namespace Events
 {
+    public class TeamsMessageData
+    {
+        public string Id { get; set; }
+        public string Topic { get; set; }
+
+    }
     public class TeamsRequestTypes {
         public const string Chats = "Chats";
         public const string ChatMessages = "Chat-Messages";
@@ -50,7 +56,7 @@ namespace Events
                     var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
                     do 
                     {   
-                        await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new { id=chat.Id, topic=chat.Topic }, messages.ToJson());
+                        await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new TeamsMessageData { Id=chat.Id, Topic=chat.Topic }, messages.ToJson());
                         messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
                     } while (messages != null && messages.Count > 0);
                 } catch (ServiceException e)

@@ -9,6 +9,7 @@ namespace Events
     public class ImageProcessor
     {
         const string IMAGE_PREFIX = "$labyrinth-image";
+        public static string ImagePath(Image image) => $"{IMAGE_PREFIX}/{image.Id}";
         List<Image> _foundImages;
         public Image[] Process(Message message)
         {
@@ -18,8 +19,8 @@ namespace Events
 
             foreach (var image in _foundImages)
             {
-                message.BodyParsed = message.BodyParsed.Replace(image.Url, $"{IMAGE_PREFIX}/{image.Id}");
-                message.BodyPlain = message.BodyPlain.Replace(image.Url, $"{IMAGE_PREFIX}/{image.Id}");
+                message.BodyParsed = message.BodyParsed.Replace(image.Url, ImagePath(image));
+                message.BodyPlain = message.BodyPlain.Replace(image.Url, ImagePath(image));
             }
 
             return _foundImages.ToArray();

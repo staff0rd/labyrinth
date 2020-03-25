@@ -104,6 +104,11 @@ namespace Events
             _isHydrated = true;
         }
 
+        internal Image[] GetImages(Guid sourceId, string id)
+        {
+            return _store[sourceId].Images.Select(i => i.Value).Where(p => p.FromEntityId == id).ToArray();
+        }
+
         private async Task Hydrate<T>(Credential credential, string entityType, Guid sourceId, string eventType, Dictionary<string, T> dictionary)
             where T : IExternalEntity
         {
