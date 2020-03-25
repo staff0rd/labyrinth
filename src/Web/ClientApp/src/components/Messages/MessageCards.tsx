@@ -14,6 +14,7 @@ import {UserSquare} from '../Users/UserSquare';
 import {UserBullet} from '../Users/UserBullet';
 import reactStringReplace from 'react-string-replace';
 import { Button } from '@material-ui/core';
+import ReactHtmlParser from 'react-html-parser'; 
 
 type MessageCardsProps = {
     messages: Message[];
@@ -54,26 +55,36 @@ const MessageCard = (message: Message) => {
         if (!message)
             return message;
 
-        let replacedText = reactStringReplace(message, /\[\[user:(\d+)\]\]/g, (match, i) => (
-            <UserBullet id={`yammer/user/${match}`} network={network} />
-          )); // users
+        // fix for yammer
+        // let replacedText = reactStringReplace(message, /\[\[user:(\d+)\]\]/g, (match, i) => (
+        //     <UserBullet id={`yammer/user/${match}`} network={network} />
+        //   )); // users
         
-          replacedText = reactStringReplace(replacedText, /(https?:\/\/.+.(?:gif|jpg))/g, (match, i) => (
-            <img src={match} />
-          )); // images
+        //   replacedText = reactStringReplace(replacedText, /(https?:\/\/.+.(?:gif|jpg))/g, (match, i) => (
+        //     <img src={match} />
+        //   )); // images
           
-          replacedText = reactStringReplace(replacedText, /((?:http|ftp|https):\/\/(?:[\w_-]+(?:(?:\.[\w_-]+)+))(?:[\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?)/g, (match, i) => {
-              return ( // images
-            <a href={match}>{match}</a>
-          )}); // urls
-          
-
-        return (
-        <React.Fragment>
-            {replacedText}
-        </React.Fragment>
-        );
+        //   replacedText = reactStringReplace(replacedText, /((?:http|ftp|https):\/\/(?:[\w_-]+(?:(?:\.[\w_-]+)+))(?:[\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?)/g, (match, i) => {
+        //       return ( // images
+        //     <a href={match}>{match}</a>
+        //   )}); // urls
+        // return (
+        // <React.Fragment>
+        //     {replacedText}
+        // </React.Fragment>
+        // );
             
+        return (
+            <>
+                { ReactHtmlParser(message, {
+                    transform: (node, index) => {
+                        if (node.type === 'tag' && node.name === 'img' && node.attribs){
+                            delete node.attribs.style;
+                        }
+                    }
+                })}
+            </>
+        )
     }
 
     return (

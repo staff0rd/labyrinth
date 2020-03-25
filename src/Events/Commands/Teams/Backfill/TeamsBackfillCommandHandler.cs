@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -26,6 +28,7 @@ namespace Events
         private readonly CredentialCache _credentials;
 
         private readonly IProgress _progress;
+        private readonly string _imageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
 
         public TeamsBackfillCommandHandler(ILogger<TeamsBackfillCommandHandler> logger, RestEventManager rest,
             CredentialCache credentials, IProgress progress) {
@@ -56,6 +59,15 @@ namespace Events
                     var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
                     do 
                     {   
+                        foreach (var message in messages) {
+                            throw new NotImplementedException();
+                            //var images = new ImageProcessor().Process(message);
+                            // foreach (var image in images)
+                            // {
+                            //     await _rest.DownloadImage(credential, request.SourceId, image, credential.ExternalSecret, _imageDirectory);
+                            //     message.Body.Content = message.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
+                            // }
+                        }
                         await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new TeamsMessageData { Id=chat.Id, Topic=chat.Topic }, messages.ToJson());
                         messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
                     } while (messages != null && messages.Count > 0);

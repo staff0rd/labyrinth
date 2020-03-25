@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
+using Microsoft.Graph;
 
 namespace Events
 {
@@ -11,17 +12,11 @@ namespace Events
         const string IMAGE_PREFIX = "$labyrinth-image";
         public static string ImagePath(Image image) => $"{IMAGE_PREFIX}/{image.Id}";
         List<Image> _foundImages;
-        public Image[] Process(Message message)
+        public Image[] GetImages(ChatMessage message)
         {
             _foundImages = new List<Image>();
-            ExtractImages(message.BodyParsed, message.Id);
-            ExtractImages(message.BodyPlain, message.Id);
 
-            foreach (var image in _foundImages)
-            {
-                message.BodyParsed = message.BodyParsed.Replace(image.Url, ImagePath(image));
-                message.BodyPlain = message.BodyPlain.Replace(image.Url, ImagePath(image));
-            }
+            ExtractImages(message.Body.Content, message.Id);
 
             return _foundImages.ToArray();
         }
@@ -59,8 +54,8 @@ namespace Events
                     if (style != null) {
                         var styleMatches = Regex.Matches(style, @"width:(\d+)(?:px)?; height:(\d+)(?:px)?")
                             .Cast<Match>()
-                            .Single() .Groups
-                            .Cast<Group>()
+                            .Single().Groups
+                            .Cast<System.Text.RegularExpressions.Group>()
                             .Skip(1)
                             .Select(g => g.Value)
                             .ToArray();

@@ -22,9 +22,6 @@ namespace Events
         private readonly Store _store;
         private readonly RestEventManager _rest;
 
-        private readonly string _imageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
-        private readonly string _imageDirectoryNew = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images-new");
-
         public TeamsProcessCommandHandler(
             ILogger<TeamsProcessCommandHandler> logger, CredentialCache credentials, Store store,
             EventRepository events, IProgress progress, RestEventManager rest)
@@ -102,14 +99,14 @@ namespace Events
             await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), received.KnownSince.ToUnixTimeMilliseconds()));
         }
 
-        private async Task ProcessImages(Credential creds, Guid sourceId, Message message, string token)
+        private async Task ProcessImages(Credential creds, Guid sourceId, ChatMessage message, string token)
         {
-            var images = new ImageProcessor().Process(message);
+            var images = new ImageProcessor().GetImages(message);
             foreach (var image in images)
             {
                 if (_store.GetImage(sourceId, image.FromEntityId, image.Url) == null)
                 {
-                    await _rest.DownloadImage(creds, sourceId, image, token, _imageDirectory);
+                    await _events.Add(creds, sourceId, image.FromEntityId, "ImageCreated", image.ToJson(), message.CreatedDateTime.Value.ToUnixTimeMilliseconds());
                     _store.Add(sourceId, image);
                 }
             }
@@ -121,7 +118,7 @@ namespace Events
             {
                 await Process(creds, sourceId, message.From.User);
                 var received = Events.Message.From(message, sourceId, topicId);
-                await ProcessImages(creds, sourceId, received, token);
+                await ProcessImages(creds, sourceId, message, token);
                 var existing = _store.GetMessage(sourceId, received.Id);
                 if (existing == null)
                 {

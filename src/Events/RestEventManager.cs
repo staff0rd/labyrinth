@@ -37,8 +37,6 @@ namespace Events
             var response = await url.GetBytesAsync();
 
             File.WriteAllBytes(Path.Combine(downloadPath, image.Id.ToString()), response);
-
-            await _events.Add(creds, sourceId, image.FromEntityId, "ImageCreated", image.ToJson(), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         }
 
         public async Task<T> Get<T>(Credential creds, Guid sourceId, Request<T> request, object queryString, string token)
