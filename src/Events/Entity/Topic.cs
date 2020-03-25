@@ -16,7 +16,7 @@ namespace Events
             return new Topic
             {
                 Id = chat.Id,
-                
+                Network = Network.Teams,
             };
         }
     }

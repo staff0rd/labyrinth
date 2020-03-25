@@ -13,6 +13,7 @@ namespace Events
         public DateTime CreatedAt { get; set; }
         public Guid SourceId { get; set;}
         public string Permalink { get; set; }
+        public Network Network { get; set; }
 
         public static Message From (ChatMessage message, Guid sourceId, string topicId)
         {
@@ -23,7 +24,8 @@ namespace Events
                 Id = message.Id,
                 SenderId = message.From.User.Id,
                 TopicId = topicId,
-                SourceId = sourceId
+                SourceId = sourceId,
+                Network = Network.Teams,
             };
         }
         public static Message From(Rest.Yammer.Message message, Guid sourceId)
@@ -35,7 +37,8 @@ namespace Events
                 Id = $"yammer/message/{message.Id}",
                 SenderId = $"yammer/user/{message.SenderId}",
                 Permalink = message.WebUrl.AbsoluteUri,
-                SourceId = sourceId
+                SourceId = sourceId,
+                Network = Network.Yammer,
             };
         }
     }

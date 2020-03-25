@@ -61,7 +61,7 @@ namespace Events
                         await Process(creds, request.SourceId, JsonConvert.DeserializeObject<IUserChatsCollectionPage>(payload.Response));
                     } else if (payload.Category == TeamsRequestTypes.ChatMessages) {
                         dynamic data = JObject.Parse(payload.Data);
-                        await ProcessMessages(creds, request.SourceId, data.id as string, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response), creds.ExternalSecret);
+                        await ProcessMessages(creds, request.SourceId, data.id, JsonConvert.DeserializeObject<IChatMessagesCollectionPage>(payload.Response), creds.ExternalSecret);
                     } else
                         throw new NotImplementedException(payload.Category);
                 }
@@ -101,7 +101,7 @@ namespace Events
 
         private async Task ProcessImages(Credential creds, Guid sourceId, ChatMessage message, string token)
         {
-            var images = new ImageProcessor().GetImages(message);
+            var images = new ImageProcessor().GetImages(message, Network.Teams);
             foreach (var image in images)
             {
                 if (_store.GetImage(sourceId, image.FromEntityId, image.Url) == null)

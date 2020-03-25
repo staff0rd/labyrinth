@@ -11,5 +11,6 @@ namespace Events
 
     public interface IExternalEntity : IEntity<string>
     {
+        Network Network { get; set; }
     }
 }

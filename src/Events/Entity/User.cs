@@ -18,7 +18,8 @@ namespace Events
             return new User {
                 Id = user.Id,
                 Name = user.DisplayName,
-                SourceId = sourceId
+                SourceId = sourceId,
+                Network = Network.Teams,
             };
         }
         

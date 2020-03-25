@@ -13,5 +13,7 @@ namespace Events
         public string FromEntityId { get; set; }
 
         public string Id { get; set; }
+
+        public Network Network { get; set; }
     }
 }

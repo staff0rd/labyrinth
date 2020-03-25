@@ -12,16 +12,16 @@ namespace Events
         const string IMAGE_PREFIX = "$labyrinth-image";
         public static string ImagePath(Image image) => $"{IMAGE_PREFIX}/{image.Id}";
         List<Image> _foundImages;
-        public Image[] GetImages(ChatMessage message)
+        public Image[] GetImages(ChatMessage message, Network network)
         {
             _foundImages = new List<Image>();
 
-            ExtractImages(message.Body.Content, message.Id);
+            ExtractImages(message.Body.Content, message.Id, network);
 
             return _foundImages.ToArray();
         }
 
-        private void ExtractImages(string message, string entityId)
+        private void ExtractImages(string message, string entityId, Network network)
         {
             var matches = ExtractImages(message);
             foreach (var image in matches)
@@ -30,6 +30,7 @@ namespace Events
                 {
                     image.FromEntityId = entityId;
                     image.Id = Guid.NewGuid().ToString();
+                    image.Network = network;
                     
                     _foundImages.Add(image);
                 }
