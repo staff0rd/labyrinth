@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Graph;
 
 namespace Events
@@ -10,6 +11,7 @@ namespace Events
         public DateTimeOffset LastUpdated { get; set; }
         public string Title { get; set;}
         public Network Network { get; set; }
+        public Dictionary<string, User> Members { get; set; } = new Dictionary<string, User>();
 
         internal static Topic From(Chat chat)
         {

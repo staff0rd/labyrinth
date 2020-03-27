@@ -10,7 +10,16 @@ import { makeStyles } from '@material-ui/core/styles';
 import { postResponse } from '../api'
 import Alert from '@material-ui/lab/Alert';
 import { useSource } from './useSource';
-import { Card, CardActionArea, CardMedia, CardActions, Button, Grid } from '@material-ui/core';
+import {
+  Card, 
+  CardActionArea, 
+  CardMedia, 
+  CardActions, 
+  Button, 
+  Grid,
+  Typography,
+  CardContent,
+} from '@material-ui/core';
 
 type ImagesProps = {
   url: string;
@@ -79,13 +88,15 @@ export const Images = (props: ImagesProps) => {
                       image={convertImageUrl(image.url)}
                       title=""
                     />
+                    <CardContent>
+                      <Typography variant="body2" color="textSecondary" component="p">
+                        Posted by { image.username }
+                      </Typography>
+                    </CardContent>
                   </CardActionArea>
                   <CardActions>
                     <Button size="small" color="primary">
-                      Share
-                    </Button>
-                    <Button size="small" color="primary">
-                      Learn More
+                    { image.topicTitle }
                     </Button>
                   </CardActions>
                 </Card>

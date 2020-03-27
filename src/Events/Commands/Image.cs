@@ -16,5 +16,8 @@ namespace Events
 
         public Network Network { get; set; }
         public DateTimeOffset Created { get; set; }
+        public string TopicId { get; internal set; }
+        public string TopicTitle { get; internal set; }
+        public string Username { get; internal set; }
     }
 }

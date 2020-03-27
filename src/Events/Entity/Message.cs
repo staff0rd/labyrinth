@@ -14,6 +14,7 @@ namespace Events
         public Guid SourceId { get; set;}
         public string Permalink { get; set; }
         public Network Network { get; set; }
+        public string TopicTitle { get; internal set; }
 
         public static Message From (ChatMessage message, Guid sourceId, string topicId)
         {

@@ -93,19 +93,62 @@ namespace Events
                         await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
                         break;
                     }
-                    case (Network.Teams): {
-                        await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
-                        await Hydrate(credential, $"{source.Name} topics", source.Id, "TopicCreated", _store[source.Id].Topics);
-                        await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
-                        await Hydrate(credential, $"{source.Name} images", source.Id, "ImageCreated", _store[source.Id].Images);
-                        break;
-                    }
+                    case (Network.Teams):
+                        {
+                            await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
+                            await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
+                            await Hydrate(credential, $"{source.Name} topics", source.Id, "TopicCreated", _store[source.Id].Topics);
+                            await Hydrate(credential, $"{source.Name} images", source.Id, "ImageCreated", _store[source.Id].Images);
+                            break;
+                        }
                     default: throw new NotImplementedException(source.Network.ToString());
                 }
+                EnhanceTopics(source);
+                EnhanceMessages(source);
+                EnhanceImages(source);
             }
 
             _logger.LogInformation("Hydrating complete");
             _isHydrated = true;
+        }
+
+        private void EnhanceTopics(Source source)
+        {
+            foreach (var message in _store[source.Id].Messages.Values) {
+                if (_store[source.Id].Topics.TryGetValue(message.TopicId, out var topic) &&
+                    !topic.Members.ContainsKey(message.SenderId))
+                {
+                    topic.Members.Add(message.SenderId, _store[source.Id].Users[message.SenderId]);
+                }
+            }
+            foreach (var topic in _store[source.Id].Topics.Values)
+            {
+                if (string.IsNullOrWhiteSpace(topic.Title))
+                {
+                    topic.Title = string.Join(", ", topic.Members.Values.Take(3).Select(p => p.Name));
+                    if(topic.Members.Count > 3)
+                        topic.Title += $" +{topic.Members.Count-3}";
+                }
+            }
+        }
+
+        private void EnhanceMessages(Source source)
+        {
+            foreach ( var message in _store[source.Id].Messages.Values)
+            {
+                message.TopicTitle = _store[source.Id].Topics[message.TopicId].Title;
+            }
+        }
+        private void EnhanceImages(Source source)
+        {
+            foreach ( var image in _store[source.Id].Images.Values)
+            {
+                var message = _store[source.Id].Messages[image.FromEntityId];
+                image.TopicId = message.TopicId;
+                image.TopicTitle = message.TopicTitle;
+                var user = _store[source.Id].Users[message.SenderId];
+                image.Username = user.Name;
+            }
         }
 
         internal Image[] GetImages(Guid sourceId, string id)

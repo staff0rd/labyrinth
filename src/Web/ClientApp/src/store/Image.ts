@@ -6,4 +6,6 @@ export interface Image {
     id: string;
     network: string;
     created: Date;
+    username: string;
+    topicTitle: string;
 }
