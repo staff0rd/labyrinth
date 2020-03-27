@@ -104,6 +104,7 @@ namespace Events
             var images = new ImageProcessor().GetImages(message, Network.Teams);
             foreach (var image in images)
             {
+                image.Created = message.CreatedDateTime.Value;
                 if (_store.GetImage(sourceId, image.FromEntityId, image.Url) == null)
                 {
                     await _events.Add(creds, sourceId, image.FromEntityId, "ImageCreated", image.ToJson(), message.CreatedDateTime.Value.ToUnixTimeMilliseconds());

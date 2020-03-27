@@ -5,8 +5,9 @@ import { EventCounts } from './Events/EventCounts';
 export type OverviewProps = {
     groups: number;
     messages: number;
-    threads: number;
+    topics: number;
     users: number;
+    images: number;
     events: EventCounts[];
   };
 
@@ -25,9 +26,10 @@ export const Overview = (props: OverviewProps) => {
     const {
         groups,
         messages,
-        threads,
+        topics,
         users,
         events,
+        images
     } = props;
     const classes = useStyles();
     return (
@@ -42,8 +44,9 @@ export const Overview = (props: OverviewProps) => {
                 <TableBody>
                     <TableRow><TableCell>Groups</TableCell><TableCell align="right">{groups}</TableCell></TableRow>
                     <TableRow><TableCell>Messages</TableCell><TableCell align="right">{messages}</TableCell></TableRow>
-                    <TableRow><TableCell>Threads</TableCell><TableCell align="right">{threads}</TableCell></TableRow>
+                    <TableRow><TableCell>Topics</TableCell><TableCell align="right">{topics}</TableCell></TableRow>
                     <TableRow><TableCell>Users</TableCell><TableCell align="right">{users}</TableCell></TableRow>
+                    <TableRow><TableCell>Images</TableCell><TableCell align="right">{images}</TableCell></TableRow>
                 </TableBody>
                 <TableHead>
                     <TableRow>

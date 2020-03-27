@@ -28,7 +28,7 @@ namespace Events
         private readonly CredentialCache _credentials;
 
         private readonly IProgress _progress;
-        private readonly string _imageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
+        public static string ImageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
 
         public TeamsBackfillCommandHandler(ILogger<TeamsBackfillCommandHandler> logger, RestEventManager rest,
             CredentialCache credentials, IProgress progress) {

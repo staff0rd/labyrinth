@@ -49,9 +49,13 @@ namespace Events
             throw new NotImplementedException();
         }
 
-        public Overview[] GetOverview() {
-            return _store.Select(p => new Overview { SourceId = p.Key, Messages = p.Value.Messages.Count, Users = p.Value.Users.Count})
-                .ToArray();
+        public Overview[] GetEntityOverview() {
+            return _store.Select(p => new Overview { SourceId = p.Key, 
+                Messages = p.Value.Messages.Count,
+                Users = p.Value.Users.Count,
+                Images = p.Value.Images.Count,
+                Topics = p.Value.Topics.Count,
+            }).ToArray();
         }
 
         public Func<Event[], int, Task<int>> FillFromEvents<T>(Dictionary<string, T> dictionary) where T : IExternalEntity
@@ -183,6 +187,11 @@ namespace Events
         public IEnumerable<Message> GetMessages(Guid sourceId) {
             return _store[sourceId].Messages.ToList().Select(x => x.Value);
         }
+
+        public IEnumerable<Image> GetImages (Guid sourceId) {
+            return _store[sourceId].Images.ToList().Select(x => x.Value);
+        }
+
         public IEnumerable<User> GetUsers(Guid sourceId) {
             return _store[sourceId].Users.ToList().Select(x => x.Value);
         }

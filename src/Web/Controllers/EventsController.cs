@@ -71,6 +71,24 @@ namespace Web.Controllers
             return await _mediator.Send(request);
         }
 
+        [HttpGet]
+        [Route("image/{id}")]
+        public async Task<FileResult> Image([FromRoute] Guid id )
+        {
+            var bytes = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(
+                TeamsBackfillCommandHandler.ImageDirectory,
+                id.ToString()
+            ));
+            return File(bytes, "image/jpg");
+        }
+
+        [HttpPost]
+        [Route("images")]
+        public async Task<Result<PagedResult<Events.Image>>> Images([FromBody] GetImagesQuery request)
+        {
+            return await _mediator.Send(request);
+        }
+
         private Result<PagedResult<TResult>> Map<T, TResult>(Result<PagedResult<T>> result, Func<T, TResult> mapper)
         {
             if (result.IsError)

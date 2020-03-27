@@ -12,6 +12,12 @@ namespace Events
         const string IMAGE_PREFIX = "$labyrinth-image";
         public static string ImagePath(Image image) => $"{IMAGE_PREFIX}/{image.Id}";
         List<Image> _foundImages;
+
+        static string[] _excludeUrls = new [] {
+            "statics.teams.cdn.office.net/evergreen-assets",
+            "statics.teams.microsoft.com/evergreen-assets",
+        };
+
         public Image[] GetImages(ChatMessage message, Network network)
         {
             _foundImages = new List<Image>();
@@ -67,7 +73,8 @@ namespace Events
                         height = img.GetAttributeValue<int>("height", 128);
                     }
 
-                    images.Add(new Image { Url = src, Width = width, Height = height });
+                    if (!_excludeUrls.Any(p => src.Contains(p)))
+                        images.Add(new Image { Url = src, Width = width, Height = height });
                 }
             }
 

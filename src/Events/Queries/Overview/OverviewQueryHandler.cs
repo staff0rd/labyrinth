@@ -25,7 +25,7 @@ namespace Events
                 return new Result<Overview> { IsError = true, Message = auth.Message};
             }
 
-            var result = _store.GetOverview().FirstOrDefault(p => p.SourceId == request.SourceId);
+            var result = _store.GetEntityOverview().FirstOrDefault(p => p.SourceId == request.SourceId);
 
             if (result == null)
                 return new Result<Overview> { IsError = true, Message = $"No store initialised for {request.SourceId}" };

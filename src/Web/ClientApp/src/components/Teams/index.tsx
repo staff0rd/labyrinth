@@ -7,6 +7,7 @@ import { postResponse } from '../../api';
 import { useSelector } from '../../store/useSelector';
 import { AccountState } from '../../store/Account';
 import { Users } from '../Users/Users';
+import { Images } from '../Images';
 import { Events } from '../Events/Events';
 import { Messages } from '../Messages/Messages';
 import Alert from '@material-ui/lab/Alert';
@@ -39,9 +40,10 @@ const Teams = () => {
         { title: 'Overview', to: ''},
         { title: 'Users', badge: overview ? overview.users : undefined, to: '/users'},
         { title: 'Messages', badge: overview ? overview.messages : undefined, to: '/messages'},
+        { title: 'Images', badge: overview ? overview.images : undefined, to: '/images'},
+        { title: 'Events', to: '/events', badge: overview ? overview.events.map(m => m.count).reduce((prev, cur) => prev + cur, 0) : undefined},
         { title: 'Hydrate', to: '/hydrate'},
         { title: 'Backfill', to: '/backfill'},
-        { title: 'Events', to: '/events'},
         { title: 'Process', to: '/process'},
       ],
     }, [overview]);
@@ -69,6 +71,12 @@ const Teams = () => {
         <Messages
           url={`api/events/messages`} 
           searchPlaceholder="Search by sender or message content"
+          network='Teams'
+        />
+      )} />
+      <Route path='/teams/images' component={() => (
+        <Images
+          url={`api/events/images`}
           network='Teams'
         />
       )} />
