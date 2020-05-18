@@ -20,7 +20,7 @@ const Yammer = () => {
   const { sourceId, sourceName } = useSource('Yammer');
 
   useEffect(() => {
-    postResponse<OverviewProps>(`api/events/overview?network=Yammer`, {userName, password})
+    postResponse<OverviewProps>(`api/events/overview`, {userName, password, sourceId})
     .then(data => {
       if (data.isError)
         setError(data.message!);
@@ -44,7 +44,7 @@ const Yammer = () => {
 
   return (
     <>
-      <Route path='/yammer/backfill' component={Backfill} />
+      <Route path='/yammer/backfill' component={() => <Backfill sourceId={sourceId} />} />
       <Route path='/yammer/hydrate' component={() => <Queue url={'api/events/hydrate'} sourceId={sourceId} />} />
       <Route path='/yammer/process' component={() => <Queue url={'api/yammer/process'} sourceId={sourceId} />} />
       <Route path='/yammer/users' component={() => (

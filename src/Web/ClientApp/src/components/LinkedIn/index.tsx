@@ -20,7 +20,7 @@ const Yammer = () => {
   const { sourceId, sourceName } = useSource('LinkedIn');
 
   useEffect(() => {
-    postResponse<OverviewProps>(`api/events/overview?network=LinkedIn`, {userName, password})
+    postResponse<OverviewProps>(`api/events/overview`, {userName, password, sourceId})
     .then(data => {
       if (data.isError)
         setError(data.message!);
