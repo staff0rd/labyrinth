@@ -115,10 +115,12 @@ namespace Events
         private void EnhanceTopics(Source source)
         {
             foreach (var message in _store[source.Id].Messages.Values) {
-                if (_store[source.Id].Topics.TryGetValue(message.TopicId, out var topic) &&
-                    !topic.Members.ContainsKey(message.SenderId))
-                {
-                    topic.Members.Add(message.SenderId, _store[source.Id].Users[message.SenderId]);
+                if (!string.IsNullOrEmpty(message.TopicId)) {
+                    if (_store[source.Id].Topics.TryGetValue(message.TopicId, out var topic) &&
+                        !topic.Members.ContainsKey(message.SenderId))
+                    {
+                        topic.Members.Add(message.SenderId, _store[source.Id].Users[message.SenderId]);
+                    }
                 }
             }
             foreach (var topic in _store[source.Id].Topics.Values)
@@ -136,7 +138,9 @@ namespace Events
         {
             foreach ( var message in _store[source.Id].Messages.Values)
             {
-                message.TopicTitle = _store[source.Id].Topics[message.TopicId].Title;
+                if (!string.IsNullOrEmpty(message.TopicId)) {
+                    message.TopicTitle = _store[source.Id].Topics[message.TopicId].Title;
+                }
             }
         }
         private void EnhanceImages(Source source)

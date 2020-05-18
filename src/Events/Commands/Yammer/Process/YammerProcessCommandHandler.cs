@@ -82,7 +82,7 @@ namespace Events
             {
                 _store.Add(sourceId, received);
             } 
-            await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), existing.KnownSince.ToUnixTimeMilliseconds()));
+            await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), (existing?.KnownSince ?? DateTimeOffset.MaxValue).ToUnixTimeMilliseconds()));
         }
 
         public async Task ProcessMessage(Rest.Yammer.Message message, Guid sourceId, Credential creds)
