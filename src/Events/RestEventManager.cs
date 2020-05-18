@@ -32,6 +32,7 @@ namespace Events
             if (!Directory.Exists(downloadPath))
                 Directory.CreateDirectory(downloadPath);
                 
+            throw new Exception("Only pass relevant token");
             var url = image.Url.WithOAuthBearerToken(token);
             
             var response = await url.GetBytesAsync();
