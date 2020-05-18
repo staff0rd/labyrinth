@@ -19,6 +19,8 @@ services:
     container_name: adminer
     networks:
       - local
+    environment:
+      - ADMINER_DESIGN=pappu687
 
 networks:
   local:
