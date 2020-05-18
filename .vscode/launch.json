@@ -5,15 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/Robot/bin/Debug/netcoreapp3.1/Robot.dll",
-            "args": ["yammer", "-c", "User ID=postgres;Password=example;Host=localhost;Port=5432;Database=postgres;Pooling=true;", "-s", "staff0rd", "process"],
-            "cwd": "${workspaceFolder}/src/Robot",
-            "console": "internalConsole",
-            "stopAtEntry": false
+            "program": "${workspaceFolder}/src/Web/bin/Debug/netcoreapp3.1/Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Web",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "^\\s*Now listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
         },
         {
             "name": ".NET Core Attach",
