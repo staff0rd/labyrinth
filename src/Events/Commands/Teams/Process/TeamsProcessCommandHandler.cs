@@ -99,27 +99,12 @@ namespace Events
             await _events.Sync(creds, sourceId, received, existing, Math.Min(received.KnownSince.ToUnixTimeMilliseconds(), received.KnownSince.ToUnixTimeMilliseconds()));
         }
 
-        private async Task ProcessImages(Credential creds, Guid sourceId, ChatMessage message, string token)
-        {
-            var images = new ImageProcessor().GetImages(message, Network.Teams);
-            foreach (var image in images)
-            {
-                image.Created = message.CreatedDateTime.Value;
-                if (_store.GetImage(sourceId, image.FromEntityId, image.Url) == null)
-                {
-                    await _events.Add(creds, sourceId, image.FromEntityId, "ImageCreated", image.ToJson(), message.CreatedDateTime.Value.ToUnixTimeMilliseconds());
-                    _store.Add(sourceId, image);
-                }
-            }
-        }
-
         private async Task ProcessMessages(Credential creds, Guid sourceId, string topicId, IChatMessagesCollectionPage chatMessagesCollectionPage, string token)
         {
             foreach (var message in chatMessagesCollectionPage)
             {
                 await Process(creds, sourceId, message.From.User);
                 var received = Events.Message.From(message, sourceId, topicId);
-                await ProcessImages(creds, sourceId, message, token);
                 var existing = _store.GetMessage(sourceId, received.Id);
                 if (existing == null)
                 {

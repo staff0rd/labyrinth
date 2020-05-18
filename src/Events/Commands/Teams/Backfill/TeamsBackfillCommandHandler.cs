@@ -26,20 +26,28 @@ namespace Events
         private readonly RestEventManager _rest;
         private readonly ILogger<TeamsBackfillCommandHandler> _logger;
         private readonly CredentialCache _credentials;
-
+        private readonly EventRepository _events;
+        private readonly Store _store;
         private readonly IProgress _progress;
-        public static string ImageDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images");
+        public static string GetImageDirectory(Guid sourceId) {
+            return Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images", sourceId.ToString());
+        }
 
-        public TeamsBackfillCommandHandler(ILogger<TeamsBackfillCommandHandler> logger, RestEventManager rest,
-            CredentialCache credentials, IProgress progress) {
+        public TeamsBackfillCommandHandler(ILogger<TeamsBackfillCommandHandler> logger, RestEventManager rest, Store store,
+            EventRepository events, CredentialCache credentials, IProgress progress) {
             _rest = rest;
             _logger = logger;
             _credentials = credentials;
             _progress = progress;
+            _store = store;
+            _events = events;
         }
 
         public async Task<Unit> Handle(TeamsBackfillCommand request, CancellationToken cancellationToken)
         {
+            if (!_store.IsHydrated)
+                throw new Exception("Store must be hydrated first");
+                
             var credential = _credentials.Get(request.SourceId, request.LabyrinthUsername);
             var client = GetGraphClient(credential.ExternalSecret);
             var chats = await client
@@ -60,13 +68,21 @@ namespace Events
                     do 
                     {   
                         foreach (var message in messages) {
-                            throw new NotImplementedException();
-                            //var images = new ImageProcessor().Process(message);
-                            // foreach (var image in images)
-                            // {
-                            //     await _rest.DownloadImage(credential, request.SourceId, image, credential.ExternalSecret, _imageDirectory);
-                            //     message.Body.Content = message.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
-                            // }
+                            var images = new ImageProcessor().GetImages(message, Network.Teams);
+                            foreach (var image in images)
+                            {
+                                await _rest.DownloadImage(credential, request.SourceId, image, credential.ExternalSecret, GetImageDirectory(request.SourceId));
+                                image.Created = message.CreatedDateTime.Value;
+                                if (_store.GetImage(request.SourceId, image.FromEntityId, image.Url) == null)
+                                {
+                                    await _events.Add(credential, request.SourceId, image.FromEntityId, "ImageCreated", image.ToJson(), message.CreatedDateTime.Value.ToUnixTimeMilliseconds());
+                                    _store.Add(request.SourceId, image);
+                                }
+                                message.Body.Content = message.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
+                            }
+                            
+                                
+                            
                         }
                         await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new TeamsMessageData { Id=chat.Id, Topic=chat.Topic }, messages.ToJson());
                         messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;

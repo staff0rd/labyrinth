@@ -13,7 +13,11 @@ export interface Values {
     password: string;
 }
 
-export const Backfill = () => {
+interface Props {
+    sourceId: string;
+}
+
+export const Backfill = ({ sourceId }: Props) => {
     const { password, userName } = useSelector<AccountState>(state => state.account);
 
     const apiCall = async (values: Values) => {
@@ -22,6 +26,7 @@ export const Backfill = () => {
             userName,
             externalIdentifier: values.userName,
             externalSecret: values.password,
+            sourceId,
         });
         return response;
     }

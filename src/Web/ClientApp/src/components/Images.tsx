@@ -69,8 +69,8 @@ export const Images = (props: ImagesProps) => {
     searchRequest();
   }, [pageNumber, pageSize]);
 
-  const convertImageUrl = (url: string) => {
-    return url.replace('$labyrinth-image', '/api/events/image')
+  const convertImageUrl = (url: string, sourceId: string) => {
+    return url.replace('$labyrinth-image', `/api/events/image/${sourceId}`)
   }
 
   return (
@@ -85,7 +85,7 @@ export const Images = (props: ImagesProps) => {
                   <CardActionArea>
                     <CardMedia
                       className={classes.media}
-                      image={convertImageUrl(image.url)}
+                      image={convertImageUrl(image.url, sourceId)}
                       title=""
                     />
                     <CardContent>

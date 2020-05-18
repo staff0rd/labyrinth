@@ -72,11 +72,11 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        [Route("image/{id}")]
-        public async Task<FileResult> Image([FromRoute] Guid id )
+        [Route("image/{sourceId}/{id}")]
+        public async Task<FileResult> Image([FromRoute] Guid sourceId, [FromRoute] Guid id )
         {
             var bytes = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(
-                TeamsBackfillCommandHandler.ImageDirectory,
+                TeamsBackfillCommandHandler.GetImageDirectory(sourceId),
                 id.ToString()
             ));
             return File(bytes, "image/jpg");
