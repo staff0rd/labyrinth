@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import clsx from 'clsx';
 import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
@@ -17,28 +17,38 @@ import { Omit } from '@material-ui/types';
 import { Link as RouterLink } from 'react-router-dom';
 import Constants from '../../Constants'
 import Link from '@material-ui/core/Link';
-import { useLocation } from 'react-router';
+import { useLocation, useHistory } from 'react-router';
 import YammerIcon from '../Icons/YammerIcon';
 import TeamsIcon from '../Icons/TeamsIcon';
 import { useSelector } from '../../store/useSelector';
 import { Source } from '../../store/Source';
+import { AccountState } from '../../store/Account';
 
-const getCategories = (sources: Source[]|undefined) => {
+interface SourceLink {
+  id: string;
+  icon: JSX.Element;
+  route: string;
+}
+
+
+const getLinks = (sources: Source[]) : SourceLink[] => {
+  return [
+    { id: 'LinkedIn', icon: <LinkedInIcon />, route: '/linkedin' },
+    { id: 'Yammer', icon: <YammerIcon />, route: '/yammer' },
+    { id: 'Teams', icon: <TeamsIcon />, route: '/teams' },
+  ].filter(c => sources.find(s => s.network == c.id));
+}
+
+const getCategories = (sources: Source[]|undefined, loggedIn: boolean) => {
   const categories = [];
 
-  if (sources) {
-    const children = [
-        { id: 'LinkedIn', icon: <LinkedInIcon />, route: '/linkedin' },
-        { id: 'Yammer', icon: <YammerIcon />, route: '/yammer' },
-        { id: 'Teams', icon: <TeamsIcon />, route: '/teams' },
-    ].filter(c => sources.find(s => s.network == c.id));
-    categories.push({
-      id: 'Sources',
-      children: [
-        ...children,
-        { id: 'Add source', icon: <AddIcon />, route:'/add-source' }
-      ],
-    })
+  if (loggedIn) {
+    const sourceLinks = { id: 'Sources', children: [] as SourceLink[]};
+    if (sources) {
+      sourceLinks.children = getLinks(sources);
+    }
+    sourceLinks.children.push({ id: 'Add source', icon: <AddIcon />, route:'/add-source' });
+    categories.push(sourceLinks);
   }
 
   categories.push({
@@ -118,7 +128,15 @@ function Navigator(props: NavigatorProps) {
   const { classes, ...other } = props;
   const location = useLocation();
   const sources = useSelector<Source[]|undefined>(state => state.account.sources);
-  const categories = getCategories(sources);
+  const { userName } = useSelector<AccountState>(state => state.account);
+  const categories = getCategories(sources, !!userName);
+  const history = useHistory();
+  
+  useEffect(() => {
+    if (!userName) {
+      history.push('/accounts/login')
+    }
+  }, [userName]);
   
   return (
     <Drawer variant="permanent" {...other}>
@@ -126,7 +144,7 @@ function Navigator(props: NavigatorProps) {
         <ListItem className={clsx(classes.firebase, classes.item, classes.itemCategory)}>
           { Constants.appName.toLowerCase() }
         </ListItem>
-        <ListItem className={clsx(classes.item, classes.itemCategory)}>
+        {/* <ListItem className={clsx(classes.item, classes.itemCategory)}>
           <ListItemIcon className={classes.itemIcon}>
             <HomeIcon />
           </ListItemIcon>
@@ -137,7 +155,7 @@ function Navigator(props: NavigatorProps) {
           >
             Overview
           </ListItemText>
-        </ListItem>
+        </ListItem> */}
         {categories.map(({ id, children }) => (
           <React.Fragment key={id}>
             <ListItem className={classes.categoryHeader}>
