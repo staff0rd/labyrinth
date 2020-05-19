@@ -1,9 +1,11 @@
+using System.Threading.Tasks;
+
 namespace Events
 {
     public interface IProgress {
 
-        void New();
-        void Set(int value);
-        void Set(int current, int total);
+        Task New();
+        Task Set(int value);
+        Task Set(int current, int total);
     }
 }

@@ -71,7 +71,7 @@ const  Header = (props: Props) => {
                 <IconButton
                   color="inherit"
                   aria-label="open drawer"
-                  // onClick={onDrawerToggle}
+                   /* onClick={onDrawerToggle} */
                   className={classes.menuButton}
                 >
                   <MenuIcon />

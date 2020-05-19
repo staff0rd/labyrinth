@@ -2,6 +2,7 @@ import * as LinkedIn from './LinkedIn';
 import * as Yammer from './Yammer';
 import * as Header from './Header';
 import * as Account from './Account';
+import * as Tasks from './BackgroundTasks';
 
 // The top-level state object
 export interface ApplicationState {
@@ -9,6 +10,7 @@ export interface ApplicationState {
     yammer: Yammer.YammerState;
     header: Header.HeaderState;
     account: Account.AccountState;
+    tasks: Tasks.BackgroundTask[];
 }
 
 // This type can be used as a hint on action creators so that its 'dispatch' and 'getState' params are

@@ -9,7 +9,7 @@ public class ProgressToHangfireConsoleAttribute : JobFilterAttribute, IServerFil
 
     public void OnPerforming(PerformingContext filterContext)
     {
-        _subscription = HangfireConsoleProgress.InContext(filterContext);
+        _subscription = HangfireSignalRProgress.InContext(filterContext);
     }
     public void OnPerformed(PerformedContext filterContext)
     {

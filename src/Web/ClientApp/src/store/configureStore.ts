@@ -5,10 +5,12 @@ import { History } from 'history';
 import { ApplicationState } from './';
 import rootReducer from "./reducers";
 import { LoggerMiddleware } from './LoggerMiddleware';
+import { SignalRMiddleware } from './SignalRMiddleware';
 
 export default function configureStore(history: History, initialState?: ApplicationState) {
     const middleware = [
         LoggerMiddleware,
+        SignalRMiddleware(),
         thunk,
         routerMiddleware(history)
     ];

@@ -38,6 +38,8 @@ namespace Web
                 options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
             });
 
+            services.AddSignalR();
+
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -64,8 +66,9 @@ namespace Web
             services.AddMediatR(GetType().Assembly);
             services.AddMediatR(typeof(Store).Assembly);
 
+            services.AddSingleton<TaskHubSender>();
             services.AddSingleton<JobActivator, InjectContextJobActivator>();
-            services.AddTransient<IProgress, HangfireConsoleProgress>();
+            services.AddTransient<IProgress, HangfireSignalRProgress>();
 
             services.AddSingleton<Store>(provider => {
                 var logger = provider.GetRequiredService<ILogger<Store>>();
@@ -145,6 +148,7 @@ namespace Web
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.MapHub<TaskHub>("/taskHub");
             });
 
             app.UseSpa(spa =>
@@ -153,7 +157,7 @@ namespace Web
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:3000");
                 }
             });
         }
