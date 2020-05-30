@@ -10,8 +10,8 @@
             "request": "launch",
             "preLaunchTask": "buildconsole",
             "program": "${workspaceFolder}/Console/bin/Debug/netcoreapp3.1/Console.dll",
-            "args": ["change-password", "-u", "atest", "-p", "atest", "-n", "atest"],
-            "cwd": "${workspaceFolder}",
+            "args": [],
+            "cwd": "${workspaceFolder}/Console",
             "stopAtEntry": false,
             "console": "internalConsole"
         },
