@@ -168,7 +168,7 @@ namespace Events
                 return;
             _logger.LogInformation($"Hydrating {entityType}...");
             var sw = Stopwatch.StartNew();
-            _progress.New();
+            await _progress.New();
             Func<Event[], int, Task<int>> eventProcessor = FillFromEvents<T>(dictionary);
             await _events.ReadForward(credential, sourceId, count, eventProcessor);
             Log(sw.Elapsed, sourceId, dictionary.Count);

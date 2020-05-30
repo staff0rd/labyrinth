@@ -9,7 +9,7 @@ namespace Events
     {
         [Required]
         [Option("-u|--username", CommandOptionType.SingleValue, Description = "User name")]
-        public string UserName { get; set; }
+        public string Username { get; set; }
         
         [Required]
         [Option("-p|--password", CommandOptionType.SingleValue, Description = "Password")]

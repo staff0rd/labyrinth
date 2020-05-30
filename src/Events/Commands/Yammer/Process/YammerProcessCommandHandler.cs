@@ -45,7 +45,7 @@ namespace Events
                 foreach (var body in bodies)
                 {
                     currentCount++;
-                    _progress.Set(currentCount, totalCount);
+                    await _progress.Set(currentCount, totalCount);
 
                     dynamic json = JsonConvert.DeserializeObject(body);
 

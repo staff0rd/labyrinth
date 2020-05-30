@@ -28,11 +28,15 @@ namespace Console
                     var connectionString = hostContext.Configuration.GetConnectionString("EventsConnection");
                     services
                         .AddSingleton<KeyRepository>()
+                        .AddSingleton<EventRepository>()
+                        .AddSingleton<IProgress, ConsoleProgress>()
+                        .AddSingleton<SourceRepository>()
                         .AddMediatR(typeof(ChangePasswordCommand).Assembly)
                         .AddSingleton<DatabaseMigrator>()
                         .AddSingleton<NpgsqlConnectionFactory>((services) => {
                             return new NpgsqlConnectionFactory(connectionString);
-                        });
+                        })
+                        .AddSingleton<Store>();
                 });
         }
     }

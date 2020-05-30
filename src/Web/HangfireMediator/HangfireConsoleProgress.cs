@@ -38,10 +38,9 @@ public class HangfireConsoleProgress : IProgress
         return Task.CompletedTask;
     }
 
-    public Task Set(int current, int total)
+    public async Task Set(int current, int total)
     {
         int progress = current * 100 / total;
-        Set(progress);
-        return Task.CompletedTask;
+        await Set(progress);
     }
 }

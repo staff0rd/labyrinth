@@ -31,13 +31,14 @@ namespace Events
         {
             if (!Directory.Exists(downloadPath))
                 Directory.CreateDirectory(downloadPath);
-                
-            throw new Exception("Only pass relevant token");
-            var url = image.Url.WithOAuthBearerToken(token);
             
-            var response = await url.GetBytesAsync();
+            await Task.Delay(0);
+            throw new Exception("Only pass relevant token");
+            // var url = image.Url.WithOAuthBearerToken(token);
+            
+            // var response = await url.GetBytesAsync();
 
-            File.WriteAllBytes(Path.Combine(downloadPath, image.Id.ToString()), response);
+            // File.WriteAllBytes(Path.Combine(downloadPath, image.Id.ToString()), response);
         }
 
         public async Task<T> Get<T>(Credential creds, Guid sourceId, Request<T> request, object queryString, string token)

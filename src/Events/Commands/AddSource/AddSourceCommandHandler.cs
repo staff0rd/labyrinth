@@ -23,7 +23,7 @@ namespace Events
             
             if (sources.Any(s => s.Network == request.Network && s.Name == request.Name))
             {
-                return Result.Error($"A source called {request.Name} already exists for ${request.Network}");
+                return Result.Error($"A source called {request.Name} already exists for network {request.Network}");
             }
 
             var source = await _sources.Add(creds, request.Id, request.Network, request.Name);

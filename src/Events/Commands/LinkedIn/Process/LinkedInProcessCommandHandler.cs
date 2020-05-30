@@ -47,7 +47,7 @@ namespace Events
                 foreach (var body in bodies)
                 {
                     currentCount++;
-                    _progress.Set(currentCount, totalEvents);
+                    await _progress.Set(currentCount, totalEvents);
 
                     var payload = JsonConvert.DeserializeObject<JsonPayload>(body);
 

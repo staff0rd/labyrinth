@@ -53,7 +53,7 @@ namespace Events
                 foreach (var apiRequest in requests)
                 {
                     currentCount++;
-                    _progress.Set(currentCount, totalEvents);
+                    await _progress.Set(currentCount, totalEvents);
 
                     var payload = JsonConvert.DeserializeObject<RestApiRequest>(apiRequest.Body);
 

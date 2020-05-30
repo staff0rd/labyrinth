@@ -62,7 +62,7 @@ namespace Web
             });;
 
             services.AddScoped<KeyRepository>();
-
+            services.AddSingleton<DatabaseMigrator>();
             services.AddMediatR(GetType().Assembly);
             services.AddMediatR(typeof(Store).Assembly);
 
@@ -115,7 +115,8 @@ namespace Web
         
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory,
+            DatabaseMigrator migrator)
         {
             loggerFactory.AddProvider(new HangfireConsoleLoggerProvider());
 
@@ -130,8 +131,6 @@ namespace Web
                 app.UseHsts();
             }
 
-            var migrator = new DatabaseMigrator(loggerFactory.CreateLogger<DatabaseMigrator>(), 
-                Configuration.GetConnectionString("EventsConnection"));
             migrator.Migrate().Wait();
 
             app.UseHttpsRedirection();

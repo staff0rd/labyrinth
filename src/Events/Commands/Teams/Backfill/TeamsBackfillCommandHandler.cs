@@ -62,7 +62,7 @@ namespace Events
             foreach (var chat in chats)
             {
                 i++;
-                _progress.Set(i, chats.Count);
+                await _progress.Set(i, chats.Count);
                 try {
                     var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
                     do 
