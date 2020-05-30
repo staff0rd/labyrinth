@@ -29,6 +29,7 @@ namespace Console
                     services
                         .AddSingleton<KeyRepository>()
                         .AddMediatR(typeof(ChangePasswordCommand).Assembly)
+                        .AddSingleton<DatabaseMigrator>()
                         .AddSingleton<NpgsqlConnectionFactory>((services) => {
                             return new NpgsqlConnectionFactory(connectionString);
                         });

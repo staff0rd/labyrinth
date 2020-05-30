@@ -9,20 +9,20 @@ namespace Events
 {
     public class DatabaseMigrator
     {
-        readonly string _connectionString;
+        private readonly NpgsqlConnectionFactory _factory;
         readonly ILogger<DatabaseMigrator> _logger;
 
-        public DatabaseMigrator(ILogger<DatabaseMigrator> logger, string connectionString)
+        public DatabaseMigrator(ILogger<DatabaseMigrator> logger, NpgsqlConnectionFactory factory)
         {
             _logger = logger;
-            _connectionString = connectionString;
+            _factory = factory;
         }
         
         public async Task Migrate()
         {
-            EnsureDatabase.For.PostgresqlDatabase(_connectionString);
+            EnsureDatabase.For.PostgresqlDatabase(_factory.ConnectionString);
 
-            using (var connection = new NpgsqlConnection(_connectionString)) {
+            using (var connection = _factory.CreateConnection()) {
                 new [] { "hangfire", "labyrinth" }
                     .ToList()
                     .ForEach(db => {
@@ -32,9 +32,8 @@ namespace Events
                         }
                     });
             }
-            
 
-            var upgrader = DeployChanges.To.PostgresqlDatabase(_connectionString)
+            var upgrader = DeployChanges.To.PostgresqlDatabase(_factory.ConnectionString)
                 .WithScriptsEmbeddedInAssembly(this.GetType().Assembly)
                 .LogToConsole()
                 .Build();

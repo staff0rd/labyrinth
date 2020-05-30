@@ -14,5 +14,7 @@ namespace Events {
         {
             return new NpgsqlConnection(_connectionString);
         }
+
+        public string ConnectionString => _connectionString;
     }
 }

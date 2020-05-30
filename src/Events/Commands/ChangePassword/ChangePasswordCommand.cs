@@ -1,8 +1,5 @@
-using MediatR;
 using McMaster.Extensions.CommandLineUtils;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.Extensions.Logging;
 
 namespace Events
 {
@@ -20,17 +17,5 @@ namespace Events
         [Required]
         [Option("-n|--new-password", CommandOptionType.SingleValue, Description = "New password")]
         public string NewPassword { get; set; }
-    }
-
-    public abstract class ResultCommand : IRequest<Result>
-    {
-        protected async Task OnExecuteAsync(IMediator mediator, ILogger<ResultCommand> logger)
-        {
-            var result = await mediator.Send(this);
-            if (result.IsError)
-                logger.LogError(result.Message);
-            else
-                logger.LogInformation("Success");
-        }
     }
 }
