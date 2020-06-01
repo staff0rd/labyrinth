@@ -8,7 +8,7 @@
             "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "buildweb",
             "program": "${workspaceFolder}/src/Web/bin/Debug/netcoreapp3.1/Web.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/Web",
@@ -22,6 +22,19 @@
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "buildconsole",
+            "program": "${workspaceFolder}/src/Console/bin/Debug/netcoreapp3.1/Console.dll",
+            "args": ["get-sources", "-u", "test", "-p", "test"],
+            "cwd": "${workspaceFolder}/src/Console",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
             }
         },
         {
