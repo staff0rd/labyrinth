@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Events 
 {
-    [Command(Name="create-account", Description= "Create a new account")]
+    [Command(Name="add", Description= "Create a new account")]
     public class CreateAccountCommand : ResultCommand
     {
         [Required]

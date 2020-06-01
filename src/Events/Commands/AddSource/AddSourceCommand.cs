@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Events
 {
-    [Command(Name="add-source")]
+    [Command(Name="add", Description="Add a source")]
     public class AddSourceCommand : ResultCommand
     {
         public AddSourceCommand()

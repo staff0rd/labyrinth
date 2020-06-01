@@ -7,7 +7,7 @@ using ConsoleTables;
 
 namespace Events
 {
-    [Command(Name="get-sources", Description="Get the list of sources currently configured")]
+    [Command(Name="list", Description="Get the list of sources currently configured")]
     public class GetSourcesQuery : ResultCommand<List<Source>>
     {
         [Required]
