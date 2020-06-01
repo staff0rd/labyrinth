@@ -11,18 +11,7 @@ namespace Events
 
         protected async Task OnExecuteAsync(IMediator mediator, ILogger<ResultCommand> logger)
         {
-            try
-            {
-                var result = await mediator.Send(this);
-                if (result.IsError)
-                    logger.LogError(result.Message);
-                else
-                    DisplayResult(result.Response);
-            } 
-            catch (Exception e)
-            {
-                logger.LogError(e, "Failed to execute command");
-            }
+            await ResultCommand.Execute<ResultCommand<T>, Result<T>>(this, mediator, logger, (result) => DisplayResult(result.Response));
         }
     }
 
@@ -30,14 +19,21 @@ namespace Events
     {
         protected async Task OnExecuteAsync(IMediator mediator, ILogger<ResultCommand> logger)
         {
+            await Execute<ResultCommand, Result>(this, mediator, logger, (result) => logger.LogInformation("Success"));
+        }
+
+        public static async Task Execute<TCommand, TResult>(TCommand command, IMediator mediator, ILogger logger, Action<TResult> onSuccess)
+            where TCommand : IRequest<TResult>
+            where TResult: Result
+        {
             try
             {
-                var result = await mediator.Send(this);
+                var result = await mediator.Send(command);
                 if (result.IsError)
                     logger.LogError(result.Message);
                 else
-                    logger.LogInformation("Success");
-            } 
+                    onSuccess(result);
+            }
             catch (Exception e)
             {
                 logger.LogError(e, "Failed to execute command");
