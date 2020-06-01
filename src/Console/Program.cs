@@ -10,18 +10,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Console
 {
-    [Command(Description="Source commands")]
-    [Subcommand(typeof(AddSourceCommand), typeof(GetSourcesQuery))]
-    public class SourceCommand {
-        public void OnExecute(CommandLineApplication app) => app.ShowHelp();
-    }
-
-    [Command(Description="Account commands")]
-    [Subcommand(typeof(CreateAccountCommand), typeof(ChangePasswordCommand))]
-    public class AccountCommand {
-        public void OnExecute(CommandLineApplication app) => app.ShowHelp();
-    }
-
     class Program
     {
         static async Task Main(string[] args)
@@ -33,6 +21,7 @@ namespace Console
                     app.Command<SourceCommand>(null, null);
                     app.Command<AccountCommand>(null, null);
                     app.Command<MigrateDatabaseCommand>(null, null);
+                    app.Command<BackfillCommand>(null, null);
                 });
             } catch (Exception e)
             {
@@ -59,6 +48,7 @@ namespace Console
                     services
                         .AddSingleton<KeyRepository>()
                         .AddSingleton<EventRepository>()
+                        .AddSingleton<RestEventManager>()
                         .AddSingleton<IProgress, ConsoleProgress>()
                         .AddSingleton<SourceRepository>()
                         .AddMediatR(typeof(ChangePasswordCommand).Assembly)

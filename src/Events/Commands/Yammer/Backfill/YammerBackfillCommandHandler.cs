@@ -8,30 +8,26 @@ using Rest.Yammer;
 
 namespace Events
 {
-    public class YammerBackfillCommandHandler : IRequestHandler<YammerBackfillCommand>
+    public class YammerBackfillCommandHandler : IRequestHandler<YammerBackfillCommand, Result>
     {
         private readonly RestEventManager _rest;
         private readonly ILogger<YammerBackfillCommandHandler> _logger;
-        private readonly CredentialCache _credentials;
 
-        public YammerBackfillCommandHandler(ILogger<YammerBackfillCommandHandler> logger, RestEventManager rest,
-            CredentialCache credentials) {
+        public YammerBackfillCommandHandler(ILogger<YammerBackfillCommandHandler> logger, RestEventManager rest) {
             _rest = rest;
             _logger = logger;
-            _credentials = credentials;
         }
 
-        public async Task<Unit> Handle(YammerBackfillCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(YammerBackfillCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var credential = _credentials.Get(request.SourceId, request.Username);
                 long? last = null;
                 do 
                 {
                     var queryString = new { older_than = last };
 
-                    var response = await _rest.Get(credential, request.SourceId, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, credential.ExternalSecret);
+                    var response = await _rest.Get(new Credential(request.Username, request.Password), request.SourceId, new MessagesSentRequest(_logger, YammerLimits.RateLimits), queryString, request.Token);
                     if (response != null) {
                         last = response.Messages.Last()?.Id;
                         _logger.LogInformation("Found {count} messages, last is {last}", response.Messages.Count(), last);
@@ -39,12 +35,12 @@ namespace Events
                         last = null;
                     }
                 } while(last != null);
+                return Result.Ok();
             } catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
+                return Result.Error(e.Message);
             }
-
-            return Unit.Value;
         }
     }
 }
