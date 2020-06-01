@@ -6,6 +6,7 @@ using MediatR;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Console
 {
@@ -13,11 +14,18 @@ namespace Console
     {
         static async Task Main(string[] args)
         {
-            await CreateHostBuilder().RunCommandLineApplicationAsync(args, (app) => {
-                new RegisterCommands(typeof(ChangePasswordCommand).Assembly).Apply(app);
-                if (args.Length == 0)
-                    app.ShowHelp();
-            });
+            try {
+                await CreateHostBuilder().RunCommandLineApplicationAsync(args, (app) => {
+                    new RegisterCommands(typeof(ChangePasswordCommand).Assembly).Apply(app);
+                    if (args.Length == 0)
+                        app.ShowHelp();
+                });
+            } catch (Exception e)
+            {
+                System.Console.ForegroundColor = ConsoleColor.Red;
+                System.Console.WriteLine(e.Message);
+                System.Console.ResetColor();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder()
