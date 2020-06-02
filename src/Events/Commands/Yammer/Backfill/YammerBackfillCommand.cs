@@ -17,12 +17,12 @@ namespace Events
         public string Password { get; set; }
 
         [Required]
-        [Option("-t|--token", CommandOptionType.SingleValue, Description = "Token")]
-        public string Token { get; set; }
-        
-        [Required]
         [Option("-s|--source", CommandOptionType.SingleValue, Description = "Source Id")]
         public Guid SourceId { get; set;}
+        
+        [Required]
+        [Option("-t|--token", CommandOptionType.SingleValue, Description = "Token")]
+        public string Token { get; set; }
     }
     
 }

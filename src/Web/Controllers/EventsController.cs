@@ -36,7 +36,7 @@ namespace Web.Controllers
                 Password = request.Password
             });
 
-            return _mediator.Enqueue(new HydrateCommand { Username = request.Username });
+            return _mediator.Enqueue(new HydrateCommand { LabyrinthUsername = request.Username });
         }
 
         [HttpPost]

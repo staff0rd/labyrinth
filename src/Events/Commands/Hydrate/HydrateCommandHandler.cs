@@ -8,24 +8,25 @@ namespace Events
     public class HydrateCommandHandler : IRequestHandler<HydrateCommand>
     {
         private readonly ILogger<HydrateCommandHandler> _logger;
-        private readonly CredentialCache _credentials;
         private readonly EventRepository _events;
         private readonly IProgress _progress;
         private readonly Store _store;
+        private readonly IMediator _mediator;
 
-        public HydrateCommandHandler(ILogger<HydrateCommandHandler> logger, CredentialCache credentials, Store store,
+        public HydrateCommandHandler(ILogger<HydrateCommandHandler> logger, Store store, IMediator mediator,
             EventRepository events, IProgress progress)
         {
             _logger = logger;
-            _credentials = credentials;
             _store = store;
             _events = events;
             _progress = progress;
+            _mediator = mediator;
         }
 
         public async Task<Unit> Handle(HydrateCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(Network.Self.ToString(), request.Username); 
+            var credential = new Credential(request.LabyrinthUsername, request.LabyrinthPassword);
+            await _mediator.Send(new GetSourcesQuery { Username = request.LabyrinthUsername, Password = request.LabyrinthPassword });
             await _store.Hydrate(credential);
             return Unit.Value;
         }

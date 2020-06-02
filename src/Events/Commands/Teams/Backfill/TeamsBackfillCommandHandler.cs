@@ -10,46 +10,40 @@ using Microsoft.Graph;
 
 namespace Events
 {
-    public class TeamsMessageData
+    public class TeamsBackfillCommandHandler : IRequestHandler<TeamsBackfillCommand, Result>
     {
-        public string Id { get; set; }
-        public string Topic { get; set; }
-
-    }
-    public class TeamsRequestTypes {
-        public const string Chats = "Chats";
-        public const string ChatMessages = "Chat-Messages";
-    }
-
-    public class TeamsBackfillCommandHandler : IRequestHandler<TeamsBackfillCommand>
-    {
+        private readonly string[] _tokenUrls = new [] {
+            "graph.microsoft.com",
+        };
         private readonly RestEventManager _rest;
         private readonly ILogger<TeamsBackfillCommandHandler> _logger;
-        private readonly CredentialCache _credentials;
         private readonly EventRepository _events;
         private readonly Store _store;
+        private readonly IMediator _mediator;
         private readonly IProgress _progress;
         public static string GetImageDirectory(Guid sourceId) {
             return Path.Combine(System.IO.Directory.GetCurrentDirectory(), "images", sourceId.ToString());
         }
-
         public TeamsBackfillCommandHandler(ILogger<TeamsBackfillCommandHandler> logger, RestEventManager rest, Store store,
-            EventRepository events, CredentialCache credentials, IProgress progress) {
+            EventRepository events, IProgress progress, IMediator mediator) {
             _rest = rest;
             _logger = logger;
-            _credentials = credentials;
             _progress = progress;
             _store = store;
             _events = events;
+            _mediator = mediator;
         }
 
-        public async Task<Unit> Handle(TeamsBackfillCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(TeamsBackfillCommand request, CancellationToken cancellationToken)
         {
             if (!_store.IsHydrated)
-                throw new Exception("Store must be hydrated first");
+            {
+                _logger.LogInformation("Hydrating store...");
+                await _mediator.Send(new HydrateCommand { LabyrinthUsername = request.LabyrinthUsername, LabyrinthPassword = request.LabyrinthPassword });
+            }
                 
-            var credential = _credentials.Get(request.SourceId, request.LabyrinthUsername);
-            var client = GetGraphClient(credential.ExternalSecret);
+            var credential = new Credential(request.LabyrinthUsername, request.LabyrinthPassword);
+            var client = GetGraphClient(request.Token);
             var chats = await client
                 .Me
                 .Chats
@@ -71,7 +65,7 @@ namespace Events
                             var images = new ImageProcessor().GetImages(message, Network.Teams);
                             foreach (var image in images)
                             {
-                                await _rest.DownloadImage(credential, request.SourceId, image, credential.ExternalSecret, GetImageDirectory(request.SourceId));
+                                await _rest.DownloadImage(credential, request.SourceId, image, credential.ExternalSecret, GetImageDirectory(request.SourceId), _tokenUrls);
                                 image.Created = message.CreatedDateTime.Value;
                                 if (_store.GetImage(request.SourceId, image.FromEntityId, image.Url) == null)
                                 {
@@ -80,9 +74,6 @@ namespace Events
                                 }
                                 message.Body.Content = message.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
                             }
-                            
-                                
-                            
                         }
                         await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new TeamsMessageData { Id=chat.Id, Topic=chat.Topic }, messages.ToJson());
                         messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
@@ -95,7 +86,7 @@ namespace Events
                     }
                 }
             }
-            return Unit.Value;
+            return Result.Ok();
         }
 
         public GraphServiceClient GetGraphClient(string accessToken) {
