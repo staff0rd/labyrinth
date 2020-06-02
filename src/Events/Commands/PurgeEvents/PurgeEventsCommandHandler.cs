@@ -5,32 +5,38 @@ using Microsoft.Extensions.Logging;
 
 namespace Events
 {
-    public class PurgeEventsCommandHandler : IRequestHandler<PurgeEventsCommand>
+    public class PurgeEventsCommandHandler : IRequestHandler<PurgeEventsCommand, Result>
     {
         private readonly ILogger<PurgeEventsCommandHandler> _logger;
-        private readonly CredentialCache _credentials;
         private readonly EventRepository _events;
+        private readonly KeyRepository _keys;
 
-        public PurgeEventsCommandHandler(ILogger<PurgeEventsCommandHandler> logger, CredentialCache credentials, EventRepository events)
+        public PurgeEventsCommandHandler(ILogger<PurgeEventsCommandHandler> logger, EventRepository events, KeyRepository keys)
         {
             _logger = logger;
-            _credentials = credentials;
             _events = events;
+            _keys = keys;
         }
 
-        public async Task<Unit> Handle(PurgeEventsCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(PurgeEventsCommand request, CancellationToken cancellationToken)
         {
-            var credential = _credentials.Get(request.SourceId, request.Username); 
+            if (await _keys.TestPassword(request.Username, request.Password))
+            {
+                var credential = new Credential(request.Username, request.Password);
 
-            var count = _events.GetCount(request.Username, request.SourceId, request.Events);
+                var count = await _events.GetCount(request.Username, request.SourceId, request.Events);
 
-            var events = string.Join(", ", request.Events);
+                var events = request.Events.Length > 0 ? string.Join(", ", request.Events) : "(all)";
 
-            _logger.LogInformation($"Purging {count} {events} events from {request.SourceId}");
+                _logger.LogInformation($"Purging {count} {events} events from {request.SourceId}");
 
-            await _events.Delete(request.Username, credential.Password, request.SourceId, request.Events);
+                await _events.Delete(request.Username, credential.Password, request.SourceId, request.Events);
 
-            return Unit.Value;
+                return Result.Ok();
+            } else 
+            {
+                return Result.Error("Bad password");
+            }
         }
     }
 }

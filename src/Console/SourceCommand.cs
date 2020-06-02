@@ -4,7 +4,11 @@ using Events;
 namespace Console
 {
     [Command(Description="Source commands")]
-    [Subcommand(typeof(AddSourceCommand), typeof(GetSourcesQuery))]
+    [Subcommand(
+        typeof(AddSourceCommand),
+        typeof(GetSourcesQuery),
+        typeof(PurgeSourceCommand)
+    )]
     public class SourceCommand {
         public void OnExecute(CommandLineApplication app) => app.ShowHelp();
     }

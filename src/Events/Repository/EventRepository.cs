@@ -62,7 +62,7 @@ namespace Events
         {
             using (var connection = _connectionFactory.CreateConnection())
             {
-                var query = $"SELECT COUNT(*) FROM {TableName(userName)} WHERE source_id='{sourceId}' {GetEventFilter(events)}";
+                var query = $"DELETE FROM {TableName(userName)} WHERE source_id='{sourceId}' {GetEventFilter(events)}";
                 await connection.ExecuteAsync(query);
             }
         }
