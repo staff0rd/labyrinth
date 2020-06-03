@@ -147,11 +147,14 @@ namespace Events
         {
             foreach ( var image in _store[source.Id].Images.Values)
             {
-                var message = _store[source.Id].Messages[image.FromEntityId];
-                image.TopicId = message.TopicId;
-                image.TopicTitle = message.TopicTitle;
-                var user = _store[source.Id].Users[message.SenderId];
-                image.Username = user.Name;
+                if (_store[source.Id].Messages.ContainsKey(image.FromEntityId))
+                {
+                    var message = _store[source.Id].Messages[image.FromEntityId];
+                    image.TopicId = message.TopicId;
+                    image.TopicTitle = message.TopicTitle;
+                    var user = _store[source.Id].Users[message.SenderId];
+                    image.Username = user.Name;
+                }
             }
         }
 
