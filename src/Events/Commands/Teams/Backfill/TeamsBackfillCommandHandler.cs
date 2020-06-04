@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -53,29 +57,20 @@ namespace Events
             await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.Chats, null, chats.ToJson());
             
             int i = 0;
+            
             foreach (var chat in chats)
             {
+                int messageCount = 0;
                 i++;
                 await _progress.Set(i, chats.Count);
+                var tasks = new List<Task>();
                 try {
                     var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
-                    do 
-                    {   
-                        foreach (var message in messages) {
-                            var images = new ImageProcessor().GetImages(message, Network.Teams);
-                            foreach (var image in images)
-                            {
-                                await _rest.DownloadImage(credential, request.SourceId, image, credential.ExternalSecret, GetImageDirectory(request.SourceId), _tokenUrls);
-                                image.Created = message.CreatedDateTime.Value;
-                                if (_store.GetImage(request.SourceId, image.FromEntityId, image.Url) == null)
-                                {
-                                    await _events.Add(credential, request.SourceId, image.FromEntityId, "ImageCreated", image.ToJson(), message.CreatedDateTime.Value.ToUnixTimeMilliseconds());
-                                    _store.Add(request.SourceId, image);
-                                }
-                                message.Body.Content = message.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
-                            }
-                        }
-                        await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new TeamsMessageData { Id=chat.Id, Topic=chat.Topic }, messages.ToJson());
+                    do
+                    {
+                        tasks.Add(ProcessMessages(request, credential, chat, messages));
+                        messageCount += messages.Count;
+                        _logger.LogInformation($"Chat messages queued for processing: {messageCount}");
                         messages = messages?.NextPageRequest != null ? await messages.NextPageRequest.GetAsync() : null;
                     } while (messages != null && messages.Count > 0);
                 } catch (ServiceException e)
@@ -85,8 +80,90 @@ namespace Events
                         continue;
                     }
                 }
+                _logger.LogInformation("Waiting on processing tasks...");
+                Task.WaitAll(tasks.ToArray());
+                _logger.LogInformation("Chat processed");
             }
             return Result.Ok();
+        }
+
+        private async Task ProcessMessages(TeamsBackfillCommand request, Credential credential, Chat chat, IChatMessagesCollectionPage messages)
+        {
+            foreach (var message in messages)
+            {
+                var images = new ImageProcessor().GetImages(message, Network.Teams);
+                foreach (var image in images)
+                {
+                    try
+                    {
+                        if (_store.GetImage(request.SourceId, image.FromEntityId, image.Url) == null)
+                        {
+                            try
+                            {
+                                await _rest.DownloadImage(credential, request.SourceId, image.Id, image.Url, request.Token, GetImageDirectory(request.SourceId), _tokenUrls);
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e.Message);
+                                var url = image.Url;
+                                var hostedContentIds = Regex.Matches(url, @"hostedContents\/(.+)\/\$value").GetGroupMatches();
+                                if (hostedContentIds.Length == 1)
+                                {
+                                    var hostedContent = hostedContentIds.First();
+                                    var id = ExtractUrlFromHostedContent(url, hostedContent);
+                                    if (string.IsNullOrEmpty(id.Url))
+                                    {
+                                        _logger.LogWarning($"hostedContents had no url: {Base64Decode(hostedContent)}");
+                                    }
+                                    await _rest.DownloadImage(credential, request.SourceId, image.Id, id.Url, request.Token, GetImageDirectory(request.SourceId), _tokenUrls);
+                                }
+                                else
+                                {
+                                    _logger.LogError("Unable to find hostedContent");
+                                    throw;
+                                }
+                            }
+                            image.Created = message.CreatedDateTime.Value;
+                            await _events.Add(credential, request.SourceId, image.FromEntityId, "ImageCreated", image.ToJson(), message.CreatedDateTime.Value.ToUnixTimeMilliseconds());
+                            _store.Add(request.SourceId, image);
+                            ReplaceMessageContent(message, image);
+                        }
+                        else
+                            ReplaceMessageContent(message, image);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "Could not download image");
+                    }
+                }
+            }
+            await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.ChatMessages, new TeamsMessageData { Id = chat.Id, Topic = chat.Topic }, messages.ToJson());
+        }
+
+        private HostedContentId ExtractUrlFromHostedContent(string existingUrl, string hostedContentIds)
+        {
+            var decoded = Base64Decode(hostedContentIds);
+            var split = decoded.Split(',');
+            var id = split[0].Split('=')[1];
+            var type = split[1].Split('=')[1];
+            var url = split[2].Split('=')[1];
+            return new HostedContentId
+            {
+                Type = int.Parse(type),
+                Url = url,
+                Id = id,
+            };
+        }
+
+        public string Base64Decode(string base64Encoded)
+        {
+            byte[] data = System.Convert.FromBase64String(base64Encoded);
+            return System.Text.ASCIIEncoding.ASCII.GetString(data);
+        }
+
+        private static void ReplaceMessageContent(ChatMessage message, Image image)
+        {
+            message.Body.Content = message.Body.Content.Replace(image.Url, ImageProcessor.ImagePath(image));
         }
 
         public GraphServiceClient GetGraphClient(string accessToken) {

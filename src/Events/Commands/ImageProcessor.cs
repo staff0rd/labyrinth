@@ -45,8 +45,10 @@ namespace Events
 
         public Image[] ExtractImages(string text) {
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(text);
-
+            
+            if (text != null) // can be null in the case of deleted
+                htmlDoc.LoadHtml(text);
+            
             var imgs = htmlDoc.DocumentNode.SelectNodes("//img");
 
             var images = new List<Image>();
@@ -56,29 +58,35 @@ namespace Events
                 {
                     var src = img.GetAttributeValue<string>("src", null);
                     var style = img.GetAttributeValue<string>("style", null);
-                    int width = 0;
-                    int height = 0;
-                    if (style != null) {
-                        var styleMatches = Regex.Matches(style, @"width:(\d+)(?:px)?; height:(\d+)(?:px)?")
-                            .Cast<Match>()
-                            .Single().Groups
-                            .Cast<System.Text.RegularExpressions.Group>()
-                            .Skip(1)
-                            .Select(g => g.Value)
-                            .ToArray();
-                        width = int.Parse(styleMatches[0]);
-                        height = int.Parse(styleMatches[1]);
-                    } else {
-                        width = img.GetAttributeValue<int>("width", 128);
-                        height = img.GetAttributeValue<int>("height", 128);
-                    }
+                    var (width, height) = GetDimensions(img, style);
 
-                    if (!_excludeUrls.Any(p => src.Contains(p)))
+                    if (!_excludeUrls.Any(p => src.Contains(p)) && !string.IsNullOrWhiteSpace(src))
                         images.Add(new Image { Url = src, Width = width, Height = height });
                 }
             }
 
             return images.ToArray();
+        }
+
+        private static (int width, int height) GetDimensions(HtmlNode img, string style)
+        {
+            int width = 0;
+            int height = 0;
+            if (style != null)
+            {
+                var styleMatches = Regex.Matches(style, @"width:(\d+)(?:px)?; height:(\d+)(?:px)?")
+                    .GetGroupMatches();
+                if (styleMatches.Count() == 2) {
+                    width = int.Parse(styleMatches[0]);
+                    height = int.Parse(styleMatches[1]);
+                    return (width, height);
+                }
+            }
+            
+            width = img.GetAttributeValue<int>("width", 128);
+            height = img.GetAttributeValue<int>("height", 128);
+            
+            return (width, height);
         }
     }
 }

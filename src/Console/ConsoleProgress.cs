@@ -2,13 +2,20 @@ using System;
 using System.Threading.Tasks;
 using Events;
 using ShellProgressBar;
+using Microsoft.Extensions.Logging;
 
 namespace Console
 {
     public class ConsoleProgress : IProgress
     {
+        private readonly ILogger<ConsoleProgress> _logger;
         ProgressBar _progress;
         int _ticks = 100;
+
+        public ConsoleProgress(ILogger<ConsoleProgress> logger)
+        {
+            _logger = logger;
+        }
 
         public Task New()
         {
@@ -25,18 +32,20 @@ namespace Console
             return Task.CompletedTask;
         }
 
-        public async Task Set(int value)
+        public Task Set(int value)
         {
-            if (_progress == null)
-                await New();
+            // if (_progress == null)
+            //     await New();
 
-            _progress.Tick(value);
+            _logger.LogInformation($"Progress: {value}");
+            return Task.CompletedTask;
         }
 
-        public async Task Set(int current, int total)
+        public Task Set(int current, int total)
         {
             int progress = current * 100 / total;
-            await Set(progress);
+            _logger.LogInformation($"Progress: {current}/{total}");
+            return Task.CompletedTask;
         }
     }
 }

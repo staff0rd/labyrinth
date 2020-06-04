@@ -10,13 +10,7 @@ namespace Events
         {
             var pattern = @"Connected (\d{1,2}) ((?:day|week|month|year))s? ago";
             
-            var matches = Regex.Matches(connected, pattern)
-                .Cast<Match>()
-                .Single() .Groups
-                .Cast<Group>()
-                .Skip(1)
-                .Select(g => g.Value)
-                .ToArray();
+            var matches = Regex.Matches(connected, pattern).GetGroupMatches();
 
             if (matches.Count() != 2)
                 throw new ArgumentException($"Unknown relative time: {connected}");

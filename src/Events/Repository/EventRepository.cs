@@ -105,8 +105,8 @@ namespace Events
                 var result = await Paginate(credential, sourceId, lastId, PAGE_SIZE);
                 currentSlice = result.Rows.ToArray();
 
-
-                lastId = await eventProcessor(currentSlice, totalEvents);
+                if (currentSlice.Any())
+                    lastId = await eventProcessor(currentSlice, totalEvents);
                     
             } while (currentSlice.Length == PAGE_SIZE);
         }

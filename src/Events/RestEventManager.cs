@@ -27,23 +27,19 @@ namespace Events
             _events = events;
         }
 
-        public async Task DownloadImage(Credential creds, Guid sourceId, Image image, string token, string downloadPath, string[] tokenUrls)
+        public async Task DownloadImage(Credential creds, Guid sourceId, string imageId, string imageUrl, string token, string downloadPath, string[] tokenUrls)
         {
             if (!Directory.Exists(downloadPath))
                 Directory.CreateDirectory(downloadPath);
-            
 
-            _logger.LogWarning(image.Url);
-            await Task.Delay(0);
+            IFlurlRequest url = new FlurlRequest(imageUrl);
 
-            IFlurlRequest url = new FlurlRequest(image.Url);
-            throw new NotImplementedException("Stop dupes");
-            if (tokenUrls.Any(turl => new Uri(image.Url).Host == turl))
-                url = image.Url.WithOAuthBearerToken(token);
+            if (tokenUrls.Any(turl => new Uri(imageUrl).Host == turl))
+                url = imageUrl.WithOAuthBearerToken(token);
             
             var response = await url.GetBytesAsync();
 
-            File.WriteAllBytes(Path.Combine(downloadPath, image.Id.ToString()), response);
+            File.WriteAllBytes(Path.Combine(downloadPath, imageId.ToString()), response);
         }
 
         public async Task<T> Get<T>(Credential creds, Guid sourceId, Request<T> request, object queryString, string token)
