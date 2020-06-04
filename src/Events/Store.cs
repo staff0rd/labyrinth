@@ -190,25 +190,25 @@ namespace Events
         public void Add(Guid sourceId, User user)
         {
             _store[sourceId].Users.Add(user.Id, user);
-            _logger.LogInformation($"Added user {user.Id} to {GetSourceName(sourceId)}");
+            //_logger.LogInformation($"Added user {user.Id} to {GetSourceName(sourceId)}");
         }
 
         public void Add(Guid sourceId, Message message)
         {
             _store[sourceId].Messages.Add(message.Id, message);
-            _logger.LogInformation($"Added message {message.Id} to {GetSourceName(sourceId)}");
+            //_logger.LogInformation($"Added message {message.Id} to {GetSourceName(sourceId)}");
         }
 
         public void Add(Guid sourceId, Topic topic)
         {
             _store[sourceId].Topics.Add(topic.Id, topic);
-            _logger.LogInformation($"Added topic {topic.Id} to {GetSourceName(sourceId)}");
+            //_logger.LogInformation($"Added topic {topic.Id} to {GetSourceName(sourceId)}");
         }
 
         public void Add(Guid sourceId, Image image)
         {
             _store[sourceId].Images.Add(image.Id.ToString(), image);
-            _logger.LogInformation($"Added image {image.Id} to {GetSourceName(sourceId)}");
+            //_logger.LogInformation($"Added image {image.Id} to {GetSourceName(sourceId)}");
         }
 
         public Image GetImage(Guid sourceId, string fromEntityId, string url)

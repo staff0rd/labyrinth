@@ -7,5 +7,6 @@ namespace Events
         Task New();
         Task Set(int value);
         Task Set(int current, int total);
+        void Completed(string message);
     }
 }

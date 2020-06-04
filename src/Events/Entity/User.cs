@@ -5,6 +5,7 @@ namespace Events
 {
     public class User : IExternalEntity
     {
+        public static string UnknownUserId = new Guid("00000000-abd2-4d5a-8d6b-4d9cb28c9c07").ToString();
         public string Id { get; set;}
         public string AvatarUrl { get; set; }
         public string Name { get; set;}
@@ -15,6 +16,15 @@ namespace Events
 
         public static User From(Identity user, Guid sourceId)
         {
+            if (user == null)
+            {
+                return new User {
+                    Id = UnknownUserId,
+                    Name = "Unknown",
+                    SourceId = sourceId,
+                    Network = Network.Teams,
+                };
+            }
             return new User {
                 Id = user.Id,
                 Name = user.DisplayName,

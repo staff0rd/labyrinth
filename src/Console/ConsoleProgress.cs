@@ -1,51 +1,68 @@
-using System;
 using System.Threading.Tasks;
 using Events;
-using ShellProgressBar;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Console
 {
     public class ConsoleProgress : IProgress
     {
         private readonly ILogger<ConsoleProgress> _logger;
-        ProgressBar _progress;
-        int _ticks = 100;
+        Stopwatch _stopwatch;
+        int _current;
+        int _total;
+        Timer _timer;
+        
 
         public ConsoleProgress(ILogger<ConsoleProgress> logger)
         {
             _logger = logger;
+            _timer = new Timer((_) => {
+                if (_stopwatch != null)
+                    Report();
+            }, null, 0, 1000);
+        }
+
+        public void Report() {
+            _logger.LogInformation($"Progress: {_current}/{_total}, {_stopwatch.Elapsed}");
         }
 
         public Task New()
         {
-            if (_progress != null)
-                _progress.Dispose();
-
-            var options = new ProgressBarOptions
-            {
-                ProgressCharacter = '─',
-                ProgressBarOnBottom = true
-            };
-            _progress = new ProgressBar(_ticks, "Initial message", options);
+            if (_stopwatch != null)
+                Report();
+            
+            _stopwatch = Stopwatch.StartNew();
+            _current = 0;
 
             return Task.CompletedTask;
         }
 
-        public Task Set(int value)
+        public async Task Set(int value)
         {
-            // if (_progress == null)
-            //     await New();
+            if (_stopwatch == null)
+                 await New();
 
-            _logger.LogInformation($"Progress: {value}");
-            return Task.CompletedTask;
+            _logger.LogInformation($"Progress: {value}, {_stopwatch.Elapsed}");
         }
 
-        public Task Set(int current, int total)
+        public async Task Set(int current, int total)
         {
-            int progress = current * 100 / total;
-            _logger.LogInformation($"Progress: {current}/{total}");
-            return Task.CompletedTask;
+            _current = current;
+            _total = total;
+
+            if (_stopwatch == null)
+                await New();
+
+            if (current == total)
+                Completed("Complete");
+        }
+
+        public void Completed(string message) {
+            _stopwatch.Stop();
+            _timer.Dispose();
+            _logger.LogInformation($"{message}, {_stopwatch.Elapsed}");
         }
     }
 }

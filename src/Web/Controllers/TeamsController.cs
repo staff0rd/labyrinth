@@ -40,7 +40,7 @@ namespace Web.Controllers
                 ExternalSecret = request.Token,
             });
 
-            return _mediator.Enqueue(new TeamsProcessCommand { Username = request.Username, SourceId = request.SourceId });
+            return _mediator.Enqueue(new QueueTeamsProcessCommand { LabyrinthUsername = request.Username, SourceId = request.SourceId });
         }
     }
 }

@@ -13,34 +13,37 @@ using Rest;
 
 namespace Events
 {
-    public class TeamsProcessCommandHandler : IRequestHandler<TeamsProcessCommand>
+    public class TeamsProcessCommandHandler : IRequestHandler<TeamsProcessCommand, Result>
     {
         private readonly ILogger<TeamsProcessCommandHandler> _logger;
-        private readonly CredentialCache _credentials;
         private readonly EventRepository _events;
         private readonly IProgress _progress;
         private readonly Store _store;
         private readonly RestEventManager _rest;
+        private readonly IMediator _mediator;
 
         public TeamsProcessCommandHandler(
-            ILogger<TeamsProcessCommandHandler> logger, CredentialCache credentials, Store store,
+            ILogger<TeamsProcessCommandHandler> logger, Store store, IMediator mediator,
             EventRepository events, IProgress progress, RestEventManager rest)
         {
             _logger = logger;
-            _credentials = credentials;
             _store = store;
             _events = events;
             _progress = progress;
             _rest = rest;
+            _mediator = mediator;
         }
 
-        public async Task<Unit> Handle(TeamsProcessCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(TeamsProcessCommand request, CancellationToken cancellationToken)
         {
             
             if (!_store.IsHydrated)
-                throw new Exception("Store must be hydrated first");
+            {
+                _logger.LogInformation("Hydrating store...");
+                await _mediator.Send(new HydrateCommand { LabyrinthUsername = request.LabyrinthUsername, LabyrinthPassword = request.LabyrinthPassword });
+            }
 
-            var creds = _credentials.Get(request.SourceId, request.Username);
+            var creds = new Credential(request.LabyrinthUsername, request.LabyrinthPassword);
 
             var count = await _events.GetCount(creds.Username, request.SourceId, "RestApiRequest");
 
@@ -68,8 +71,8 @@ namespace Events
                 return events.Last().Id;
             });
 
-            _logger.LogInformation("Completed processing");
-            return Unit.Value;
+            _progress.Completed("Completed processing");
+            return Result.Ok();
         }
 
         private async Task Process(Credential creds, Guid sourceId, IUserChatsCollectionPage userChatsCollectionPage)

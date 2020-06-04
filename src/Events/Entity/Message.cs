@@ -23,7 +23,7 @@ namespace Events
                 BodyPlain = message.Body.Content,
                 CreatedAt = message.CreatedDateTime?.DateTime ?? DateTimeOffset.UtcNow.DateTime,
                 Id = message.Id,
-                SenderId = message.From.User.Id,
+                SenderId = message.From.User?.Id ?? User.UnknownUserId,
                 TopicId = topicId,
                 SourceId = sourceId,
                 Network = Network.Teams,

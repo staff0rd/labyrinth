@@ -185,6 +185,7 @@ namespace Events
         {
             if (existing != null)
             {
+                return; // this is broken because of the store's object enhancement
                 CompareLogic compareLogic = new CompareLogic();
                 compareLogic.Config.MaxDifferences = 20;
                 var result = compareLogic.Compare(existing, payload);
@@ -202,7 +203,7 @@ namespace Events
             {
                 var eventName = $"{payload.GetType().Name}Created";
                 await Add(creds, sourceId, payload.Id, eventName, payload.ToJson(), timestamp);
-                _logger.LogInformation("Raised {eventName} in {sourceId}", eventName, sourceId);
+                //_logger.LogInformation("Raised {eventName} in {sourceId}", eventName, sourceId);
             }
         }
     }

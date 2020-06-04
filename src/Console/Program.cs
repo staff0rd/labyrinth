@@ -22,6 +22,7 @@ namespace Console
                     app.Command<AccountCommand>(null, null);
                     app.Command<MigrateDatabaseCommand>(null, null);
                     app.Command<BackfillCommand>(null, null);
+                    app.Command<ProcessCommand>(null, null);
                 });
             } catch (Exception e)
             {
@@ -49,7 +50,7 @@ namespace Console
                         .AddSingleton<KeyRepository>()
                         .AddSingleton<EventRepository>()
                         .AddSingleton<RestEventManager>()
-                        .AddSingleton<IProgress, ConsoleProgress>()
+                        .AddTransient<IProgress, ConsoleProgress>()
                         .AddSingleton<SourceRepository>()
                         .AddMediatR(typeof(ChangePasswordCommand).Assembly)
                         .AddSingleton<DatabaseMigrator>()

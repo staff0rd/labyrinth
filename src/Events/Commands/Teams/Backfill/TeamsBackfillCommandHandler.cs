@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -55,14 +56,21 @@ namespace Events
                 .GetAsync();
             
             await _rest.SaveResponse(credential, request.SourceId, null, TeamsRequestTypes.Chats, null, chats.ToJson());
-            
-            int i = 0;
-            
+            var i = 0;
+
             foreach (var chat in chats)
             {
-                int messageCount = 0;
+                await ProcessChat(chat, client, request, credential);
                 i++;
                 await _progress.Set(i, chats.Count);
+            }
+
+            return Result.Ok();
+        }
+
+        private async Task ProcessChat(Chat chat, GraphServiceClient client, TeamsBackfillCommand request, Credential credential)
+        {
+                int messageCount = 0;
                 var tasks = new List<Task>();
                 try {
                     var messages = await client.Me.Chats[chat.Id].Messages.Request(new [] { new QueryOption("$top", "50")}).GetAsync();
@@ -77,14 +85,12 @@ namespace Events
                 {
                     if (e.StatusCode == HttpStatusCode.Forbidden) {
                         _logger.LogError($"Access to {chat.Id} was Forbidden");
-                        continue;
+                        return;
                     }
                 }
                 _logger.LogInformation("Waiting on processing tasks...");
                 Task.WaitAll(tasks.ToArray());
                 _logger.LogInformation("Chat processed");
-            }
-            return Result.Ok();
         }
 
         private async Task ProcessMessages(TeamsBackfillCommand request, Credential credential, Chat chat, IChatMessagesCollectionPage messages)
