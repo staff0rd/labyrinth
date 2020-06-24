@@ -23,6 +23,7 @@ namespace Console
                     app.Command<MigrateDatabaseCommand>(null, null);
                     app.Command<BackfillCommand>(null, null);
                     app.Command<ProcessCommand>(null, null);
+                    app.Command<TeamsCommand>(null, null);
                 });
             } catch (Exception e)
             {
