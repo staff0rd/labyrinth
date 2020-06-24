@@ -5,7 +5,7 @@ using Events.TeamsWeb;
 namespace Console
 {
     [Command(Description="Teams commands")]
-    [Subcommand(typeof(GetOverviewQuery))]
+    [Subcommand(typeof(GetChatsQuery), typeof(Events.TeamsWeb.GetUsersQuery))]
     public class TeamsCommand {
         public void OnExecute(CommandLineApplication app) => app.ShowHelp();
     }
