@@ -23,6 +23,9 @@ namespace Events.TeamsWeb
 
         [JsonProperty("metadata")]
         public Metadata Metadata { get; set; }
+
+        [JsonProperty("skypeToken")]
+        public SkypeToken SkypeToken { get; set; }
     }
 
     public partial class Chat
@@ -69,17 +72,20 @@ namespace Events.TeamsWeb
         [JsonProperty("chatSubType")]
         public long ChatSubType { get; set; }
 
+        [JsonProperty("meetingInformation", NullValueHandling = NullValueHandling.Ignore)]
+        public MeetingInformation MeetingInformation { get; set; }
+
         [JsonProperty("lastJoinAt")]
         public DateTimeOffset LastJoinAt { get; set; }
 
-        [JsonProperty("createdAt")]
-        public DateTimeOffset CreatedAt { get; set; }
+        [JsonProperty("createdAt", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? CreatedAt { get; set; }
 
-        [JsonProperty("creator")]
+        [JsonProperty("creator", NullValueHandling = NullValueHandling.Ignore)]
         public string Creator { get; set; }
 
-        [JsonProperty("tenantId")]
-        public Guid TenantId { get; set; }
+        [JsonProperty("tenantId", NullValueHandling = NullValueHandling.Ignore)]
+        public Guid? TenantId { get; set; }
 
         [JsonProperty("hidden")]
         public bool Hidden { get; set; }
@@ -90,14 +96,11 @@ namespace Events.TeamsWeb
         [JsonProperty("interopType")]
         public long InteropType { get; set; }
 
-        [JsonProperty("isMessagingDisabled")]
-        public bool IsMessagingDisabled { get; set; }
+        [JsonProperty("isMessagingDisabled", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsMessagingDisabled { get; set; }
 
-        [JsonProperty("isMuted", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsMuted { get; set; }
-
-        [JsonProperty("extensionDefinition", NullValueHandling = NullValueHandling.Ignore)]
-        public ExtensionDefinition ExtensionDefinition { get; set; }
+        [JsonProperty("shareHistoryFromTime", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? ShareHistoryFromTime { get; set; }
 
         [JsonProperty("isDisabled")]
         public bool IsDisabled { get; set; }
@@ -114,11 +117,23 @@ namespace Events.TeamsWeb
         [JsonProperty("hasTranscript")]
         public bool HasTranscript { get; set; }
 
-        [JsonProperty("meetingInformation", NullValueHandling = NullValueHandling.Ignore)]
-        public MeetingInformation MeetingInformation { get; set; }
+        [JsonProperty("isMuted", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsMuted { get; set; }
 
-        [JsonProperty("shareHistoryFromTime", NullValueHandling = NullValueHandling.Ignore)]
-        public DateTimeOffset? ShareHistoryFromTime { get; set; }
+        [JsonProperty("lastLeaveAt", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? LastLeaveAt { get; set; }
+
+        [JsonProperty("userConsumptionHorizon", NullValueHandling = NullValueHandling.Ignore)]
+        public ConsumptionHorizon UserConsumptionHorizon { get; set; }
+
+        [JsonProperty("lastImportantMessageTime", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? LastImportantMessageTime { get; set; }
+
+        [JsonProperty("extensionDefinition", NullValueHandling = NullValueHandling.Ignore)]
+        public ExtensionDefinition ExtensionDefinition { get; set; }
+
+        [JsonProperty("tabs", NullValueHandling = NullValueHandling.Ignore)]
+        public ChatTab[] Tabs { get; set; }
     }
 
     public partial class ConsumptionHorizon
@@ -228,8 +243,32 @@ namespace Events.TeamsWeb
         [JsonProperty("patternType")]
         public long PatternType { get; set; }
 
-        [JsonProperty("weekly")]
+        [JsonProperty("weekly", NullValueHandling = NullValueHandling.Ignore)]
         public Weekly Weekly { get; set; }
+
+        [JsonProperty("daily", NullValueHandling = NullValueHandling.Ignore)]
+        public Daily Daily { get; set; }
+
+        [JsonProperty("relativeMonthly", NullValueHandling = NullValueHandling.Ignore)]
+        public RelativeMonthly RelativeMonthly { get; set; }
+    }
+
+    public partial class Daily
+    {
+        [JsonProperty("interval")]
+        public long Interval { get; set; }
+    }
+
+    public partial class RelativeMonthly
+    {
+        [JsonProperty("interval")]
+        public long Interval { get; set; }
+
+        [JsonProperty("weekOfTheMonthIndex")]
+        public long WeekOfTheMonthIndex { get; set; }
+
+        [JsonProperty("dayOfTheWeek")]
+        public long DayOfTheWeek { get; set; }
     }
 
     public partial class Weekly
@@ -246,8 +285,8 @@ namespace Events.TeamsWeb
         [JsonProperty("startDate")]
         public DateTimeOffset StartDate { get; set; }
 
-        [JsonProperty("endDate")]
-        public DateTimeOffset EndDate { get; set; }
+        [JsonProperty("endDate", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? EndDate { get; set; }
     }
 
     public partial class Member
@@ -263,6 +302,42 @@ namespace Events.TeamsWeb
 
         [JsonProperty("tenantId", NullValueHandling = NullValueHandling.Ignore)]
         public Guid? TenantId { get; set; }
+    }
+
+    public partial class ChatTab
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("name")]
+        public object Name { get; set; }
+
+        [JsonProperty("definitionId")]
+        public object DefinitionId { get; set; }
+
+        [JsonProperty("directive")]
+        public object Directive { get; set; }
+
+        [JsonProperty("tabType")]
+        public object TabType { get; set; }
+
+        [JsonProperty("order")]
+        public long Order { get; set; }
+
+        [JsonProperty("replyChainId")]
+        public long ReplyChainId { get; set; }
+
+        [JsonProperty("settings")]
+        public PurpleSettings Settings { get; set; }
+    }
+
+    public partial class PurpleSettings
+    {
+        [JsonProperty("meetingNotesPageId")]
+        public long MeetingNotesPageId { get; set; }
+
+        [JsonProperty("sharepointPath")]
+        public Uri SharepointPath { get; set; }
     }
 
     public partial class Metadata
@@ -297,11 +372,149 @@ namespace Events.TeamsWeb
 
     public partial class Properties
     {
+        [JsonProperty("consumptionhorizon", NullValueHandling = NullValueHandling.Ignore)]
+        public string Consumptionhorizon { get; set; }
+
         [JsonProperty("isemptyconversation")]
         public string Isemptyconversation { get; set; }
+    }
 
-        [JsonProperty("consumptionhorizon")]
-        public string Consumptionhorizon { get; set; }
+    public partial class SkypeToken
+    {
+        [JsonProperty("region")]
+        public string Region { get; set; }
+
+        [JsonProperty("regionGtms")]
+        public RegionGtms RegionGtms { get; set; }
+
+        [JsonProperty("tokens")]
+        public Tokens Tokens { get; set; }
+
+        [JsonProperty("regionSettings")]
+        public object RegionSettings { get; set; }
+
+        [JsonProperty("licenseDetails")]
+        public object LicenseDetails { get; set; }
+    }
+
+    public partial class RegionGtms
+    {
+        [JsonProperty("ams")]
+        public Uri Ams { get; set; }
+
+        [JsonProperty("amsV2")]
+        public Uri AmsV2 { get; set; }
+
+        [JsonProperty("appsDataLayerService")]
+        public Uri AppsDataLayerService { get; set; }
+
+        [JsonProperty("appsDataLayerServiceS2S")]
+        public Uri AppsDataLayerServiceS2S { get; set; }
+
+        [JsonProperty("calling_callControllerServiceUrl")]
+        public Uri CallingCallControllerServiceUrl { get; set; }
+
+        [JsonProperty("calling_callStoreUrl")]
+        public Uri CallingCallStoreUrl { get; set; }
+
+        [JsonProperty("calling_conversationServiceUrl")]
+        public Uri CallingConversationServiceUrl { get; set; }
+
+        [JsonProperty("calling_keyDistributionUrl")]
+        public Uri CallingKeyDistributionUrl { get; set; }
+
+        [JsonProperty("calling_potentialCallRequestUrl")]
+        public Uri CallingPotentialCallRequestUrl { get; set; }
+
+        [JsonProperty("calling_sharedLineOptionsUrl")]
+        public Uri CallingSharedLineOptionsUrl { get; set; }
+
+        [JsonProperty("calling_udpTransportUrl")]
+        public string CallingUdpTransportUrl { get; set; }
+
+        [JsonProperty("calling_uploadLogRequestUrl")]
+        public Uri CallingUploadLogRequestUrl { get; set; }
+
+        [JsonProperty("callingS2S_CallController")]
+        public Uri CallingS2SCallController { get; set; }
+
+        [JsonProperty("callingS2S_ConversationService")]
+        public Uri CallingS2SConversationService { get; set; }
+
+        [JsonProperty("callingS2S_EnterpriseProxy")]
+        public Uri CallingS2SEnterpriseProxy { get; set; }
+
+        [JsonProperty("callingS2S_MediaController")]
+        public Uri CallingS2SMediaController { get; set; }
+
+        [JsonProperty("callingS2S_PlatformMediaAgent")]
+        public Uri CallingS2SPlatformMediaAgent { get; set; }
+
+        [JsonProperty("chatService")]
+        public Uri ChatService { get; set; }
+
+        [JsonProperty("chatServiceS2S")]
+        public Uri ChatServiceS2S { get; set; }
+
+        [JsonProperty("drad")]
+        public Uri Drad { get; set; }
+
+        [JsonProperty("mailhookS2S")]
+        public Uri MailhookS2S { get; set; }
+
+        [JsonProperty("middleTier")]
+        public Uri MiddleTier { get; set; }
+
+        [JsonProperty("mtImageService")]
+        public Uri MtImageService { get; set; }
+
+        [JsonProperty("search")]
+        public Uri Search { get; set; }
+
+        [JsonProperty("searchTelemetry")]
+        public Uri SearchTelemetry { get; set; }
+
+        [JsonProperty("teamsAndChannelsService")]
+        public Uri TeamsAndChannelsService { get; set; }
+
+        [JsonProperty("teamsAndChannelsProvisioningService")]
+        public Uri TeamsAndChannelsProvisioningService { get; set; }
+
+        [JsonProperty("urlp")]
+        public Uri Urlp { get; set; }
+
+        [JsonProperty("urlpV2")]
+        public Uri UrlpV2 { get; set; }
+
+        [JsonProperty("unifiedPresence")]
+        public Uri UnifiedPresence { get; set; }
+
+        [JsonProperty("userEntitlementService")]
+        public Uri UserEntitlementService { get; set; }
+
+        [JsonProperty("userIntelligenceService")]
+        public Uri UserIntelligenceService { get; set; }
+
+        [JsonProperty("userProfileService")]
+        public Uri UserProfileService { get; set; }
+
+        [JsonProperty("userProfileServiceS2S")]
+        public Uri UserProfileServiceS2S { get; set; }
+
+        [JsonProperty("amdS2S")]
+        public Uri AmdS2S { get; set; }
+
+        [JsonProperty("chatServiceAggregator")]
+        public Uri ChatServiceAggregator { get; set; }
+    }
+
+    public partial class Tokens
+    {
+        [JsonProperty("skypeToken")]
+        public string SkypeToken { get; set; }
+
+        [JsonProperty("expiresIn")]
+        public long ExpiresIn { get; set; }
     }
 
     public partial class Team
@@ -352,7 +565,7 @@ namespace Events.TeamsWeb
         public long AccessType { get; set; }
 
         [JsonProperty("guestUsersCategory")]
-        public GuestUsersCategory? GuestUsersCategory { get; set; }
+        public GuestUsersCategory GuestUsersCategory { get; set; }
 
         [JsonProperty("dynamicMembership")]
         public bool DynamicMembership { get; set; }
@@ -405,7 +618,10 @@ namespace Events.TeamsWeb
         [JsonProperty("teamType")]
         public long TeamType { get; set; }
 
-        [JsonProperty("extensionDefinition", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("groupInformation")]
+        public GroupInformation GroupInformation { get; set; }
+
+        [JsonProperty("extensionDefinition")]
         public ExtensionDefinition ExtensionDefinition { get; set; }
 
         [JsonProperty("isArchived")]
@@ -425,12 +641,6 @@ namespace Events.TeamsWeb
 
         [JsonProperty("displayName")]
         public string DisplayName { get; set; }
-
-        [JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
-        public string Description { get; set; }
-
-        [JsonProperty("consumptionHorizon", NullValueHandling = NullValueHandling.Ignore)]
-        public ConsumptionHorizon ConsumptionHorizon { get; set; }
 
         [JsonProperty("retentionHorizon")]
         public object RetentionHorizon { get; set; }
@@ -477,23 +687,11 @@ namespace Events.TeamsWeb
         [JsonProperty("defaultFileSettings")]
         public DefaultFileSettings DefaultFileSettings { get; set; }
 
-        [JsonProperty("tabs", NullValueHandling = NullValueHandling.Ignore)]
-        public Tab[] Tabs { get; set; }
-
-        [JsonProperty("connectorProfiles", NullValueHandling = NullValueHandling.Ignore)]
-        public ConnectorProfile[] ConnectorProfiles { get; set; }
-
-        [JsonProperty("lastMessage", NullValueHandling = NullValueHandling.Ignore)]
-        public LastMessage LastMessage { get; set; }
-
         [JsonProperty("isDeleted")]
         public bool IsDeleted { get; set; }
 
         [JsonProperty("isPinned")]
         public bool IsPinned { get; set; }
-
-        [JsonProperty("lastJoinAt", NullValueHandling = NullValueHandling.Ignore)]
-        public DateTimeOffset? LastJoinAt { get; set; }
 
         [JsonProperty("memberRole")]
         public long MemberRole { get; set; }
@@ -520,7 +718,7 @@ namespace Events.TeamsWeb
         public long MembershipVersion { get; set; }
 
         [JsonProperty("membershipSummary")]
-        public MembershipSummary MembershipSummary { get; set; }
+        public object MembershipSummary { get; set; }
 
         [JsonProperty("isModerator")]
         public bool IsModerator { get; set; }
@@ -528,26 +726,38 @@ namespace Events.TeamsWeb
         [JsonProperty("groupId")]
         public Guid GroupId { get; set; }
 
-        [JsonProperty("lastImportantMessageTime", NullValueHandling = NullValueHandling.Ignore)]
-        public DateTimeOffset? LastImportantMessageTime { get; set; }
+        [JsonProperty("consumptionHorizon", NullValueHandling = NullValueHandling.Ignore)]
+        public ConsumptionHorizon ConsumptionHorizon { get; set; }
+
+        [JsonProperty("lastMessage", NullValueHandling = NullValueHandling.Ignore)]
+        public LastMessage LastMessage { get; set; }
+
+        [JsonProperty("lastJoinAt", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? LastJoinAt { get; set; }
 
         [JsonProperty("lastLeaveAt", NullValueHandling = NullValueHandling.Ignore)]
         public DateTimeOffset? LastLeaveAt { get; set; }
 
-        [JsonProperty("tenantId", NullValueHandling = NullValueHandling.Ignore)]
-        public Guid? TenantId { get; set; }
+        [JsonProperty("tabs", NullValueHandling = NullValueHandling.Ignore)]
+        public ChannelTab[] Tabs { get; set; }
 
-        [JsonProperty("memberSettings", NullValueHandling = NullValueHandling.Ignore)]
-        public Settings MemberSettings { get; set; }
+        [JsonProperty("connectorProfiles", NullValueHandling = NullValueHandling.Ignore)]
+        public ConnectorProfile[] ConnectorProfiles { get; set; }
 
-        [JsonProperty("guestSettings", NullValueHandling = NullValueHandling.Ignore)]
-        public Settings GuestSettings { get; set; }
+        [JsonProperty("userConsumptionHorizon", NullValueHandling = NullValueHandling.Ignore)]
+        public ConsumptionHorizon UserConsumptionHorizon { get; set; }
+
+        [JsonProperty("lastImportantMessageTime", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? LastImportantMessageTime { get; set; }
 
         [JsonProperty("channelSettings", NullValueHandling = NullValueHandling.Ignore)]
         public ChannelSettings ChannelSettings { get; set; }
 
-        [JsonProperty("sharepointSiteUrl", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri SharepointSiteUrl { get; set; }
+        [JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
+        public string Description { get; set; }
+
+        [JsonProperty("defaultNotesSection", NullValueHandling = NullValueHandling.Ignore)]
+        public DefaultNotesSection DefaultNotesSection { get; set; }
     }
 
     public partial class ChannelSettings
@@ -566,63 +776,6 @@ namespace Events.TeamsWeb
 
         [JsonProperty("channelConnectorsPostPermissions")]
         public long ChannelConnectorsPostPermissions { get; set; }
-
-        [JsonProperty("memberSettings")]
-        public Settings MemberSettings { get; set; }
-
-        [JsonProperty("guestSettings")]
-        public Settings GuestSettings { get; set; }
-    }
-
-    public partial class Settings
-    {
-        [JsonProperty("createTab")]
-        public bool CreateTab { get; set; }
-
-        [JsonProperty("deleteTab")]
-        public bool DeleteTab { get; set; }
-
-        [JsonProperty("createIntegration")]
-        public bool CreateIntegration { get; set; }
-
-        [JsonProperty("updateIntegration")]
-        public bool UpdateIntegration { get; set; }
-
-        [JsonProperty("deleteIntegration")]
-        public bool DeleteIntegration { get; set; }
-
-        [JsonProperty("giphyEnabled")]
-        public bool GiphyEnabled { get; set; }
-
-        [JsonProperty("stickersEnabled")]
-        public bool StickersEnabled { get; set; }
-
-        [JsonProperty("giphyRating")]
-        public long GiphyRating { get; set; }
-
-        [JsonProperty("customMemesEnabled")]
-        public bool CustomMemesEnabled { get; set; }
-
-        [JsonProperty("teamMemesEnabled")]
-        public bool TeamMemesEnabled { get; set; }
-
-        [JsonProperty("teamMention")]
-        public bool TeamMention { get; set; }
-
-        [JsonProperty("adminDeleteEnabled")]
-        public bool AdminDeleteEnabled { get; set; }
-
-        [JsonProperty("deleteEnabled")]
-        public bool DeleteEnabled { get; set; }
-
-        [JsonProperty("editEnabled")]
-        public bool EditEnabled { get; set; }
-
-        [JsonProperty("installApp")]
-        public bool InstallApp { get; set; }
-
-        [JsonProperty("uninstallApp")]
-        public bool UninstallApp { get; set; }
     }
 
     public partial class ConnectorProfile
@@ -637,7 +790,7 @@ namespace Events.TeamsWeb
         public object IncomingUrl { get; set; }
 
         [JsonProperty("connectorType")]
-        public string ConnectorType { get; set; }
+        public ConnectorType ConnectorType { get; set; }
 
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -650,6 +803,150 @@ namespace Events.TeamsWeb
 
         [JsonProperty("documentLibraryId", NullValueHandling = NullValueHandling.Ignore)]
         public DocumentLibraryId? DocumentLibraryId { get; set; }
+    }
+
+    public partial class DefaultNotesSection
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("fileStorageLocation")]
+        public Uri FileStorageLocation { get; set; }
+    }
+
+    public partial class ChannelTab
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("definitionId")]
+        public DefinitionIdUnion DefinitionId { get; set; }
+
+        [JsonProperty("directive")]
+        public Directive? Directive { get; set; }
+
+        [JsonProperty("tabType")]
+        public TabType? TabType { get; set; }
+
+        [JsonProperty("order")]
+        public double Order { get; set; }
+
+        [JsonProperty("replyChainId")]
+        public long ReplyChainId { get; set; }
+
+        [JsonProperty("settings")]
+        public FluffySettings Settings { get; set; }
+    }
+
+    public partial class FluffySettings
+    {
+        [JsonProperty("subtype", NullValueHandling = NullValueHandling.Ignore)]
+        public Subtype? Subtype { get; set; }
+
+        [JsonProperty("wikiTabId", NullValueHandling = NullValueHandling.Ignore)]
+        public long? WikiTabId { get; set; }
+
+        [JsonProperty("meetingNotes", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? MeetingNotes { get; set; }
+
+        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        [JsonProperty("title", NullValueHandling = NullValueHandling.Ignore)]
+        public string Title { get; set; }
+
+        [JsonProperty("sectionUrl", NullValueHandling = NullValueHandling.Ignore)]
+        public Uri SectionUrl { get; set; }
+
+        [JsonProperty("service", NullValueHandling = NullValueHandling.Ignore)]
+        public string Service { get; set; }
+
+        [JsonProperty("hasContent", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? HasContent { get; set; }
+
+        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
+        public string Url { get; set; }
+
+        [JsonProperty("websiteUrl", NullValueHandling = NullValueHandling.Ignore)]
+        public string WebsiteUrl { get; set; }
+
+        [JsonProperty("removeUrl", NullValueHandling = NullValueHandling.Ignore)]
+        public string RemoveUrl { get; set; }
+
+        [JsonProperty("entityId", NullValueHandling = NullValueHandling.Ignore)]
+        public string EntityId { get; set; }
+
+        [JsonProperty("wikiTabName", NullValueHandling = NullValueHandling.Ignore)]
+        public string WikiTabName { get; set; }
+
+        [JsonProperty("wikiDefaultTab", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? WikiDefaultTab { get; set; }
+
+        [JsonProperty("dateAdded", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? DateAdded { get; set; }
+
+        [JsonProperty("name", NullValueHandling = NullValueHandling.Ignore)]
+        public string Name { get; set; }
+
+        [JsonProperty("meetingNotesPageId", NullValueHandling = NullValueHandling.Ignore)]
+        public long? MeetingNotesPageId { get; set; }
+
+        [JsonProperty("sharepointPath", NullValueHandling = NullValueHandling.Ignore)]
+        public Uri SharepointPath { get; set; }
+
+        [JsonProperty("isPrivateMeetingWiki", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsPrivateMeetingWiki { get; set; }
+
+        [JsonProperty("file", NullValueHandling = NullValueHandling.Ignore)]
+        public string File { get; set; }
+
+        [JsonProperty("reports", NullValueHandling = NullValueHandling.Ignore)]
+        public Guid? Reports { get; set; }
+
+        [JsonProperty("originatingTeam", NullValueHandling = NullValueHandling.Ignore)]
+        public string OriginatingTeam { get; set; }
+
+        [JsonProperty("originatingTeamId", NullValueHandling = NullValueHandling.Ignore)]
+        public string OriginatingTeamId { get; set; }
+
+        [JsonProperty("isMyWiki", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsMyWiki { get; set; }
+
+        [JsonProperty("scenarioName", NullValueHandling = NullValueHandling.Ignore)]
+        public ScenarioName? ScenarioName { get; set; }
+
+        [JsonProperty("siteUrl", NullValueHandling = NullValueHandling.Ignore)]
+        public Uri SiteUrl { get; set; }
+
+        [JsonProperty("libraryServerRelativeUrl", NullValueHandling = NullValueHandling.Ignore)]
+        public string LibraryServerRelativeUrl { get; set; }
+
+        [JsonProperty("libraryId", NullValueHandling = NullValueHandling.Ignore)]
+        public string LibraryId { get; set; }
+
+        [JsonProperty("selectedDocumentLibraryTitle", NullValueHandling = NullValueHandling.Ignore)]
+        public string SelectedDocumentLibraryTitle { get; set; }
+
+        [JsonProperty("selectedSiteImageUrl", NullValueHandling = NullValueHandling.Ignore)]
+        public string SelectedSiteImageUrl { get; set; }
+
+        [JsonProperty("selectedSiteTitle", NullValueHandling = NullValueHandling.Ignore)]
+        public string SelectedSiteTitle { get; set; }
+
+        [JsonProperty("objectId", NullValueHandling = NullValueHandling.Ignore)]
+        public string ObjectId { get; set; }
+    }
+
+    public partial class GroupInformation
+    {
+        [JsonProperty("isEligibleForRenewal")]
+        public bool IsEligibleForRenewal { get; set; }
+
+        [JsonProperty("expirationTime")]
+        public DateTimeOffset ExpirationTime { get; set; }
     }
 
     public partial class MembershipSummary
@@ -671,96 +968,6 @@ namespace Events.TeamsWeb
 
         [JsonProperty("guestRoleCount", NullValueHandling = NullValueHandling.Ignore)]
         public long? GuestRoleCount { get; set; }
-    }
-
-    public partial class Tab
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("definitionId")]
-        public DefinitionIdUnion DefinitionId { get; set; }
-
-        [JsonProperty("directive")]
-        public Directive Directive { get; set; }
-
-        [JsonProperty("tabType")]
-        public TabType TabType { get; set; }
-
-        [JsonProperty("order")]
-        public long Order { get; set; }
-
-        [JsonProperty("replyChainId")]
-        public long ReplyChainId { get; set; }
-
-        [JsonProperty("settings")]
-        public SettingsClass Settings { get; set; }
-    }
-
-    public partial class SettingsClass
-    {
-        [JsonProperty("wikiTabId", NullValueHandling = NullValueHandling.Ignore)]
-        public long? WikiTabId { get; set; }
-
-        [JsonProperty("wikiDefaultTab", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? WikiDefaultTab { get; set; }
-
-        [JsonProperty("hasContent", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? HasContent { get; set; }
-
-        [JsonProperty("subtype", NullValueHandling = NullValueHandling.Ignore)]
-        public Subtype? Subtype { get; set; }
-
-        [JsonProperty("isPrivateMeetingWiki", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsPrivateMeetingWiki { get; set; }
-
-        [JsonProperty("meetingNotes", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? MeetingNotes { get; set; }
-
-        [JsonProperty("scenarioName", NullValueHandling = NullValueHandling.Ignore)]
-        public string ScenarioName { get; set; }
-
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public string Url { get; set; }
-
-        [JsonProperty("websiteUrl", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri WebsiteUrl { get; set; }
-
-        [JsonProperty("removeUrl")]
-        public string RemoveUrl { get; set; }
-
-        [JsonProperty("entityId", NullValueHandling = NullValueHandling.Ignore)]
-        public string EntityId { get; set; }
-
-        [JsonProperty("dateAdded", NullValueHandling = NullValueHandling.Ignore)]
-        public DateTimeOffset? DateAdded { get; set; }
-
-        [JsonProperty("objectId")]
-        public string ObjectId { get; set; }
-
-        [JsonProperty("file", NullValueHandling = NullValueHandling.Ignore)]
-        public string File { get; set; }
-
-        [JsonProperty("siteUrl", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri SiteUrl { get; set; }
-
-        [JsonProperty("libraryServerRelativeUrl", NullValueHandling = NullValueHandling.Ignore)]
-        public string LibraryServerRelativeUrl { get; set; }
-
-        [JsonProperty("libraryId", NullValueHandling = NullValueHandling.Ignore)]
-        public string LibraryId { get; set; }
-
-        [JsonProperty("selectedDocumentLibraryTitle", NullValueHandling = NullValueHandling.Ignore)]
-        public string SelectedDocumentLibraryTitle { get; set; }
-
-        [JsonProperty("selectedSiteImageUrl", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri SelectedSiteImageUrl { get; set; }
-
-        [JsonProperty("selectedSiteTitle", NullValueHandling = NullValueHandling.Ignore)]
-        public string SelectedSiteTitle { get; set; }
     }
 
     public partial class TeamSettings
@@ -871,23 +1078,27 @@ namespace Events.TeamsWeb
         public long? TeamNotebookCreationStatus { get; set; }
     }
 
-    public enum ChatType { Chat, Meeting };
+    public enum ChatType { Chat, Meeting, Sfbinteropchat };
 
     public enum InteropConversationStatus { None };
 
-    public enum MessageType { RichTextHtml, Text };
+    public enum MessageType { RichTextHtml, RichTextMediaCallRecording, RichTextMediaCard, Text, ThreadActivityAddMember };
 
     public enum TypeEnum { Message };
 
-    public enum Role { Admin, Guest, User };
+    public enum Role { Admin, Anonymous, Guest, User };
+
+    public enum ConnectorType { Incoming };
 
     public enum DocumentLibraryId { Default };
 
-    public enum DefinitionIdEnum { ComMicrosoftTeamspaceTabFileStaticviewerExcel, ComMicrosoftTeamspaceTabFileStaticviewerPdf, ComMicrosoftTeamspaceTabFileStaticviewerWord, ComMicrosoftTeamspaceTabFilesSharepoint, ComMicrosoftTeamspaceTabPlanner, ComMicrosoftTeamspaceTabVsts, ComMicrosoftTeamspaceTabWeb, ComMicrosoftTeamspaceTabWiki, ComMicrosoftstreamEmbedSkypeteamstab };
+    public enum DefinitionIdEnum { ComMicrosoftTeamspaceTabFileStaticviewerExcel, ComMicrosoftTeamspaceTabFileStaticviewerPdf, ComMicrosoftTeamspaceTabFileStaticviewerWord, ComMicrosoftTeamspaceTabFilesSharepoint, ComMicrosoftTeamspaceTabNotes, ComMicrosoftTeamspaceTabPlanner, ComMicrosoftTeamspaceTabPowerbi, ComMicrosoftTeamspaceTabVsts, ComMicrosoftTeamspaceTabWeb, ComMicrosoftTeamspaceTabWiki, ComMicrosoftstreamEmbedSkypeteamstab };
 
     public enum Directive { ExtensionTab, FilesCustomSpoTab, FilesPinTab, WebpageTab };
 
-    public enum Subtype { Excelpin, Extension, Pdfpin, Sharepointfiles, Webpage, WikiTab, Wordpin };
+    public enum ScenarioName { WikiInitContext };
+
+    public enum Subtype { Excelpin, Extension, Notes, Pdfpin, Powerbi, Sharepointfiles, Webpage, WikiTab, Wordpin };
 
     public enum TabType { Tab };
 
@@ -904,6 +1115,7 @@ namespace Events.TeamsWeb
 
         public static implicit operator DefinitionIdUnion(DefinitionIdEnum Enum) => new DefinitionIdUnion { Enum = Enum };
         public static implicit operator DefinitionIdUnion(Guid Uuid) => new DefinitionIdUnion { Uuid = Uuid };
+        public bool IsNull => Enum == null && Uuid == null;
     }
 
     internal static class Converter
@@ -919,10 +1131,12 @@ namespace Events.TeamsWeb
                 MessageTypeConverter.Singleton,
                 TypeEnumConverter.Singleton,
                 RoleConverter.Singleton,
+                ConnectorTypeConverter.Singleton,
                 DocumentLibraryIdConverter.Singleton,
                 DefinitionIdUnionConverter.Singleton,
                 DefinitionIdEnumConverter.Singleton,
                 DirectiveConverter.Singleton,
+                ScenarioNameConverter.Singleton,
                 SubtypeConverter.Singleton,
                 TabTypeConverter.Singleton,
                 ThreadSchemaVersionConverter.Singleton,
@@ -947,6 +1161,8 @@ namespace Events.TeamsWeb
                     return ChatType.Chat;
                 case "meeting":
                     return ChatType.Meeting;
+                case "sfbinteropchat":
+                    return ChatType.Sfbinteropchat;
             }
             throw new Exception("Cannot unmarshal type ChatType");
         }
@@ -966,6 +1182,9 @@ namespace Events.TeamsWeb
                     return;
                 case ChatType.Meeting:
                     serializer.Serialize(writer, "meeting");
+                    return;
+                case ChatType.Sfbinteropchat:
+                    serializer.Serialize(writer, "sfbinteropchat");
                     return;
             }
             throw new Exception("Cannot marshal type ChatType");
@@ -1020,8 +1239,14 @@ namespace Events.TeamsWeb
             {
                 case "RichText/Html":
                     return MessageType.RichTextHtml;
+                case "RichText/Media_CallRecording":
+                    return MessageType.RichTextMediaCallRecording;
+                case "RichText/Media_Card":
+                    return MessageType.RichTextMediaCard;
                 case "Text":
                     return MessageType.Text;
+                case "ThreadActivity/AddMember":
+                    return MessageType.ThreadActivityAddMember;
             }
             throw new Exception("Cannot unmarshal type MessageType");
         }
@@ -1039,8 +1264,17 @@ namespace Events.TeamsWeb
                 case MessageType.RichTextHtml:
                     serializer.Serialize(writer, "RichText/Html");
                     return;
+                case MessageType.RichTextMediaCallRecording:
+                    serializer.Serialize(writer, "RichText/Media_CallRecording");
+                    return;
+                case MessageType.RichTextMediaCard:
+                    serializer.Serialize(writer, "RichText/Media_Card");
+                    return;
                 case MessageType.Text:
                     serializer.Serialize(writer, "Text");
+                    return;
+                case MessageType.ThreadActivityAddMember:
+                    serializer.Serialize(writer, "ThreadActivity/AddMember");
                     return;
             }
             throw new Exception("Cannot marshal type MessageType");
@@ -1095,6 +1329,8 @@ namespace Events.TeamsWeb
             {
                 case "Admin":
                     return Role.Admin;
+                case "Anonymous":
+                    return Role.Anonymous;
                 case "Guest":
                     return Role.Guest;
                 case "User":
@@ -1116,6 +1352,9 @@ namespace Events.TeamsWeb
                 case Role.Admin:
                     serializer.Serialize(writer, "Admin");
                     return;
+                case Role.Anonymous:
+                    serializer.Serialize(writer, "Anonymous");
+                    return;
                 case Role.Guest:
                     serializer.Serialize(writer, "Guest");
                     return;
@@ -1127,6 +1366,40 @@ namespace Events.TeamsWeb
         }
 
         public static readonly RoleConverter Singleton = new RoleConverter();
+    }
+
+    internal class ConnectorTypeConverter : JsonConverter
+    {
+        public override bool CanConvert(Type t) => t == typeof(ConnectorType) || t == typeof(ConnectorType?);
+
+        public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.Null) return null;
+            var value = serializer.Deserialize<string>(reader);
+            if (value == "Incoming")
+            {
+                return ConnectorType.Incoming;
+            }
+            throw new Exception("Cannot unmarshal type ConnectorType");
+        }
+
+        public override void WriteJson(JsonWriter writer, object untypedValue, JsonSerializer serializer)
+        {
+            if (untypedValue == null)
+            {
+                serializer.Serialize(writer, null);
+                return;
+            }
+            var value = (ConnectorType)untypedValue;
+            if (value == ConnectorType.Incoming)
+            {
+                serializer.Serialize(writer, "Incoming");
+                return;
+            }
+            throw new Exception("Cannot marshal type ConnectorType");
+        }
+
+        public static readonly ConnectorTypeConverter Singleton = new ConnectorTypeConverter();
     }
 
     internal class DocumentLibraryIdConverter : JsonConverter
@@ -1171,6 +1444,8 @@ namespace Events.TeamsWeb
         {
             switch (reader.TokenType)
             {
+                case JsonToken.Null:
+                    return new DefinitionIdUnion { };
                 case JsonToken.String:
                 case JsonToken.Date:
                     var stringValue = serializer.Deserialize<string>(reader);
@@ -1184,8 +1459,12 @@ namespace Events.TeamsWeb
                             return new DefinitionIdUnion { Enum = DefinitionIdEnum.ComMicrosoftTeamspaceTabFileStaticviewerWord };
                         case "com.microsoft.teamspace.tab.files.sharepoint":
                             return new DefinitionIdUnion { Enum = DefinitionIdEnum.ComMicrosoftTeamspaceTabFilesSharepoint };
+                        case "com.microsoft.teamspace.tab.notes":
+                            return new DefinitionIdUnion { Enum = DefinitionIdEnum.ComMicrosoftTeamspaceTabNotes };
                         case "com.microsoft.teamspace.tab.planner":
                             return new DefinitionIdUnion { Enum = DefinitionIdEnum.ComMicrosoftTeamspaceTabPlanner };
+                        case "com.microsoft.teamspace.tab.powerbi":
+                            return new DefinitionIdUnion { Enum = DefinitionIdEnum.ComMicrosoftTeamspaceTabPowerbi };
                         case "com.microsoft.teamspace.tab.vsts":
                             return new DefinitionIdUnion { Enum = DefinitionIdEnum.ComMicrosoftTeamspaceTabVsts };
                         case "com.microsoft.teamspace.tab.web":
@@ -1208,6 +1487,11 @@ namespace Events.TeamsWeb
         public override void WriteJson(JsonWriter writer, object untypedValue, JsonSerializer serializer)
         {
             var value = (DefinitionIdUnion)untypedValue;
+            if (value.IsNull)
+            {
+                serializer.Serialize(writer, null);
+                return;
+            }
             if (value.Enum != null)
             {
                 switch (value.Enum)
@@ -1224,8 +1508,14 @@ namespace Events.TeamsWeb
                     case DefinitionIdEnum.ComMicrosoftTeamspaceTabFilesSharepoint:
                         serializer.Serialize(writer, "com.microsoft.teamspace.tab.files.sharepoint");
                         return;
+                    case DefinitionIdEnum.ComMicrosoftTeamspaceTabNotes:
+                        serializer.Serialize(writer, "com.microsoft.teamspace.tab.notes");
+                        return;
                     case DefinitionIdEnum.ComMicrosoftTeamspaceTabPlanner:
                         serializer.Serialize(writer, "com.microsoft.teamspace.tab.planner");
+                        return;
+                    case DefinitionIdEnum.ComMicrosoftTeamspaceTabPowerbi:
+                        serializer.Serialize(writer, "com.microsoft.teamspace.tab.powerbi");
                         return;
                     case DefinitionIdEnum.ComMicrosoftTeamspaceTabVsts:
                         serializer.Serialize(writer, "com.microsoft.teamspace.tab.vsts");
@@ -1270,8 +1560,12 @@ namespace Events.TeamsWeb
                     return DefinitionIdEnum.ComMicrosoftTeamspaceTabFileStaticviewerWord;
                 case "com.microsoft.teamspace.tab.files.sharepoint":
                     return DefinitionIdEnum.ComMicrosoftTeamspaceTabFilesSharepoint;
+                case "com.microsoft.teamspace.tab.notes":
+                    return DefinitionIdEnum.ComMicrosoftTeamspaceTabNotes;
                 case "com.microsoft.teamspace.tab.planner":
                     return DefinitionIdEnum.ComMicrosoftTeamspaceTabPlanner;
+                case "com.microsoft.teamspace.tab.powerbi":
+                    return DefinitionIdEnum.ComMicrosoftTeamspaceTabPowerbi;
                 case "com.microsoft.teamspace.tab.vsts":
                     return DefinitionIdEnum.ComMicrosoftTeamspaceTabVsts;
                 case "com.microsoft.teamspace.tab.web":
@@ -1306,8 +1600,14 @@ namespace Events.TeamsWeb
                 case DefinitionIdEnum.ComMicrosoftTeamspaceTabFilesSharepoint:
                     serializer.Serialize(writer, "com.microsoft.teamspace.tab.files.sharepoint");
                     return;
+                case DefinitionIdEnum.ComMicrosoftTeamspaceTabNotes:
+                    serializer.Serialize(writer, "com.microsoft.teamspace.tab.notes");
+                    return;
                 case DefinitionIdEnum.ComMicrosoftTeamspaceTabPlanner:
                     serializer.Serialize(writer, "com.microsoft.teamspace.tab.planner");
+                    return;
+                case DefinitionIdEnum.ComMicrosoftTeamspaceTabPowerbi:
+                    serializer.Serialize(writer, "com.microsoft.teamspace.tab.powerbi");
                     return;
                 case DefinitionIdEnum.ComMicrosoftTeamspaceTabVsts:
                     serializer.Serialize(writer, "com.microsoft.teamspace.tab.vsts");
@@ -1379,6 +1679,40 @@ namespace Events.TeamsWeb
         public static readonly DirectiveConverter Singleton = new DirectiveConverter();
     }
 
+    internal class ScenarioNameConverter : JsonConverter
+    {
+        public override bool CanConvert(Type t) => t == typeof(ScenarioName) || t == typeof(ScenarioName?);
+
+        public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.Null) return null;
+            var value = serializer.Deserialize<string>(reader);
+            if (value == "wiki_init_context")
+            {
+                return ScenarioName.WikiInitContext;
+            }
+            throw new Exception("Cannot unmarshal type ScenarioName");
+        }
+
+        public override void WriteJson(JsonWriter writer, object untypedValue, JsonSerializer serializer)
+        {
+            if (untypedValue == null)
+            {
+                serializer.Serialize(writer, null);
+                return;
+            }
+            var value = (ScenarioName)untypedValue;
+            if (value == ScenarioName.WikiInitContext)
+            {
+                serializer.Serialize(writer, "wiki_init_context");
+                return;
+            }
+            throw new Exception("Cannot marshal type ScenarioName");
+        }
+
+        public static readonly ScenarioNameConverter Singleton = new ScenarioNameConverter();
+    }
+
     internal class SubtypeConverter : JsonConverter
     {
         public override bool CanConvert(Type t) => t == typeof(Subtype) || t == typeof(Subtype?);
@@ -1393,8 +1727,12 @@ namespace Events.TeamsWeb
                     return Subtype.Excelpin;
                 case "extension":
                     return Subtype.Extension;
+                case "notes":
+                    return Subtype.Notes;
                 case "pdfpin":
                     return Subtype.Pdfpin;
+                case "powerbi":
+                    return Subtype.Powerbi;
                 case "sharepointfiles":
                     return Subtype.Sharepointfiles;
                 case "webpage":
@@ -1423,8 +1761,14 @@ namespace Events.TeamsWeb
                 case Subtype.Extension:
                     serializer.Serialize(writer, "extension");
                     return;
+                case Subtype.Notes:
+                    serializer.Serialize(writer, "notes");
+                    return;
                 case Subtype.Pdfpin:
                     serializer.Serialize(writer, "pdfpin");
+                    return;
+                case Subtype.Powerbi:
+                    serializer.Serialize(writer, "powerbi");
                     return;
                 case Subtype.Sharepointfiles:
                     serializer.Serialize(writer, "sharepointfiles");

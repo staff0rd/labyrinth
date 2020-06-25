@@ -8,12 +8,15 @@ namespace Events.TeamsWeb
 {
 
     [Command(Name="chats", Description="List chats")]
-    public class GetChatsQuery : ResultCommand<ChatOverview[]>
+    [TokenOrTokenFileRequired]
+    public class GetChatsQuery : ResultCommand<ChatOverview[]>, ITokenOrTokenFile
     {
-        [Required]
         [Option("-t|--token", CommandOptionType.SingleValue, Description = "Token")]
         public string Token { get; set; }
-        
+
+        [Option("-f|--token-file", CommandOptionType.SingleValue, Description = "Token File")]
+        public string TokenFile { get; set; }
+
         protected override void DisplayResult(ChatOverview[] result)
         {
             ConsoleTable

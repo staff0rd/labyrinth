@@ -6,6 +6,7 @@ using McMaster.Extensions.CommandLineUtils;
 namespace Events.TeamsWeb
 {
     [Command(Name="users", Description="Get Users by Id")]
+    [TokenOrTokenFileRequired]
     public class GetUsersQuery : ResultCommand<FetchShortProfile>
     {
         [Required]
@@ -21,6 +22,7 @@ namespace Events.TeamsWeb
             var users = result.Value
                 .Select(p => new {
                     p.DisplayName,
+                    p.GivenName,
                     p.Email,
                     p.JobTitle,
                     p.UserLocation,

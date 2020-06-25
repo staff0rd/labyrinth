@@ -20,9 +20,10 @@ namespace Events.TeamsWeb
         const string OVERVIEW_URL = "https://teams.microsoft.com/api/csa/api/v1/teams/users/me?isPrefetch=false&enableMembershipSummary=true";
         public async Task<Result<ChatOverview[]>> Handle(GetChatsQuery request, CancellationToken cancellationToken)
         {
+            var token = request.GetToken();
             FlurlHttp.Configure(settings => settings.JsonSerializer = new NewtonsoftJsonSerializer(Converter.Settings));
             var response = await new FlurlRequest(OVERVIEW_URL)
-                .WithOAuthBearerToken(request.Token)
+                .WithOAuthBearerToken(token)
                 .GetAsync()
                 .ReceiveJson<Overview>();
 
@@ -41,12 +42,12 @@ namespace Events.TeamsWeb
                 .OrderByDescending(g => g.Count())
                 .First().Key;
 
-            var users = await _mediator.Send(new GetUsersQuery { Token = request.Token, UserIds = members });
+            var users = await _mediator.Send(new GetUsersQuery { Token = token, UserIds = members });
             
             var conversations = chats
                 .OrderByDescending(p => p.LastMessage.ComposeTime)
                 .Select(p => new ChatOverview {
-                    Author = GetAuthor(p, me, users),
+                    Author = Truncate(GetAuthor(p, me, users)),
                     Time = p.LastMessage?.ComposeTime?.ToLocalTime(),
                     LastMessage = Truncate(p.LastMessage?.Content?.Replace("\n", "").Replace("\r", ""))
                 })
@@ -63,7 +64,11 @@ namespace Events.TeamsWeb
             var notMe = chat.Members
                 .Where(p => p.Mri != me)
                 .Select(p => {
-                    var user = users.Response.Value.First(u => u.Mri == p.Mri);
+                    var user = users.Response.Value.FirstOrDefault(u => u.Mri == p.Mri);
+                    
+                    if (user == null)
+                        return new { GivenName = "Unknown", DisplayName = "Unknown"};
+
                     return new {
                         user.GivenName,
                         user.DisplayName
