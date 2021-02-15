@@ -50,6 +50,7 @@ namespace Console
                         .AddSingleton<KeyRepository>()
                         .AddSingleton<EventRepository>()
                         .AddSingleton<RestEventManager>()
+                        .AddTransient<IRequestHandler<HydrateEntityCommand<User>>, HydrateEntityCommandHandler<User>>()
                         .AddTransient<IProgress, ConsoleProgress>()
                         .AddSingleton<SourceRepository>()
                         .AddMediatR(typeof(ChangePasswordCommand).Assembly)

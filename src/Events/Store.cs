@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -20,12 +21,14 @@ namespace Events
         public List<Source> Sources { get; private set; } = new List<Source>();
 
         public Dictionary<Guid, NetworkStore> _store;
+        private readonly IMediator _mediator;
 
-        public Store(EventRepository events, ILogger<Store> logger, IProgress progress) {
+        public Store(EventRepository events, ILogger<Store> logger, IProgress progress, IMediator mediator) {
             _events = events;
             _logger = logger;
             _progress = progress;
             _store = new Dictionary<Guid, NetworkStore>();
+            _mediator = mediator;
         }
 
         public void UpdateSources(IEnumerable<Source> sources)
@@ -58,25 +61,6 @@ namespace Events
             }).ToArray();
         }
 
-        public Func<Event[], int, Task<int>> FillFromEvents<T>(Dictionary<string, T> dictionary) where T : IExternalEntity
-        {
-            var count = 0;
-            return (events, totalCount) => {
-                var eventName = $"{typeof(T).Name}Created";
-                var deserialized = events
-                    .Where(p => p.EventName == eventName)
-                    .Select(p => JsonConvert.DeserializeObject<T>(p.Body))
-                    .ToList();
-                foreach (var item in deserialized) {
-                    count++;
-                    _progress.Set(count, totalCount);
-                    if (!dictionary.ContainsKey(item.Id))
-                        dictionary.Add(item.Id, item);
-                }
-                return Task.FromResult(events.Last().Id);
-            };
-        }
-
         public async Task Hydrate(Credential credential)
         {
             foreach (var source in Sources)
@@ -85,20 +69,20 @@ namespace Events
                 {
                     case (Network.Yammer):
                     {
-                        await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
-                        await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
+                        await _mediator.Send(new HydrateEntityCommand<User>(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users));
+                        await _mediator.Send(new HydrateEntityCommand<Message>(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages));
                         break;
                     }
                     case (Network.LinkedIn): {
-                        await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
+                        await _mediator.Send(new HydrateEntityCommand<User>(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users));
                         break;
                     }
                     case (Network.Teams):
                         {
-                            await Hydrate(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users);
-                            await Hydrate(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages);
-                            await Hydrate(credential, $"{source.Name} topics", source.Id, "TopicCreated", _store[source.Id].Topics);
-                            await Hydrate(credential, $"{source.Name} images", source.Id, "ImageCreated", _store[source.Id].Images);
+                            await _mediator.Send(new HydrateEntityCommand<User>(credential, $"{source.Name} users", source.Id, "UserCreated", _store[source.Id].Users));
+                            await _mediator.Send(new HydrateEntityCommand<Message>(credential, $"{source.Name} messages", source.Id, "MessageCreated", _store[source.Id].Messages));
+                            await _mediator.Send(new HydrateEntityCommand<Topic>(credential, $"{source.Name} topics", source.Id, "TopicCreated", _store[source.Id].Topics));
+                            await _mediator.Send(new HydrateEntityCommand<Image>(credential, $"{source.Name} images", source.Id, "ImageCreated", _store[source.Id].Images));
                             break;
                         }
                     default: throw new NotImplementedException(source.Network.ToString());
@@ -161,20 +145,6 @@ namespace Events
         internal Image[] GetImages(Guid sourceId, string id)
         {
             return _store[sourceId].Images.Select(i => i.Value).Where(p => p.FromEntityId == id).ToArray();
-        }
-
-        private async Task Hydrate<T>(Credential credential, string entityType, Guid sourceId, string eventType, Dictionary<string, T> dictionary)
-            where T : IExternalEntity
-        {
-            var count = await _events.GetCount(credential.Username, sourceId, eventType);
-            if (count == 0)
-                return;
-            _logger.LogInformation($"Hydrating {entityType}...");
-            var sw = Stopwatch.StartNew();
-            await _progress.New();
-            Func<Event[], int, Task<int>> eventProcessor = FillFromEvents<T>(dictionary);
-            await _events.ReadForward(credential, sourceId, count, eventProcessor);
-            Log(sw.Elapsed, sourceId, dictionary.Count);
         }
 
         private void Log(TimeSpan time, Guid sourceId, int count)
